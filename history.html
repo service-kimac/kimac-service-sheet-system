@@ -625,15 +625,15 @@ async function chgPwd(){
 }
 
 function exportCSV(){
-  const jj=CP?.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  var jj=CP&&CP.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
   if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
-  const h=['เลขใบงาน','วันที่','บริษัท','ช่าง','เครื่อง','ยอดรวม','สถานะ'];
-  const rows=jj.map(j=>[j.job_no||'',j.service_date||'',j.company||'',j.technician_name||'',j.machine_name||'',j.total||0,j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'ร่าง']);
-  const csv=[h,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('
-');
-  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`KIMAC_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  var h=['เลขใบงาน','วันที่','บริษัท','ช่าง','เครื่อง','ยอดรวม','สถานะ'];
+  var rows=jj.map(j=>[j.job_no||'',j.service_date||'',j.company||'',j.technician_name||'',j.machine_name||'',j.total||0,j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'ร่าง']);
+  var csv=[h].concat(rows).map(r=>r.map(v=>'"'+String(v)+'"').join(',')).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var d=new Date().toISOString().split('T')[0];
+  var a=document.createElement('a');a.href=url;a.download='KIMAC_'+d+'.csv';a.click();
   URL.revokeObjectURL(url);toast('✅ Export สำเร็จ','ok');
 }
 
