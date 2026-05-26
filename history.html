@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KIMAC">
+<meta name="theme-color" content="#1a3a6e">
+<link rel="manifest" href="manifest.json">
+<title>KIMAC — ใบงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
+  min-height:100vh;padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+
+.topbar{position:sticky;top:0;z-index:100;
+  background:linear-gradient(135deg,#0f2347,#1a3a6e);
+  padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 16px rgba(0,0,0,.25)}
+.tb-l{display:flex;align-items:center;gap:10px}
+.tb-l img{width:34px;height:24px;object-fit:contain;border-radius:3px}
+.tb-title{color:#fff;font-size:17px;font-weight:800;letter-spacing:1.5px}
+.tb-r{display:flex;align-items:center;gap:8px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#f9c900;
+  color:#1a3a6e;font-weight:800;font-size:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.uinfo{line-height:1.3;color:#fff;cursor:pointer}
+.uname{font-size:12px;font-weight:700;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.urole{font-size:10px;opacity:.7}
+.btn-out{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+.stats{background:#1a3a6e;display:flex;overflow-x:auto;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat{flex:1;min-width:80px;padding:10px 8px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.1)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:20px;font-weight:800;color:#f9c900}
+.stat-l{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
+
+/* FILTER BAR */
+.filter-bar{background:#1a3a6e;padding:8px 12px;display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.fb-label{color:rgba(255,255,255,.7);font-size:11px;white-space:nowrap}
+.fb-select{padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:8px;
+  font-family:'Sarabun',sans-serif;font-size:12px;color:#fff;
+  background:rgba(255,255,255,.1);outline:none;cursor:pointer}
+.fb-select option{color:#1a1a2e;background:#fff}
+
+.page{display:none;padding:12px;max-width:800px;margin:0 auto}
+.page.active{display:block}
+
+.bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.srch{flex:1;min-width:150px;position:relative}
+.srch input{width:100%;padding:10px 12px 10px 34px;border:2px solid #e2e8f8;
+  border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;
+  background:#fff;outline:none;-webkit-appearance:none;color:#1a1a2e}
+.srch input:focus{border-color:#1a3a6e}
+.srch::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px}
+.btn-new{padding:10px 16px;background:linear-gradient(135deg,#1a3a6e,#2a5298);
+  color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+/* JOB CARDS */
+.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff;cursor:pointer}
+.card:active{transform:scale(.99);opacity:.9}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.cjno{font-size:14px;font-weight:800;color:#1a3a6e}
+.cdate{font-size:11px;color:#888;margin-top:2px}
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.draft{background:#fef3c7;color:#92400e}
+.completed{background:#d1fae5;color:#065f46}
+.approved{background:#dbeafe;color:#1e40af}
+.cb{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
+.ci{font-size:11px;color:#555}
+.ci b{color:#1a3a6e}
+.cf{display:flex;align-items:center;justify-content:space-between;
+  padding-top:8px;border-top:1px solid #f0f4ff}
+.ctot{font-size:13px;font-weight:800;color:#1a3a6e}
+.cacts{display:flex;gap:5px}
+.bsm{padding:5px 10px;border:none;border-radius:7px;font-family:'Sarabun',sans-serif;
+  font-size:11px;font-weight:600;cursor:pointer}
+.bedit{background:#eff6ff;color:#1e40af}
+.bdel{background:#fff0f0;color:#dc2626}
+
+.empty{text-align:center;padding:50px 20px;color:#888}
+.empty-ic{font-size:44px;margin-bottom:10px}
+.ld{text-align:center;padding:40px;color:#888}
+.dots{display:inline-flex;gap:5px}
+.dots span{width:7px;height:7px;border-radius:50%;background:#1a3a6e;animation:bop .6s infinite alternate}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bop{to{transform:translateY(-7px);opacity:.3}}
+
+/* REPORT */
+.rpt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.rpt-card{background:#fff;border-radius:14px;padding:16px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
+.rpt-num{font-size:28px;font-weight:800;color:#1a3a6e}
+.rpt-label{font-size:12px;color:#888;margin-top:4px}
+.rpt-sec{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
+.rpt-sec h3{font-size:14px;font-weight:800;color:#1a3a6e;margin-bottom:12px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar-label{font-size:12px;color:#555;width:70px;flex-shrink:0;font-weight:600}
+.bar-track{flex:1;height:8px;background:#f0f4ff;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,#1a3a6e,#2a5298);border-radius:4px;transition:width .5s}
+.bar-val{font-size:11px;font-weight:700;color:#1a3a6e;width:45px;text-align:right}
+.month-row{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid #f0f4ff;font-size:13px}
+.month-row:last-child{border-bottom:none}
+
+/* TEAM PAGE */
+.team-card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff;
+  display:flex;align-items:center;gap:12px}
+.team-av{width:46px;height:46px;border-radius:50%;background:#1a3a6e;
+  color:#f9c900;font-size:18px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.team-info{flex:1}
+.team-name{font-size:15px;font-weight:800;color:#1a3a6e}
+.team-pos{font-size:12px;color:#888;margin-top:2px}
+.team-email{font-size:11px;color:#aaa;margin-top:1px}
+.team-stats{text-align:right}
+.team-cnt{font-size:18px;font-weight:800;color:#1a3a6e}
+.team-lbl{font-size:10px;color:#888}
+.role-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:4px}
+.role-admin{background:#fef3c7;color:#92400e}
+.role-tech{background:#dbeafe;color:#1e40af}
+
+/* SETTINGS */
+.set-sec{background:#fff;border-radius:14px;overflow:hidden;margin-bottom:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
+.set-hd{background:#1a3a6e;color:#fff;padding:10px 16px;font-size:13px;font-weight:700}
+.set-row{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid #f0f4ff;cursor:pointer}
+.set-row:last-child{border-bottom:none}
+.set-row:active{background:#f8faff}
+.set-lbl{font-size:14px;color:#1a1a2e;font-weight:600}
+.set-sub{font-size:11px;color:#888;margin-top:2px}
+.set-arr{color:#ccc;font-size:18px}
+.profile-header{display:flex;align-items:center;gap:14px;padding:16px;
+  background:#fff;border-radius:14px;margin-bottom:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
+.profile-av{width:56px;height:56px;border-radius:50%;background:#1a3a6e;
+  color:#f9c900;font-size:22px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.profile-name{font-size:16px;font-weight:800;color:#1a3a6e}
+.profile-email{font-size:12px;color:#888;margin-top:2px}
+.profile-role{display:inline-block;background:#f0f4ff;color:#1a3a6e;
+  padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:4px}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #e8eef8;
+  display:flex;z-index:100;
+  padding-bottom:env(safe-area-inset-bottom);
+  box-shadow:0 -3px 16px rgba(0,0,0,.07)}
+.bni{flex:1;padding:10px 4px;text-align:center;cursor:pointer;
+  color:#888;font-size:10px;font-weight:600;border:none;background:none;
+  font-family:'Sarabun',sans-serif;transition:color .2s}
+.bni.on{color:#1a3a6e}
+.bni-ic{font-size:20px;display:block;margin-bottom:2px}
+
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;
+  align-items:flex-end;justify-content:center}
+.mo.open{display:flex}
+.mb{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto}
+.mt{font-size:15px;font-weight:800;color:#1a3a6e;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between}
+.mc{display:flex;gap:8px;margin-top:14px}
+.mok{flex:1;padding:12px;background:#dc2626;color:#fff;border:none;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.mno{flex:1;padding:12px;background:#f0f4ff;color:#1a3a6e;border:none;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.mclose{background:none;border:none;font-size:20px;cursor:pointer;color:#888;padding:0}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:5px;letter-spacing:.5px}
+.form-field input,.form-field select{width:100%;padding:11px 13px;border:2px solid #e2e8f8;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;
+  background:#f8faff;outline:none;-webkit-appearance:none}
+.form-field input:focus,.form-field select:focus{border-color:#1a3a6e;background:#fff}
+.btn-save-pf{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a6e,#2a5298);
+  color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.toast-msg{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  padding:10px 20px;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;
+  font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none;
+  max-width:90vw;text-align:center;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-l">
+    <img id="logo" src="" alt="" onerror="this.style.display='none'">
+    <span class="tb-title">KIMAC</span>
+  </div>
+  <div class="tb-r">
+    <div class="avatar" id="av" onclick="switchPage('settings')">?</div>
+    <div class="uinfo" onclick="switchPage('settings')">
+      <div class="uname" id="uname">กำลังโหลด...</div>
+      <div class="urole" id="urole"></div>
+    </div>
+    <button class="btn-out" onclick="logout()">ออก</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="sAll">-</div><div class="stat-l">ทั้งหมด</div></div>
+  <div class="stat"><div class="stat-n" id="sMon">-</div><div class="stat-l">เดือนนี้</div></div>
+  <div class="stat"><div class="stat-n" id="sDr">-</div><div class="stat-l">ร่าง</div></div>
+  <div class="stat"><div class="stat-n" id="sDo">-</div><div class="stat-l">เสร็จ</div></div>
+</div>
+
+<!-- FILTER BAR — กรองตามช่าง (Admin เท่านั้น) -->
+<div class="filter-bar" id="filterBar" style="display:none">
+  <span class="fb-label">กรองช่าง:</span>
+  <select class="fb-select" id="filterTech" onchange="renderJobs()">
+    <option value="">ทุกคน</option>
+  </select>
+</div>
+
+<!-- PAGE: ใบงาน -->
+<div id="pg-jobs" class="page active">
+  <div class="bar">
+    <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
+    <select style="padding:10px 8px;border:2px solid #e2e8f8;border-radius:10px;
+      font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none"
+      id="fs" onchange="renderJobs()">
+      <option value="">ทุกสถานะ</option>
+      <option value="draft">ร่าง</option>
+      <option value="completed">เสร็จสิ้น</option>
+      <option value="approved">อนุมัติ</option>
+    </select>
+    <button class="btn-new" onclick="newJob()">+ ใหม่</button>
+  </div>
+  <div id="list"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
+</div>
+
+<!-- PAGE: รายงาน -->
+<div id="pg-report" class="page">
+  <div class="rpt-grid">
+    <div class="rpt-card"><div class="rpt-num" id="rTot">-</div><div class="rpt-label">ใบงานทั้งหมด</div></div>
+    <div class="rpt-card"><div class="rpt-num" id="rMon">-</div><div class="rpt-label">เดือนนี้</div></div>
+    <div class="rpt-card"><div class="rpt-num" id="rRev" style="font-size:18px">-</div><div class="rpt-label">รายได้รวม (฿)</div></div>
+    <div class="rpt-card"><div class="rpt-num" id="rAvg" style="font-size:18px">-</div><div class="rpt-label">เฉลี่ยต่อใบงาน</div></div>
+  </div>
+  <div class="rpt-sec"><h3>📊 สถานะใบงาน</h3><div id="statusChart"></div></div>
+  <div class="rpt-sec"><h3>📅 6 เดือนล่าสุด</h3><div id="monthChart"></div></div>
+</div>
+
+<!-- PAGE: ทีมงาน -->
+<div id="pg-team" class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-size:14px;font-weight:800;color:#1a3a6e">👥 ทีมงานทั้งหมด</div>
+    <div id="adminNote" style="font-size:11px;color:#888;display:none">Admin: จัดการได้ทั้งหมด</div>
+  </div>
+  <div id="teamList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
+</div>
+
+<!-- PAGE: ตั้งค่า -->
+<div id="pg-settings" class="page">
+  <div class="profile-header" id="profileHeader">
+    <div class="profile-av" id="profAv">?</div>
+    <div>
+      <div class="profile-name" id="profName">-</div>
+      <div class="profile-email" id="profEmail">-</div>
+      <span class="profile-role" id="profRole">-</span>
+    </div>
+  </div>
+  <div class="set-sec">
+    <div class="set-hd">👤 ข้อมูลส่วนตัว</div>
+    <div class="set-row" onclick="openEditProfile()">
+      <div><div class="set-lbl">แก้ไขโปรไฟล์</div><div class="set-sub">ชื่อ, ตำแหน่ง, เบอร์โทร</div></div>
+      <span class="set-arr">›</span>
+    </div>
+    <div class="set-row" onclick="changePassword()">
+      <div><div class="set-lbl">เปลี่ยนรหัสผ่าน</div><div class="set-sub">ส่ง Email รีเซ็ต</div></div>
+      <span class="set-arr">›</span>
+    </div>
+  </div>
+  <div class="set-sec">
+    <div class="set-hd">📋 ข้อมูล</div>
+    <div class="set-row" onclick="exportAllJobs()">
+      <div><div class="set-lbl">Export ใบงาน CSV</div><div class="set-sub">บันทึกข้อมูลทั้งหมด</div></div>
+      <span class="set-arr">›</span>
+    </div>
+  </div>
+  <div class="set-sec">
+    <div class="set-hd">ℹ️ เกี่ยวกับ</div>
+    <div class="set-row"><div><div class="set-lbl">เวอร์ชัน</div><div class="set-sub">KIMAC Service Sheet v3.0 Cloud</div></div></div>
+  </div>
+  <div style="padding:0 0 16px">
+    <button onclick="logout()" style="width:100%;padding:14px;background:#fff0f0;color:#dc2626;
+      border:1.5px solid #fecaca;border-radius:12px;font-family:'Sarabun',sans-serif;
+      font-size:15px;font-weight:700;cursor:pointer">🚪 ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="bni on" id="nav-jobs" onclick="switchPage('jobs')"><span class="bni-ic">📋</span>ใบงาน</button>
+  <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใหม่</button>
+  <button class="bni" id="nav-report" onclick="switchPage('report')"><span class="bni-ic">📊</span>รายงาน</button>
+  <button class="bni" id="nav-team" onclick="switchPage('team')"><span class="bni-ic">👥</span>ทีมงาน</button>
+  <button class="bni" id="nav-settings" onclick="switchPage('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="mo" id="delMo">
+  <div class="mb">
+    <div class="mt">🗑️ ยืนยันการลบ <button class="mclose" onclick="closeDel()">✕</button></div>
+    <p style="font-size:13px;color:#555">ลบใบงาน <b id="delNo" style="color:#dc2626"></b> หรือไม่?</p>
+    <div class="mc">
+      <button class="mno" onclick="closeDel()">ยกเลิก</button>
+      <button class="mok" id="mok" onclick="doDel()">ลบเลย</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="mo" id="editProfMo">
+  <div class="mb">
+    <div class="mt">✏️ แก้ไขโปรไฟล์ <button class="mclose" onclick="document.getElementById('editProfMo').classList.remove('open')">✕</button></div>
+    <div class="form-field"><label>ชื่อ-นามสกุล</label><input type="text" id="ep-name" placeholder="ชื่อช่างผู้ให้บริการ"></div>
+    <div class="form-field">
+      <label>ตำแหน่ง</label>
+      <select id="ep-pos">
+        <option value="ช่างเทคนิค">ช่างเทคนิค</option>
+        <option value="หัวหน้าช่าง">หัวหน้าช่าง</option>
+        <option value="วิศวกร">วิศวกร</option>
+        <option value="ผู้จัดการ">ผู้จัดการ</option>
+        <option value="ฝ่ายขาย">ฝ่ายขาย</option>
+        <option value="ธุรการ">ธุรการ</option>
+        <option value="อื่นๆ">อื่นๆ</option>
+      </select>
+    </div>
+    <div class="form-field"><label>ตำแหน่งกำหนดเอง (ถ้าเลือก อื่นๆ)</label><input type="text" id="ep-pos-custom" placeholder="ระบุตำแหน่ง..."></div>
+    <div class="form-field"><label>เบอร์โทรศัพท์</label><input type="tel" id="ep-phone" placeholder="08x-xxx-xxxx"></div>
+    <button class="btn-save-pf" onclick="saveProfile()">💾 บันทึก</button>
+  </div>
+</div>
+
+<!-- SET ROLE MODAL (Admin only) -->
+<div class="mo" id="setRoleMo">
+  <div class="mb">
+    <div class="mt">🔧 จัดการสิทธิ์ <button class="mclose" onclick="document.getElementById('setRoleMo').classList.remove('open')">✕</button></div>
+    <div id="setRoleInfo" style="font-size:13px;color:#555;margin-bottom:14px"></div>
+    <div class="form-field">
+      <label>บทบาท</label>
+      <select id="sr-role">
+        <option value="technician">🔧 ช่างเทคนิค</option>
+        <option value="admin">👑 Admin</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>ตำแหน่ง</label>
+      <select id="sr-pos">
+        <option value="ช่างเทคนิค">ช่างเทคนิค</option>
+        <option value="หัวหน้าช่าง">หัวหน้าช่าง</option>
+        <option value="วิศวกร">วิศวกร</option>
+        <option value="ผู้จัดการ">ผู้จัดการ</option>
+        <option value="ฝ่ายขาย">ฝ่ายขาย</option>
+        <option value="ธุรการ">ธุรการ</option>
+      </select>
+    </div>
+    <button class="btn-save-pf" onclick="saveRole()" style="background:linear-gradient(135deg,#065f46,#16a34a)">💾 บันทึกสิทธิ์</button>
+  </div>
+</div>
+
+<script id="LD" type="text/plain">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</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const sb=supabase.createClient('https://vjblfdlzerpiazmqxuce.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M');
+let jobs=[],allProfiles=[],delId=null,roleTargetId=null;
+let CU=null,CP=null;
+
+// Toast
+function toast(m,t){
+  let el=document.querySelector('.toast-msg');
+  if(!el){el=document.createElement('div');el.className='toast-msg';document.body.appendChild(el);}
+  el.textContent=m;
+  el.style.background=t==='ok'?'#16a34a':t==='err'?'#dc2626':'#1a3a6e';
+  el.style.color='#fff';el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',3000);
+}
+
+function showErr(msg){
+  document.getElementById('list').innerHTML=`
+    <div style="padding:20px;background:#fff0f0;border:2px solid #fecaca;border-radius:12px;margin:12px;font-family:'Sarabun',sans-serif">
+      <div style="font-size:16px;font-weight:700;color:#dc2626;margin-bottom:8px">⚠️ เกิดข้อผิดพลาด</div>
+      <div style="font-size:13px;color:#555;word-break:break-all">${msg}</div>
+      <button onclick="location.reload()" style="margin-top:12px;padding:10px 20px;background:#1a3a6e;color:#fff;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;cursor:pointer">🔄 โหลดใหม่</button>
+    </div>`;
+}
+
+async function init(){
+  // Load logo
+  const ld=document.getElementById('LD');
+  if(ld&&ld.textContent.trim()){
+    const src='data:image/jpeg;base64,'+ld.textContent.trim();
+    const logoEl=document.getElementById('logo');
+    if(logoEl)logoEl.src=src;
+  }
+
+  try{
+    const{data:{session},error:sErr}=await sb.auth.getSession();
+    if(sErr){showErr('Session error: '+sErr.message);return;}
+    if(!session){location.href='login.html';return;}
+    CU=session.user;
+  }catch(e){showErr('Auth error: '+e.message);return;}
+  // Force fresh read — no cache
+  let p=null;
+  try{
+    const{data,error}=await sb.from('profiles').select('*').eq('id',CU.id).single();
+    if(error) console.error('Profile error:',error);
+    p=data;
+  }catch(e){console.error('Profile catch:',e);}
+  CP=p;
+  console.log('Profile loaded:', p?.full_name, 'role:', p?.role);
+
+  const nm=p?.full_name||CU.email;
+  const pos=p?.position||'ช่างเทคนิค';
+  const role=p?.role||'technician';
+
+  document.getElementById('av').textContent=nm[0].toUpperCase();
+  document.getElementById('uname').textContent=nm;
+  // แสดงตำแหน่ง + role
+  document.getElementById('urole').textContent=pos+(role==='admin'?' 👑':'');
+
+  // Admin: แสดง filter bar และปุ่มจัดการทีม
+  if(role==='admin'){
+    document.getElementById('filterBar').style.display='flex';
+    document.getElementById('adminNote').style.display='block';
+    // Admin badge บน topbar
+    const roleTag=document.createElement('span');
+    roleTag.textContent='Admin';
+    roleTag.style.cssText='background:#f9c900;color:#1a3a6e;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:800;margin-left:4px';
+    document.getElementById('uname').appendChild(roleTag);
+  }
+
+  try{
+    await load();
+    await loadTeam();
+  }catch(e){
+    showErr('โหลดข้อมูลล้มเหลว: '+e.message);
+  }
+}
+
+async function load(){
+  try{
+    const{data,error}=await sb.from('service_jobs').select('*').order('created_at',{ascending:false});
+    if(error){
+      console.error('Load jobs error:',error);
+      document.getElementById('list').innerHTML=`<div class="empty"><div class="empty-ic">⚠️</div><b>โหลดข้อมูลไม่ได้</b><p style="margin-top:6px;font-size:12px;color:#dc2626">${error.message}</p><button onclick="load()" style="margin-top:10px;padding:8px 20px;background:#1a3a6e;color:#fff;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer">ลองใหม่</button></div>`;
+      return;
+    }
+    jobs=data||[];
+    // Populate tech filter (Admin only)
+    const techSel=document.getElementById('filterTech');
+    if(techSel.children.length<=1){
+      const techs=[...new Set(jobs.map(j=>j.technician_name).filter(Boolean))];
+      techs.forEach(t=>{
+        const o=document.createElement('option');
+        o.value=t;o.textContent=t;
+        techSel.appendChild(o);
+      });
+    }
+    updateStats();renderJobs();renderReport();
+  }catch(e){
+    console.error('Load error:',e);
+    document.getElementById('list').innerHTML=`<div class="empty"><div class="empty-ic">⚠️</div><b>เกิดข้อผิดพลาด</b><p style="margin-top:6px;font-size:12px;color:#dc2626">${e.message}</p><button onclick="load()" style="margin-top:10px;padding:8px 20px;background:#1a3a6e;color:#fff;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer">ลองใหม่</button></div>`;
+  }
+}
+
+async function loadTeam(){
+  try{
+    const{data,error}=await sb.from('profiles').select('*').order('full_name');
+    if(error){
+      console.error('loadTeam error:',error);
+      const el=document.getElementById('teamList');
+      if(el) el.innerHTML=`<div style="padding:16px;background:#fff0f0;border-radius:10px;font-size:13px;color:#dc2626"><b>โหลดทีมงานไม่ได้:</b><br>${error.message}</div>`;
+      return;
+    }
+    allProfiles=data||[];
+    if(document.getElementById('pg-team').classList.contains('active')) renderTeam();
+  }catch(e){
+    console.error('loadTeam catch:',e);
+    const el=document.getElementById('teamList');
+    if(el) el.innerHTML=`<div style="padding:16px;background:#fff0f0;border-radius:10px;font-size:13px;color:#dc2626"><b>ข้อผิดพลาด:</b><br>${e.message}</div>`;
+  }
+}
+
+function updateStats(){
+  const now=new Date();
+  const myJobs=CP?.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  const mon=myJobs.filter(j=>{const d=new Date(j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  document.getElementById('sAll').textContent=myJobs.length;
+  document.getElementById('sMon').textContent=mon.length;
+  document.getElementById('sDr').textContent=myJobs.filter(j=>j.status==='draft').length;
+  document.getElementById('sDo').textContent=myJobs.filter(j=>j.status==='completed'||j.status==='approved').length;
+}
+
+function renderJobs(){
+  const q=(document.getElementById('sq').value||'').toLowerCase();
+  const st=document.getElementById('fs').value;
+  const tech=document.getElementById('filterTech').value;
+  const isAdmin=CP?.role==='admin';
+
+  // ช่างธรรมดาเห็นแค่งานตัวเอง, Admin เห็นทั้งหมด
+  let jj=isAdmin?jobs:jobs.filter(j=>j.technician_id===CU.id);
+
+  if(q) jj=jj.filter(j=>(j.job_no||'').toLowerCase().includes(q)||(j.company||'').toLowerCase().includes(q)||(j.technician_name||'').toLowerCase().includes(q));
+  if(st) jj=jj.filter(j=>j.status===st);
+  if(tech&&isAdmin) jj=jj.filter(j=>j.technician_name===tech);
+
+  const el=document.getElementById('list');
+  if(!jj.length){
+    el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><b>ไม่พบใบงาน</b><p style="margin-top:6px;font-size:13px">กด "+ ใหม่" เพื่อสร้างใบงาน</p></div>';
+    return;
+  }
+  const slm={draft:'draft',completed:'completed',approved:'approved'};
+  const nm={draft:'ร่าง',completed:'เสร็จสิ้น',approved:'อนุมัติแล้ว'};
+  el.innerHTML=jj.map(j=>{
+    const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+    const tot=j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-';
+    const canEdit=CP?.role==='admin'||j.technician_id===CU.id;
+    return `<div class="card" onclick="editJob(${j.id})">
+      <div class="ch">
+        <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
+        <div class="cdate">📅 ${d} · 🔧 ${j.technician_name||'-'}</div></div>
+        <span class="badge ${slm[j.status]||'draft'}">${nm[j.status]||'ร่าง'}</span>
+      </div>
+      <div class="cb">
+        <div class="ci">🏢 <b>${j.company||'-'}</b></div>
+        <div class="ci">⚙️ <b>${j.machine_name||'-'}</b></div>
+        <div class="ci">📍 <b>${j.service_location||'-'}</b></div>
+        <div class="ci">🛠️ <b>${j.service_type==='install'?'ติดตั้ง':j.service_type==='repair'?'ซ่อมบำรุง':j.service_type||'-'}</b></div>
+      </div>
+      <div class="cf">
+        <div class="ctot">💰 ฿${tot}</div>
+        <div class="cacts" onclick="event.stopPropagation()">
+          ${canEdit?`<button class="bsm bedit" onclick="editJob(${j.id})">✏️ แก้ไข</button>`:'<span style="font-size:10px;color:#aaa">👁 ดูอย่างเดียว</span>'}
+          ${CP?.role==='admin'?`<button class="bsm bdel" onclick="askDel(${j.id},'${j.job_no}')">🗑️</button>`:''}
+        </div>
+      </div></div>`;
+  }).join('');
+}
+
+function renderTeam(){
+  const el=document.getElementById('teamList');
+  if(!allProfiles.length){
+    // Try loading again
+    loadTeam();
+    el.innerHTML='<div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลดทีมงาน...</div>';
+    return;
+  }
+  const isAdmin=CP?.role==='admin';
+  el.innerHTML=allProfiles.map(p=>{
+    const nm=p.full_name||p.id;
+    const pos=p.position||'ช่างเทคนิค';
+    const role=p.role||'technician';
+    const cnt=jobs.filter(j=>j.technician_id===p.id).length;
+    const isMe=p.id===CU.id;
+    return `<div class="team-card">
+      <div class="team-av">${nm[0]?.toUpperCase()||'?'}</div>
+      <div class="team-info">
+        <div class="team-name">${nm} ${isMe?'<span style="font-size:10px;background:#f0fdf4;color:#16a34a;padding:1px 6px;border-radius:10px">คุณ</span>':''}</div>
+        <div class="team-pos">${pos}</div>
+        <div class="team-email">${p.phone||''}</div>
+        <span class="role-badge ${role==='admin'?'role-admin':'role-tech'}">${role==='admin'?'👑 Admin':'🔧 ช่าง'}</span>
+      </div>
+      <div class="team-stats">
+        <div class="team-cnt">${cnt}</div>
+        <div class="team-lbl">ใบงาน</div>
+        ${isAdmin&&!isMe?`<button onclick="openSetRole('${p.id}','${nm}','${role}','${pos}')"
+          style="margin-top:6px;padding:4px 10px;background:#f0f4ff;color:#1a3a6e;
+          border:1px solid #c7d7ff;border-radius:6px;font-family:'Sarabun',sans-serif;
+          font-size:11px;font-weight:600;cursor:pointer">⚙️ จัดการ</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderReport(){
+  const now=new Date();
+  const myJobs=CP?.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  const mon=myJobs.filter(j=>{const d=new Date(j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const totalRev=myJobs.reduce((s,j)=>s+(parseFloat(j.total)||0),0);
+  const avg=myJobs.length?totalRev/myJobs.length:0;
+  document.getElementById('rTot').textContent=myJobs.length;
+  document.getElementById('rMon').textContent=mon.length;
+  document.getElementById('rRev').textContent=totalRev.toLocaleString('th-TH',{maximumFractionDigits:0});
+  document.getElementById('rAvg').textContent=avg.toLocaleString('th-TH',{maximumFractionDigits:0});
+  const statuses={draft:'ร่าง',completed:'เสร็จสิ้น',approved:'อนุมัติ'};
+  const sc=document.getElementById('statusChart');
+  sc.innerHTML=Object.entries(statuses).map(([k,l])=>{
+    const cnt=myJobs.filter(j=>j.status===k).length;
+    const pct=myJobs.length?Math.round(cnt/myJobs.length*100):0;
+    return `<div class="bar-row"><div class="bar-label">${l}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="bar-val">${cnt} ใบ</div></div>`;
+  }).join('');
+  const mc=document.getElementById('monthChart');
+  const months=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const cnt=myJobs.filter(j=>{const jd=new Date(j.created_at);return jd.getMonth()===d.getMonth()&&jd.getFullYear()===d.getFullYear();}).length;
+    months.push({label:d.toLocaleDateString('th-TH',{month:'short',year:'2-digit'}),cnt});
+  }
+  const maxCnt=Math.max(...months.map(m=>m.cnt),1);
+  mc.innerHTML=months.map(m=>`
+    <div class="month-row">
+      <span>${m.label}</span>
+      <div style="flex:1;margin:0 10px;height:6px;background:#f0f4ff;border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(m.cnt/maxCnt*100)}%;background:linear-gradient(90deg,#1a3a6e,#2a5298);border-radius:3px"></div>
+      </div>
+      <span style="font-weight:700;color:#1a3a6e;min-width:40px;text-align:right">${m.cnt} ใบ</span>
+    </div>`).join('');
+}
+
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('active');
+  const navEl=document.getElementById('nav-'+name);
+  if(navEl)navEl.classList.add('on');
+  if(name==='report')renderReport();
+  if(name==='team')renderTeam();
+  if(name==='settings')loadSettingsProfile();
+}
+
+function loadSettingsProfile(){
+  if(!CP)return;
+  const nm=CP.full_name||CU.email;
+  document.getElementById('profAv').textContent=nm[0].toUpperCase();
+  document.getElementById('profName').textContent=nm;
+  document.getElementById('profEmail').textContent=CU.email;
+  document.getElementById('profRole').textContent=(CP.position||'ช่างเทคนิค')+(CP.role==='admin'?' · 👑 Admin':'');
+}
+
+function openEditProfile(){
+  document.getElementById('ep-name').value=CP?.full_name||'';
+  document.getElementById('ep-phone').value=CP?.phone||'';
+  const pos=CP?.position||'ช่างเทคนิค';
+  const sel=document.getElementById('ep-pos');
+  const opts=[...sel.options].map(o=>o.value);
+  if(opts.includes(pos))sel.value=pos;
+  else{sel.value='อื่นๆ';document.getElementById('ep-pos-custom').value=pos;}
+  document.getElementById('editProfMo').classList.add('open');
+}
+
+async function saveProfile(){
+  const name=document.getElementById('ep-name').value.trim();
+  const posVal=document.getElementById('ep-pos').value;
+  const posCustom=document.getElementById('ep-pos-custom').value.trim();
+  const pos=posVal==='อื่นๆ'&&posCustom?posCustom:posVal;
+  const phone=document.getElementById('ep-phone').value.trim();
+  if(!name){toast('กรุณากรอกชื่อ','err');return;}
+  const{error}=await sb.from('profiles').update({full_name:name,position:pos,phone}).eq('id',CU.id);
+  if(error){toast('❌ '+error.message,'err');return;}
+  CP.full_name=name;CP.position=pos;CP.phone=phone;
+  document.getElementById('editProfMo').classList.remove('open');
+  document.getElementById('av').textContent=name[0].toUpperCase();
+  document.getElementById('uname').textContent=name;
+  document.getElementById('urole').textContent=pos;
+  loadSettingsProfile();
+  toast('✅ บันทึกโปรไฟล์สำเร็จ','ok');
+}
+
+function openSetRole(id,name,role,pos){
+  roleTargetId=id;
+  document.getElementById('setRoleInfo').innerHTML=`<b>${name}</b><br>ตำแหน่งปัจจุบัน: ${pos}`;
+  document.getElementById('sr-role').value=role;
+  document.getElementById('sr-pos').value=pos;
+  document.getElementById('setRoleMo').classList.add('open');
+}
+
+async function saveRole(){
+  if(!roleTargetId)return;
+  const role=document.getElementById('sr-role').value;
+  const pos=document.getElementById('sr-pos').value;
+  const{error}=await sb.from('profiles').update({role,position:pos}).eq('id',roleTargetId);
+  if(error){toast('❌ '+error.message,'err');return;}
+  document.getElementById('setRoleMo').classList.remove('open');
+  await loadTeam();
+  toast('✅ อัปเดตสิทธิ์สำเร็จ','ok');
+}
+
+async function changePassword(){
+  const{error}=await sb.auth.resetPasswordForEmail(CU.email);
+  if(error)toast('❌ '+error.message,'err');
+  else toast('✅ ส่ง Email รีเซ็ตรหัสผ่านแล้ว','ok');
+}
+
+function exportAllJobs(){
+  const myJobs=CP?.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  if(!myJobs.length){toast('ไม่มีข้อมูล','err');return;}
+  const h=['เลขใบงาน','วันที่','บริษัท','ช่าง','เครื่อง','ยอดรวม','สถานะ'];
+  const rows=myJobs.map(j=>[j.job_no||'',j.service_date||'',j.company||'',j.technician_name||'',j.machine_name||'',j.total||0,j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'ร่าง']);
+  const csv=[h,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('
+');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`KIMAC_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  URL.revokeObjectURL(url);toast('✅ Export สำเร็จ','ok');
+}
+
+function newJob(){localStorage.removeItem('kjid');location.href='form.html';}
+function editJob(id){localStorage.setItem('kjid',id);location.href='form.html';}
+function askDel(id,no){delId=id;document.getElementById('delNo').textContent=no;document.getElementById('delMo').classList.add('open');}
+function closeDel(){delId=null;document.getElementById('delMo').classList.remove('open');}
+async function doDel(){
+  if(!delId)return;
+  const btn=document.getElementById('mok');btn.textContent='กำลังลบ...';btn.disabled=true;
+  await sb.from('service_parts').delete().eq('job_id',delId);
+  await sb.from('service_jobs').delete().eq('id',delId);
+  closeDel();await load();btn.textContent='ลบเลย';btn.disabled=false;
+  toast('ลบสำเร็จ','ok');
+}
+async function logout(){await sb.auth.signOut();location.href='login.html';}
+init();
+</script>
+</body>
+</html>
