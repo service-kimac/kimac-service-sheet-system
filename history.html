@@ -358,15 +358,16 @@ function showErr(msg){
 }
 
 window.addEventListener('load', async function(){
-  // Load logo
+  // Load yellow PNG logo into topbar
   try{
-    const ld=document.getElementById('LD');
-    if(ld&&ld.textContent.trim()){
-      const src='data:image/png;base64,'+ld.textContent.trim();
-      const el=document.getElementById('logo');
-      if(el)el.src=src;
+    var ldEl=document.getElementById('LD');
+    var logoEl=document.getElementById('logo');
+    if(ldEl&&logoEl&&ldEl.textContent.trim()){
+      logoEl.src='data:image/png;base64,'+ldEl.textContent.trim();
+      logoEl.style.cssText='width:36px;height:36px;object-fit:contain;border-radius:50%;flex-shrink:0;display:block';
+      logoEl.onerror=function(){this.style.display='none';};
     }
-  }catch(e){}
+  }catch(e){console.error('logo err:',e);}
 
   // Init app
   await init();

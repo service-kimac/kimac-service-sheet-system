@@ -878,7 +878,7 @@ async function exportPDF(){
       });
     }
 
-    // Reset page scale for accurate export
+    // Reset wrapper scale for accurate measurement
     var wrapper=document.getElementById('pageWrapper');
     var prevTransform=wrapper.style.transform;
     var prevHeight=wrapper.style.height;
@@ -887,29 +887,44 @@ async function exportPDF(){
 
     var original=document.getElementById('page');
 
-    // Show all signatures
+    // Show signatures, hide buttons
     ['tech','cust'].forEach(function(t){
       var img=document.getElementById(t+'SigImg');
-      if(img&&img.src&&img.src.length>100)img.style.display='block';
+      if(img&&img.src&&img.src.length>100){img.style.display='block';}
       var tb=document.getElementById(t+'SigBtn');if(tb)tb.style.display='none';
       var cb=document.getElementById(t+'ClearBtn');if(cb)cb.style.display='none';
     });
 
-    // Clone page
+    // Clone the page
     var clone=original.cloneNode(true);
 
-    // A4 = 210mm x 297mm. At 96dpi = 794 x 1123px
-    // ฟอร์มนี้ปกติ ~1200-1400px สูง → ต้อง scale ลงให้พอดี
-    // ใช้วิธี: เพิ่ม transform scale ใน clone
-    var originalH=original.scrollHeight;
-    var targetH=1050; // target เพื่อให้พอดี 1 หน้า
-    var scaleRatio=originalH>targetH?(targetH/originalH):1;
+    // A4 at 96dpi = 794x1123px usable area
+    // Target: fit everything in 1050px height (leaves room for margin)
+    var A4W=794;
+    var A4H=1050;
 
+    // Get real content height
+    var tempHost=document.createElement('div');
+    tempHost.style.cssText='position:fixed;left:-9999px;top:0;width:'+A4W+'px;visibility:hidden;background:#fff';
+    var tempClone=original.cloneNode(true);
+    tempClone.style.cssText='width:'+A4W+'px;min-height:auto;transform:none;box-shadow:none;margin:0;padding:5mm 8mm 4mm 8mm;background:#fff';
+    tempHost.appendChild(tempClone);
+    document.body.appendChild(tempHost);
+    var contentH=tempClone.scrollHeight;
+    document.body.removeChild(tempHost);
+
+    console.log('Content height:',contentH,'px');
+
+    // Scale to fit A4
+    var scale=contentH>A4H?(A4H/contentH):1;
+    var scaledH=Math.round(contentH*scale);
+
+    // Apply scale to clone
     clone.style.cssText=[
-      'width:794px',
+      'width:'+A4W+'px',
+      'height:'+contentH+'px',
+      'transform:scale('+scale+')',
       'transform-origin:top left',
-      'transform:scale('+scaleRatio+')',
-      'height:'+(originalH*scaleRatio)+'px',
       'box-shadow:none',
       'margin:0',
       'padding:5mm 8mm 4mm 8mm',
@@ -917,7 +932,7 @@ async function exportPDF(){
       'overflow:hidden'
     ].join(';');
 
-    // Copy form values to clone
+    // Copy form values
     var srcEls=original.querySelectorAll('input,textarea,select');
     var dstEls=clone.querySelectorAll('input,textarea,select');
     srcEls.forEach(function(el,i){
@@ -932,15 +947,15 @@ async function exportPDF(){
       var di=clone.querySelector('#'+t+'SigImg');
       if(si&&di&&si.src&&si.src.length>100){di.src=si.src;di.style.display='block';}
       var sb2=clone.querySelector('#'+t+'SigBtn');if(sb2)sb2.style.display='none';
-      var cb=clone.querySelector('#'+t+'ClearBtn');if(cb)cb.style.display='none';
+      var cb2=clone.querySelector('#'+t+'ClearBtn');if(cb2)cb2.style.display='none';
     });
 
-    // Hide UI-only elements
-    clone.querySelectorAll('.btn-add-row,.btn-export,.sig-trigger-btn').forEach(function(b){b.style.display='none';});
+    // Hide UI buttons
+    clone.querySelectorAll('.btn-add-row,.btn-export,.sig-trigger-btn,.sig-clear-wrap').forEach(function(b){b.style.display='none';});
 
-    // Host
+    // Host for rendering
     var host=document.createElement('div');
-    host.style.cssText='position:fixed;left:-9999px;top:0;width:794px;overflow:hidden;background:#fff;z-index:-1';
+    host.style.cssText='position:fixed;left:-9999px;top:0;width:'+A4W+'px;height:'+scaledH+'px;overflow:hidden;background:#fff;z-index:-1';
     host.appendChild(clone);
     document.body.appendChild(host);
 
@@ -954,8 +969,10 @@ async function exportPDF(){
         scale:2,
         useCORS:true,
         letterRendering:true,
-        width:794,
-        windowWidth:794,
+        width:A4W,
+        height:scaledH,
+        windowWidth:A4W,
+        windowHeight:scaledH,
         backgroundColor:'#ffffff',
         logging:false
       },
@@ -973,12 +990,12 @@ async function exportPDF(){
     wrapper.style.transform=prevTransform;
     wrapper.style.height=prevHeight;
     scalePage();
-
-    // Restore sig buttons
     ['tech','cust'].forEach(function(t){
       var img=document.getElementById(t+'SigImg');
       var b=document.getElementById(t+'SigBtn');
       if(b&&(!img||!img.src||img.src.length<100))b.style.display='flex';
+      var clr=document.getElementById(t+'ClearBtn');
+      if(clr&&img&&img.src&&img.src.length>100)clr.classList.add('show');
     });
 
     toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
