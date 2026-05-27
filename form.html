@@ -232,28 +232,104 @@
   }
   .btn-add-row:hover { background: #122d57; }
 
-@media screen and (max-width:820px){
-  body{padding-bottom:calc(74px + env(safe-area-inset-bottom))!important}
-  .page-wrapper{width:100%!important;overflow-x:hidden!important;padding:0!important}
-  .page{width:100%!important;min-width:unset!important;padding:10px!important;box-shadow:none!important;border-radius:0!important;font-size:11px!important}
-  .header{flex-direction:row!important;align-items:center!important;gap:8px!important}
-  .header-logo-wrap{min-width:65px!important;flex-shrink:0!important}
-  .header-logo{width:65px!important;height:46px!important}
-  .header-title{font-size:12px!important}
-  .header-sub{font-size:9px!important;line-height:1.4!important}
-  .doc-no-box{min-width:110px!important;font-size:9px!important;padding:4px!important}
-  .section-title{font-size:11px!important;padding:5px 8px!important}
-  .form-row{flex-wrap:wrap!important;gap:4px!important}
-  .field{min-width:120px!important}
-  .field label{font-size:9px!important}
-  .radio-group{flex-wrap:wrap!important;font-size:12px!important;gap:6px!important}
-  .sig-section{flex-direction:column!important;gap:10px!important}
-  .sig-box{width:100%!important;min-width:unset!important}
-  .footer{font-size:9px!important;padding:5px 8px!important}
-  input,select,textarea{font-size:16px!important}
-  .tbl-scroll{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;width:100%!important}
-  table{min-width:460px!important;font-size:10px!important}
-  table th,table td{padding:4px 3px!important}
+/* === SCREEN VIEW — ให้หน้าตาเหมือนภาพตัวอย่าง === */
+@media screen {
+  body {
+    background: #e8edf5;
+    padding: 0;
+    padding-bottom: calc(74px + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .page-wrapper {
+    width: 100%;
+    max-width: 860px;
+    transform: none !important;
+    height: auto !important;
+    padding: 12px 12px 0;
+  }
+
+  .page {
+    width: 100% !important;
+    min-height: unset !important;
+    max-height: none !important;
+    padding: 14px 16px 12px !important;
+    font-size: 12px !important;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.12) !important;
+    border-radius: 8px !important;
+    overflow: visible !important;
+    margin-bottom: 12px;
+  }
+
+  /* Header */
+  .header { margin-bottom: 6px !important; padding-bottom: 4px !important; }
+  .header-logo { width: 90px !important; height: 65px !important; }
+  .header-center h1 { font-size: 20px !important; }
+  .header-center p { font-size: 11px !important; }
+  .header-spacer { width: 90px !important; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    margin-top: 6px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Form rows */
+  .form-row { margin-bottom: 3px !important; flex-wrap: wrap !important; gap: 6px !important; }
+  .field label { font-size: 11px !important; }
+  .field input, .field select, .field textarea { font-size: 12px !important; }
+
+  /* Service type bar */
+  .service-type-bar { padding: 4px 8px !important; margin-bottom: 4px !important; }
+  .service-type-bar select { font-size: 12px !important; }
+
+  /* Status */
+  .status-row { flex-wrap: wrap !important; gap: 8px !important; margin-bottom: 4px !important; }
+  .status-block { padding: 3px 8px !important; font-size: 11px !important; }
+  .radio-group { font-size: 12px !important; gap: 10px !important; }
+
+  /* Textarea */
+  .field textarea { font-size: 13px !important; }
+
+  /* Parts table */
+  .tbl-scroll { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+  table { min-width: 500px !important; font-size: 11px !important; }
+  table th, table td { padding: 4px 4px !important; }
+  .parts-table th { font-size: 10px !important; }
+  .parts-table td input { font-size: 11px !important; }
+
+  /* Signature section */
+  .sig-section { gap: 10px !important; margin-top: 6px !important; }
+  .sig-box { padding: 6px 10px 8px !important; }
+  .sig-box .sig-title { font-size: 11px !important; }
+  .sig-preview-wrap { height: 90px !important; }
+  .sig-meta { font-size: 10px !important; }
+
+  /* Footer */
+  .footer { font-size: 10px !important; padding-top: 4px !important; margin-top: 4px !important; }
+  .footer .company-name { font-size: 12px !important; }
+
+  /* Doc no box */
+  .doc-no-box { font-size: 10px !important; }
+
+  /* Prevent input zoom on mobile */
+  input[type="text"],input[type="date"],input[type="time"],
+  input[type="tel"],input[type="number"],select,textarea {
+    font-size: max(12px, 1em) !important;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 600px) {
+    .page-wrapper { padding: 8px 8px 0; }
+    .page { padding: 10px 12px 10px !important; }
+    .sig-section { flex-direction: column !important; }
+    .sig-box { width: 100% !important; }
+    input, select, textarea { font-size: 16px !important; }
+  }
 }
 .topbar-c{
   position:sticky;top:0;z-index:200;
@@ -656,8 +732,8 @@ function scalePage() {
     wrapper.style.height = '';
   }
 }
-window.addEventListener('resize', scalePage);
-window.addEventListener('orientationchange', () => setTimeout(scalePage, 300));
+window.addEventListener('resize', function(){ if(window.matchMedia("print").matches) scalePage(); });
+window.addEventListener('orientationchange', function(){ setTimeout(function(){ if(window.matchMedia("print").matches) scalePage(); }, 300); });
 
 const NUM_ROWS = 5;
 let rowCount = 0;
