@@ -288,9 +288,9 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 <!-- BOTTOM NAV -->
 <div class="bnav">
-  <button class="bni on" id="nav-jobs" onclick="swPg('jobs')"><span class="bni-ic">📋</span>ใบงาน</button>
-  <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใหม่</button>
+  <button class="bni on" id="nav-jobs" onclick="swPg('jobs')"><span class="bni-ic">📋</span>ประวัติใบงาน</button>
   <button class="bni" id="nav-report" onclick="swPg('report')"><span class="bni-ic">📊</span>รายงาน</button>
+  <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใบงานใหม่</button>
   <button class="bni" id="nav-team" onclick="swPg('team')"><span class="bni-ic">👥</span>ทีมงาน</button>
   <button class="bni" id="nav-settings" onclick="swPg('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
 </div>
@@ -339,11 +339,14 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
     <div class="ff"><label>ตำแหน่ง</label>
       <select id="sr-pos">
-        <option value="ช่างเทคนิค">ช่างเทคนิค</option>
-        <option value="หัวหน้าช่าง">หัวหน้าช่าง</option>
+        <option value="ช่างเทคนิคบริการ">ช่างเทคนิคบริการ</option>
+        <option value="หัวหน้างานบริการ">หัวหน้างานบริการ</option>
         <option value="วิศวกร">วิศวกร</option>
-        <option value="ผู้จัดการ">ผู้จัดการ</option>
+        <option value="ผู้จัดการฝ่ายขาย">ผู้จัดการฝ่ายขาย</option>
         <option value="ฝ่ายขาย">ฝ่ายขาย</option>
+        <option value="ประสานงานฝ่ายขาย">ประสานงานฝ่ายขาย</option>
+        <option value="การตลาด">การตลาด</option>
+        <option value="บัญชี">บัญชี</option>
         <option value="ธุรการ">ธุรการ</option>
       </select>
     </div>
