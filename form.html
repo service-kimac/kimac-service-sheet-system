@@ -1038,53 +1038,60 @@ function goBack(){localStorage.removeItem('kjid');location.href='history.html';}
 async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;
-
   try{
-    // 1. บันทึกลง Cloud ก่อนเสมอ
     var saved=await saveCloud();
-    if(!saved){
-      toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');
-      btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;
-      return;
-    }
-
-    // 2. แสดง signature
-    ['tech','cust'].forEach(function(t){
-      var img=document.getElementById(t+'SigImg');
-      if(img&&img.src&&img.src.length>100)img.style.display='block';
-      var tb=document.getElementById(t+'SigBtn');if(tb)tb.style.display='none';
-      var cb=document.getElementById(t+'ClearBtn');if(cb)cb.style.display='none';
-    });
-
-    // 3. ตั้งชื่อไฟล์
-    var jobNo=(document.getElementById('jnoBadge').textContent||'SERVICE_SHEET').replace(/\s+/g,'-');
-    var prevTitle=document.title;
-    document.title='KIMAC_'+jobNo;
-
-    // 4. Print
-    window.print();
-
-    // 5. Restore
-    setTimeout(function(){
-      document.title=prevTitle;
-      ['tech','cust'].forEach(function(t){
-        var img=document.getElementById(t+'SigImg');
-        var b=document.getElementById(t+'SigBtn');
-        if(b){
-          if(img&&img.src&&img.src.length>100)b.style.display='none';
-          else b.style.display='flex';
-        }
-        var clr=document.getElementById(t+'ClearBtn');
-        if(clr&&img&&img.src&&img.src.length>100)clr.classList.add('show');
+    if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;return;}
+    btn.textContent='⏳ กำลังสร้าง PDF...';
+    if(!window.html2pdf){
+      await new Promise(function(res,rej){
+        var s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        s.onload=res;s.onerror=rej;document.head.appendChild(s);
       });
-      toastF('✅ บันทึกแล้ว พร้อมพิมพ์!','ok');
-      btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;
-    },500);
-    return;
-  }catch(e){
-    console.error('PDF:',e);
-    toastF('❌ '+e.message,'err');
-  }
+    }
+    var A4W=794,A4H=1123;
+    document.querySelectorAll('.sig-trigger-btn,.btn-add-row,.btn-clear-sig').forEach(function(b){b.style.display='none';});
+    ['tech','cust'].forEach(function(t){var img=document.getElementById(t+'SigImg');if(img&&img.src&&img.src.length>100)img.style.display='block';});
+    var wrapper=document.getElementById('pageWrapper');
+    var prevT=wrapper.style.transform,prevH=wrapper.style.height;
+    wrapper.style.transform='none';wrapper.style.height='';
+    var original=document.getElementById('page');
+    var clone=original.cloneNode(true);
+    clone.id='pageClone';
+    clone.style.cssText='width:'+A4W+'px;min-height:'+A4H+'px;box-shadow:none;margin:0;transform:none;padding:5mm 8mm 4mm 8mm;background:#ffffff;font-size:13px;font-family:Sarabun,sans-serif;';
+    var host=document.createElement('div');
+    host.style.cssText='position:fixed;left:-10000px;top:0;width:'+A4W+'px;background:#ffffff;z-index:-1;';
+    host.appendChild(clone);document.body.appendChild(host);
+    var srcEls=original.querySelectorAll('input,textarea,select');
+    var dstEls=clone.querySelectorAll('input,textarea,select');
+    srcEls.forEach(function(el,i){
+      var d=dstEls[i];if(!d)return;
+      if(el.tagName==='SELECT'){d.value=el.value;}
+      else if(el.type==='checkbox'||el.type==='radio'){d.checked=el.checked;if(el.checked)d.setAttribute('checked','checked');else d.removeAttribute('checked');}
+      else{d.value=el.value;d.setAttribute('value',el.value);}
+    });
+    ['tech','cust'].forEach(function(t){
+      var si=original.querySelector('#'+t+'SigImg'),di=clone.querySelector('#'+t+'SigImg');
+      if(si&&di&&si.src&&si.src.length>100){di.src=si.src;di.style.display='block';}
+      var sb2=clone.querySelector('#'+t+'SigBtn');if(sb2)sb2.style.display='none';
+      var cb=clone.querySelector('#'+t+'ClearBtn');if(cb)cb.style.display='none';
+    });
+    clone.querySelectorAll('.btn-add-row,.btn-clear-sig,.sig-trigger-btn').forEach(function(b){b.style.display='none';});
+    var jobNo=(document.getElementById('jnoBadge').textContent||'SERVICE_SHEET').trim().replace(/[^a-zA-Z0-9\-_]/g,'_');
+    await html2pdf().set({
+      margin:0,filename:'KIMAC_'+jobNo+'.pdf',
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,width:A4W,height:A4H,windowWidth:A4W,windowHeight:A4H,x:0,y:0,scrollX:0,scrollY:0,backgroundColor:'#ffffff',logging:false},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+      pagebreak:{mode:['avoid-all']}
+    }).from(clone).save();
+    if(host.parentNode)host.parentNode.removeChild(host);
+    wrapper.style.transform=prevT;wrapper.style.height=prevH;scalePage();
+    document.querySelectorAll('.sig-trigger-btn').forEach(function(b){var t=b.id.replace('SigBtn','');var img=document.getElementById(t+'SigImg');if(!img||!img.src||img.src.length<100)b.style.display='flex';});
+    document.querySelectorAll('.btn-add-row').forEach(function(b){b.style.display='inline-block';});
+    ['tech','cust'].forEach(function(t){var img=document.getElementById(t+'SigImg');var cb=document.getElementById(t+'ClearBtn');if(img&&img.src&&img.src.length>100&&cb){cb.classList.add('show');cb.style.display='';}});
+    toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
+  }catch(e){console.error('PDF:',e);toastF('❌ '+e.message,'err');}
   btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;
 }
 
