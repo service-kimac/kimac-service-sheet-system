@@ -193,7 +193,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 </div>
 
 <div class="filter-bar" id="filterBar">
-  <span class="fb-label">กรองช่าง:</span>
+  <span class="fb-label">รายบุคคล:</span>
   <select class="fb-select" id="filterTech" onchange="renderJobs()">
     <option value="">ทุกคน</option>
   </select>
@@ -259,9 +259,27 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
     </div>
   </div>
   <div class="ss">
-    <div class="sh">ℹ️ เกี่ยวกับ</div>
-    <div class="sr"><div><div class="sl">เวอร์ชัน</div><div class="ssub">KIMAC Service Sheet v3.0 Cloud</div></div></div>
-  </div>
+  <div class="sh">ℹ️ เกี่ยวกับ</div>
+  <div class="sr"><div><div class="sl">เวอร์ชัน</div><div class="ssub">KIMAC Service Sheet v3.0 Cloud</div></div></div>
+  <div class="sr"><div><div class="sl">ผู้พัฒนา</div><div class="ssub">PHANUPHONG BOONSAWAT</div></div></div>
+  <div class="sr"><div><div class="sl">บริษัท</div><div class="ssub">บริษัท คีแมค จำกัด</div></div></div>
+  <div class="sr"><div><div class="sl">อัปเดตล่าสุด</div><div class="ssub" id="lastUpdated">-</div></div></div>
+  <div class="sr"><div><div class="sl">ลิขสิทธิ์</div><div class="ssub" id="copyright">-</div></div></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var fileDate = new Date(document.lastModified);
+  var buddhistYear = fileDate.getFullYear() + 543;
+  var months = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var dateText = fileDate.getDate() + ' ' + months[fileDate.getMonth()] + ' ' + buddhistYear;
+  var elU = document.getElementById('lastUpdated');
+  var elC = document.getElementById('copyright');
+  if (elU) elU.textContent = dateText;
+  if (elC) elC.textContent = '© ' + buddhistYear + ' KIMAC สงวนลิขสิทธิ์';
+});
+</script>
   <div style="padding:0 0 16px">
     <button onclick="doLogout()" style="width:100%;padding:14px;background:#fff0f0;color:#dc2626;
       border:1.5px solid #fecaca;border-radius:12px;font-family:'Sarabun',sans-serif;
@@ -648,6 +666,7 @@ async function doLogout(){
   await sb.auth.signOut();
   location.href='login.html';
 }
+
 </script>
 </body>
 </html>
