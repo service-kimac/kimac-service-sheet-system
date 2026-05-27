@@ -297,68 +297,143 @@
   box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none;
   max-width:90vw;text-align:center;white-space:nowrap}
 @media print{
-  /* ซ่อน UI ทั้งหมด */
+  /* === ซ่อน UI ทั้งหมด === */
   .topbar-c,.actbar,.status-bar,
-  .btn-add-row,.btn-export,.btn-export-pdf,
+  .btn-add-row,.btn-export,
   .sig-trigger-btn,.sig-clear-wrap,
-  .btn-bk,.jno{display:none!important}
+  .btn-bk,.jno,.toast-f,
+  body > *:not(.page-wrapper){display:none!important}
 
-  /* Reset body */
-  html,body{
-    margin:0!important;padding:0!important;
-    background:#fff!important;
-    width:210mm!important;
-    height:auto!important;
+  /* === Page setup === */
+  @page{
+    size:210mm 297mm portrait;
+    margin:0;
   }
 
-  /* Page wrapper - A4 exact */
+  html{
+    width:210mm;
+    height:297mm;
+    margin:0;padding:0;
+    background:#fff;
+  }
+
+  body{
+    width:210mm;
+    height:297mm;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+    overflow:hidden;
+    display:block;
+  }
+
+  /* === Page wrapper === */
   .page-wrapper{
     width:210mm!important;
     transform:none!important;
-    height:auto!important;
     margin:0!important;
     padding:0!important;
+    height:auto!important;
+    display:block!important;
+    position:static!important;
   }
 
-  /* Page content */
+  /* === Page content - scale to fit exactly === */
   .page{
     width:210mm!important;
-    min-height:auto!important;
-    max-height:none!important;
+    min-height:unset!important;
+    max-height:297mm!important;
+    height:auto!important;
     box-shadow:none!important;
     margin:0!important;
+    border-radius:0!important;
     padding:5mm 7mm 4mm 7mm!important;
     font-size:9.5pt!important;
-    page-break-inside:avoid;
+    position:relative!important;
+    overflow:hidden!important;
+    page-break-after:avoid!important;
+    page-break-inside:avoid!important;
   }
 
-  /* Compact elements to fit 1 page */
-  .section-title{padding:3px 6px!important;margin:3px 0!important;font-size:9pt!important}
-  .form-row{margin-bottom:2px!important;gap:4px!important}
-  .field input,.field select{font-size:9pt!important}
+  /* === Header === */
+  .header{padding-bottom:2px!important;margin-bottom:3px!important}
+  .header-logo{width:75px!important;height:54px!important}
+  .header-center h1{font-size:18px!important;letter-spacing:1px!important}
+  .header-center p{font-size:10px!important}
+  .doc-no-box{font-size:8pt!important;padding:3px!important}
+
+  /* === Service type bar === */
+  .service-type-bar{padding:2px 6px!important;margin-bottom:2px!important;font-size:9pt!important}
+  .service-type-bar select{font-size:9pt!important}
+
+  /* === Section headers === */
+  .section-title{
+    padding:2px 6px!important;
+    margin-top:3px!important;
+    margin-bottom:2px!important;
+    font-size:9pt!important;
+  }
+
+  /* === Form rows === */
+  .form-row{margin-bottom:1px!important;gap:4px!important}
+  .field{gap:3px!important}
   .field label{font-size:8pt!important}
-  table{font-size:8.5pt!important}
-  table th,table td{padding:3px 3px!important}
-  .sig-section{margin-top:4px!important;gap:6px!important}
-  .sig-preview-wrap{height:70px!important}
-  .sig-meta{font-size:8pt!important}
-  .footer{padding:3px 0!important;font-size:8.5pt!important}
-  textarea{min-height:35px!important;height:35px!important}
-  .service-type-bar{padding:3px 6px!important;margin-bottom:2px!important}
-  .doc-no-box{font-size:8pt!important}
-  .status-row{gap:6px!important}
-  .header{padding-bottom:2px!important;margin-bottom:2px!important}
-  .header-logo{width:80px!important;height:56px!important}
-  .header-center h1{font-size:18px!important}
-
-  /* Show signatures */
-  .sig-preview-img{display:block!important}
-
-  /* Force single page */
-  @page{
-    size:A4 portrait;
-    margin:0;
+  .field input,.field select,.field textarea{
+    font-size:9pt!important;
+    padding:0 2px!important;
   }
+
+  /* === Status row === */
+  .status-row{gap:6px!important;margin-bottom:2px!important}
+  .status-block{padding:2px 6px!important;font-size:8.5pt!important}
+  .radio-group{gap:8px!important;font-size:8.5pt!important}
+
+  /* === Textarea === */
+  .field textarea{
+    height:32px!important;
+    min-height:32px!important;
+    resize:none!important;
+    font-size:9pt!important;
+  }
+
+  /* === Parts table === */
+  .parts-table{font-size:8.5pt!important;margin-bottom:2px!important}
+  .parts-table th{padding:3px 3px!important;font-size:8pt!important}
+  .parts-table td{padding:2px 3px!important}
+  .parts-table td input{font-size:8pt!important}
+  .parts-table .total-val,.parts-table .total-label{
+    padding:2px 4px!important;font-size:9pt!important;
+  }
+  .btn-add-row{display:none!important}
+
+  /* === Fee section === */
+  div[style*="background:#f8f8f8"]{
+    padding:2px 6px!important;margin-bottom:2px!important;
+    font-size:8.5pt!important;
+  }
+
+  /* === Signature section === */
+  .sig-section{
+    margin-top:3px!important;
+    margin-bottom:3px!important;
+    gap:8px!important;
+  }
+  .sig-box{padding:4px 6px 5px!important}
+  .sig-box .sig-title{font-size:10pt!important;margin-bottom:3px!important}
+  .sig-preview-wrap{height:65px!important}
+  .sig-preview-img{display:block!important}
+  .sig-meta{font-size:8pt!important;margin-top:2px!important;gap:4px!important}
+  .sig-meta input{font-size:8pt!important}
+
+  /* === Footer === */
+  .footer{
+    padding-top:3px!important;
+    margin-top:3px!important;
+    font-size:8.5pt!important;
+    line-height:1.4!important;
+  }
+  .footer .company-name{font-size:10pt!important}
+  .footer .contact{font-size:8pt!important}
 }
 </style>
 </head>
