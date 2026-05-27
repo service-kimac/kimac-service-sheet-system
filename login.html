@@ -56,7 +56,9 @@ input:focus{border-color:#1a3a6e;background:#fff}
   <div class="logo-area">
     <img class="logo-img" id="logoImg" src="" alt="KIMAC">
     <div class="logo-ph" id="logoPH">K</div>
-    <div class="brand">KIMAC</div>
+    <img style="display: block; margin: 0 auto; filter: brightness(0);" class="tc-logo" id="logoTopbar" src="" alt="KIMAC" onerror="this.style.display='none'">
+
+<div style="text-align: center; color: black;" class="brand">KIMAC</div>
     <div class="tagline">ระบบบันทึกงานบริการ</div>
   </div>
   <div class="divider"></div>
@@ -67,7 +69,7 @@ input:focus{border-color:#1a3a6e;background:#fff}
   <div id="alertBox" class="alert"></div>
   <div id="fLogin">
     <div class="fg"><label>อีเมล</label><input type="email" id="em" placeholder="email@example.com" autocomplete="email"></div>
-    <div class="fg"><label>รหัสผ่าน</label><input type="password" id="pw" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="fg"><label>รหัสผ่าน</label><input type="password" id="pw" placeholder="" autocomplete="current-password"></div>
     <button class="btn" id="btnL" onclick="doLogin()">เข้าสู่ระบบ</button>
   </div>
   <div id="fReg" style="display:none">
