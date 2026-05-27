@@ -457,7 +457,7 @@
     <span class="tc-title">SERVICE SYSTEM ระบบบันทึกงานบริการ</span>
   </div>
   <div class="tc-r">
-     <label>📋 สถานะ :</label>
+    <label>📋 สถานะ :</label>
     <select class="status-select" id="jobStatus">
       <option value="draft">📝 ร่าง</option>
       <option value="completed">✅ เสร็จสิ้น</option>
@@ -513,7 +513,7 @@
       <label>สถานที่บริการ :</label>
       <select style="border:1px solid #bfa000;border-radius:4px;background:white;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;">
         <option value="">-- เลือก --</option>
-        <option>บริษัทลูกค้า</option>
+        <option>ที่ลูกค้า</option>
         <option>บจก.คีแมค</option>
         <option>อื่นๆ</option>
       </select>
@@ -537,7 +537,7 @@
   <div class="form-row">
     <div class="field full-width" style="flex-direction:column;align-items:flex-start;gap:3px;">
       <label>รายละเอียด :</label>
-      <textarea rows="5" style="width:100%;"></textarea>
+      <textarea rows="2" style="width:100%;"></textarea>
     </div>
   </div>
   <div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>
@@ -632,8 +632,8 @@
 
 <!-- ACTION BAR -->
 <div class="actbar">
-  <button class="ab ab-hist" onclick="goBack()">📋 ประวัติใบงาน</button>
-  <button class="ab ab-save" id="btnSave" onclick="saveCloud()">☁️ บันทึกในระบบ</button>
+  <button class="ab ab-hist" onclick="goBack()">📋 ใบงาน</button>
+  <button class="ab ab-save" id="btnSave" onclick="saveCloud()">☁️ บันทึก</button>
   <button class="ab ab-pdf" id="btnPDF" onclick="exportPDF()">📄 PDF/พิมพ์</button>
 </div>
 
