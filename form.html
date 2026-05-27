@@ -453,24 +453,18 @@
 <!-- TOPBAR: โลโก้สีเหลือง + SERVICE SHEET -->
 <div class="topbar-c">
   <div class="tc-l">
-    <img style="display: block; margin: 0 auto;" class="tc-logo" id="logoTopbar" src="" alt="KIMAC" onerror="this.style.display='none'">
-   </div>
+    <img style="display: block;" class="tc-logo" id="logoTopbar" src="" alt="KIMAC" onerror="this.style.display='none'">
     <span class="tc-title">SERVICE SYSTEM ระบบบันทึกงานบริการ</span>
-    <!-- STATUS SELECTOR -->
-
-  <label>📋 สถานะ :</label>
-  <select class="status-select" id="jobStatus">
-    <option value="draft">📝 ร่าง</option>
-    <option value="completed">✅ เสร็จสิ้น</option>
-  </select>
-</div>
+  </div>
   <div class="tc-r">
+    <select class="status-select" id="jobStatus">
+      <option value="draft">📝 ร่าง</option>
+      <option value="completed">✅ เสร็จสิ้น</option>
+    </select>
     <span class="jno" id="jnoBadge">ใบงานใหม่</span>
     <button class="btn-bk" onclick="goBack()">← กลับ</button>
   </div>
 </div>
-
-
 
 <!-- PAGE (โลโก้ในฟอร์ม = JPEG ขาว เดิม) -->
 <div class="page-wrapper" id="pageWrapper">
