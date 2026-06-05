@@ -723,11 +723,14 @@ async function exportPDF(){
       scalePage();
     }
 
-    var jobNo=(document.getElementById('jnoBadge').textContent||'SERVICE_SHEET').trim().replace(/[^a-zA-Z0-9\-_]/g,'_');
+    var co = (document.getElementById('companyName')&&document.getElementById('companyName').value||'').trim().replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_');
+    var dt = document.getElementById('serviceDate')&&document.getElementById('serviceDate').value||'';
+    var dateStr = dt ? dt.replace(/-/g,'') : '';
+    var pdfName = 'SERVICE_SHEET' + (co?'_'+co:'') + (dateStr?'_'+dateStr:'') + '.pdf';
     try {
       await html2pdf().set({
         margin: 0,
-        filename: 'KIMAC_'+jobNo+'.pdf',
+        filename: pdfName,
         image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, x: 0, y: 0, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
