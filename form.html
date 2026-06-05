@@ -78,7 +78,7 @@
 <style>
 /* ── TOPBAR ── */
 .topbar-c {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
   background: linear-gradient(135deg,#1a3a6e 0%,#2a5298 100%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px;
@@ -101,7 +101,7 @@
   border-top: 1px solid #e8eef8;
   display: flex; gap: 8px; padding: 9px 12px;
   padding-bottom: calc(9px + env(safe-area-inset-bottom));
-  z-index: 100; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
+  z-index: 300; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
 }
 .ab {
   flex: 1; padding: 11px; border: none; border-radius: 10px;
@@ -124,8 +124,35 @@
   max-width: 90vw; text-align: center; white-space: nowrap;
 }
 
-/* ── TABLE SCROLL ── */
-.tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+/* ── SIGNATURE MODAL ── */
+.sig-modal-overlay {
+  display: none; position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 10000;
+  flex-direction: column; align-items: center; justify-content: center;
+}
+.sig-modal-overlay.open { display: flex; }
+.sig-modal-header {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: #1a3a6e; color: white;
+}
+.sig-modal-title { font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 700; color: white; }
+.sig-modal-body {
+  flex: 1; width: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 16px; background: white;
+}
+.sig-modal-hint { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #888; margin-bottom: 10px; }
+.sig-modal-canvas-wrap {
+  width: 100%; max-width: 560px;
+  border: 2px dashed #bfa000; border-radius: 8px; background: #fafafa; overflow: hidden;
+}
+#sigModalCanvas { display: block; width: 100%; touch-action: none; cursor: crosshair; background: #fafafa; }
+.sig-modal-footer { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
+.sig-modal-btn { padding: 10px 28px; font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; }
+.sig-modal-btn.confirm { background: #1a3a6e; color: white; }
+.sig-modal-btn.clear { background: #eee; color: #333; border: 1px solid #bbb; }
+.sig-modal-btn.cancel { background: #c00; color: white; }
 
 /* header layout */
 .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1a3a6e; padding-bottom: 3px; margin-bottom: 4px; }
