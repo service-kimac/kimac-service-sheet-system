@@ -22,6 +22,17 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .tb-logo{width:34px;height:24px;object-fit:contain;border-radius:3px}
 .tb-title{color:#fff;font-size:17px;font-weight:800;letter-spacing:1.5px}
 .tb-r{display:flex;align-items:center;gap:8px}
+@media(max-width:480px){
+  .topbar{padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top))}
+  .tb-logo{width:30px;height:30px}
+  .tb-title{font-size:13px;letter-spacing:0.5px}
+  .uname{max-width:70px;font-size:11px}
+  .urole{display:none}
+  .avatar{width:28px;height:28px;font-size:12px}
+  .btn-out{padding:4px 8px;font-size:11px}
+  .tb-l{gap:6px}
+  .tb-r{gap:5px}
+}
 .avatar{width:34px;height:34px;border-radius:50%;background:#f9c900;color:#1a3a6e;
   font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;
   flex-shrink:0;cursor:pointer}
