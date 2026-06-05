@@ -75,6 +75,64 @@
   .btn-clear-sig { display: none !important; }
 }
 </style>
+<style>
+/* ── TOPBAR ── */
+.topbar-c {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: linear-gradient(135deg,#1a3a6e 0%,#2a5298 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+.tc-l { display: flex; align-items: center; gap: 8px; }
+.tc-logo { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0; }
+.tc-title { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; }
+.tc-r { display: flex; align-items: center; gap: 6px; }
+.jno { background: rgba(249,201,0,.2); border: 1px solid rgba(249,201,0,.4);
+  color: #f9c900; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.btn-bk { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  color: #fff; padding: 5px 10px; border-radius: 8px; font-family: 'Sarabun',sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
+
+/* ── ACTION BAR ── */
+.actbar {
+  position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+  border-top: 1px solid #e8eef8;
+  display: flex; gap: 8px; padding: 9px 12px;
+  padding-bottom: calc(9px + env(safe-area-inset-bottom));
+  z-index: 100; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
+}
+.ab {
+  flex: 1; padding: 11px; border: none; border-radius: 10px;
+  font-family: 'Sarabun',sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
+}
+.ab:active { opacity: .8; }
+.ab-hist { background: #eff6ff; color: #1e40af; }
+.ab-save { background: linear-gradient(135deg,#1a3a6e,#2a5298); color: #fff; box-shadow: 0 3px 10px rgba(26,58,110,.3); }
+.ab-save:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+.ab-pdf { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(21,128,61,.3); }
+.ab-pdf:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+
+/* ── TOAST ── */
+.toast-f {
+  position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%);
+  padding: 10px 20px; border-radius: 10px; font-family: 'Sarabun',sans-serif;
+  font-size: 13px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity .3s;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3); pointer-events: none;
+  max-width: 90vw; text-align: center; white-space: nowrap;
+}
+
+/* ── TABLE SCROLL ── */
+.tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+
+/* body padding สำหรับ topbar + actbar */
+body {
+  padding-top: calc(58px + env(safe-area-inset-top)) !important;
+  padding-bottom: 72px !important;
+}
+</style>
 </head>
 <body>
 <!-- TOPBAR -->
