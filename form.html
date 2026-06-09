@@ -176,7 +176,7 @@
 /* page wrapper & A4 page */
 .page-wrapper { width: 210mm; transform-origin: top center; }
 .page {
-  width: 210mm; min-height: 297mm; background: #ffffff;
+  width: 210mm; min-height: auto; background: #ffffff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   padding: 5mm 8mm 4mm 8mm; position: relative;
   display: flex; flex-direction: column;
@@ -471,9 +471,16 @@ function scalePage() {
     wrapper.style.height = '';
   }
 }
-window.addEventListener('load', scalePage);
-window.addEventListener('resize', scalePage);
-window.addEventListener('orientationchange', () => setTimeout(scalePage, 300));
+var _lastVW = window.innerWidth;
+window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); });
+// ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
+// คีย์บอร์ดเด้งบน Android จะยิง resize (สูงลด) ถ้าย่อใหม่ตอนนั้นหน้าจะเด้ง/ว่างโล่งตอนพิมพ์
+window.addEventListener('resize', function(){
+  if (window.innerWidth === _lastVW) return; // คีย์บอร์ดเด้ง/หุบ -> ข้าม
+  _lastVW = window.innerWidth;
+  scalePage();
+});
+window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; scalePage(); }, 300); });
 
 const NUM_ROWS = 5;
 let rowCount = 0;
@@ -628,6 +635,7 @@ function confirmSig() {
   // show the clear button only after signing
   clearBtn.classList.add('show');
   closeSigModal();
+  if(window.scheduleDraftSave)scheduleDraftSave();
 }
 function clearSigPreview(target) {
   const img = document.getElementById(target + 'SigImg');
@@ -635,6 +643,7 @@ function clearSigPreview(target) {
   const clearBtn = document.getElementById(target + 'ClearBtn');
   img.src = ''; img.style.display = 'none'; btn.style.display = 'flex';
   clearBtn.classList.remove('show');
+  if(window.scheduleDraftSave)scheduleDraftSave();
 }
 window.addEventListener('orientationchange', () => {
   if (document.getElementById('sigModalOverlay').classList.contains('open')) setTimeout(resizeModalCanvas, 300);
@@ -738,14 +747,28 @@ async function exportPDF(){
     var dateStr = dt ? dt.replace(/-/g,'') : '';
     var pdfName = 'SERVICE_SHEET' + (co?'_'+co:'') + (dateStr?'_'+dateStr:'') + '.pdf';
     try {
-      await html2pdf().set({
-        margin: 0,
-        filename: pdfName,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, x: 0, y: 0, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-        pagebreak: { mode: ['avoid-all'] }
-      }).from(clone).save();
+      var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+      if (window.html2canvas && J) {
+        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, scrollX: 0, scrollY: 0 });
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = pdf.internal.pageSize.getHeight();
+        const ratio = Math.min(pw / canvas.width, ph / canvas.height);
+        const iw = canvas.width * ratio, ih = canvas.height * ratio;
+        const x = (pw - iw) / 2, y = (ph - ih) / 2; // จัดให้อยู่กึ่งกลางกระดาษ A4
+        pdf.addImage(imgData, 'JPEG', x, y, iw, ih);
+        pdf.save(pdfName);
+      } else {
+        await html2pdf().set({
+          margin: 0,
+          filename: pdfName,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, x: 0, y: 0, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+          pagebreak: { mode: ['avoid-all'] }
+        }).from(clone).save();
+      }
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
     } catch (err) {
       console.error('PDF export error:', err);
@@ -776,6 +799,117 @@ function toastF(m,t){
   clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity='0';},3000);
 }
 
+function fillForm(j,pts){
+  pts=pts||[];
+  try{
+    var js=document.getElementById('jobStatus');if(js&&j.status)js.value=j.status;
+        var st=document.getElementById('serviceTypeSelect');
+        if(st&&j.service_type){
+          if(j.service_type==='install'||j.service_type==='repair')st.value=j.service_type;
+          else{st.value='other';var oi=document.getElementById('otherServiceInput');if(oi){oi.classList.add('show');oi.value=j.service_type;}}
+        }
+        var dis=document.querySelectorAll('#page input[type="date"]');
+        var tis=document.querySelectorAll('#page input[type="time"]');
+        if(dis[0]&&j.service_date)dis[0].value=j.service_date;
+        if(tis[0]&&j.time_start)tis[0].value=j.time_start;
+        if(tis[1]&&j.time_end)tis[1].value=j.time_end;
+        var cn=document.getElementById('companyName');if(cn)cn.value=j.company||'';
+        var tel=document.querySelector('#page input[type="tel"]');if(tel)tel.value=j.phone||'';
+        var txt=document.querySelectorAll('#page input[type="text"]');
+        if(txt[3])txt[3].value=j.contact_name||'';if(txt[4])txt[4].value=j.position||'';
+        var fw=document.querySelectorAll('.full-width input');if(fw[1])fw[1].value=j.address||'';
+        if(txt[6])txt[6].value=j.machine_name||'';if(txt[7])txt[7].value=j.machine_model||'';
+        if(txt[8])txt[8].value=j.machine_sn||'';
+        if(dis[1]&&j.purchase_date)dis[1].value=j.purchase_date;
+        var ta=document.getElementById('detailTextarea');if(ta)ta.value=j.machine_detail||'';
+        if(j.warranty_status){
+          var wr=document.querySelector('input[name="warranty"][value="'+j.warranty_status+'"]');
+          if(wr){wr.checked=true;toggleWarranty(wr);}
+          var wn=document.getElementById('warrantyNo');if(wn)wn.value=j.warranty_no||'';
+        }
+        if(j.fee_type){
+          var fr=document.querySelector('input[name="feeType"][value="'+j.fee_type+'"]');
+          if(fr){fr.checked=true;toggleFee(fr);}
+          var pi=document.getElementById('provinceInput');if(pi)pi.value=j.province||'';
+        }
+        function fs(iid,bid,cid,d){
+          if(!d)return;
+          var img=document.getElementById(iid),b=document.getElementById(bid),c=document.getElementById(cid);
+          if(img){img.src=d;img.style.display='block';}
+          if(b)b.style.display='none';if(c)c.classList.add('show');
+        }
+        fs('techSigImg','techSigBtn','techClearBtn',j.tech_sig_data);
+        fs('custSigImg','custSigBtn','custClearBtn',j.cust_sig_data);
+        var tn2=document.getElementById('techName');if(tn2)tn2.value=j.tech_name_sign||'';
+        var td2=document.getElementById('techDate');if(td2&&j.tech_sign_date)td2.value=j.tech_sign_date;
+        var cname=document.getElementById('custName');if(cname)cname.value=j.cust_name_sign||'';
+        var cdept=document.getElementById('custDept');if(cdept)cdept.value=j.cust_dept||'';
+        var cdate=document.getElementById('custDate');if(cdate&&j.cust_sign_date)cdate.value=j.cust_sign_date;
+        if(pts.length>0){
+          var tb=document.getElementById('partsBody');tb.innerHTML='';rowCount=0;
+          pts.forEach(function(p){
+            rowCount++;var tr=buildRow(rowCount);tb.appendChild(tr);
+            var inp=tr.querySelectorAll('input');
+            inp[0].value=p.part_name||'';inp[1].value=p.part_code||'';
+            inp[2].value=p.qty||'';inp[3].value=p.unit||'';inp[4].value=p.price||'';
+          });
+          while(rowCount<5){rowCount++;document.getElementById('partsBody').appendChild(buildRow(rowCount));}
+          calcTotal();
+        }
+    var sl=document.querySelector('.status-block select');if(sl&&j.service_location)sl.value=j.service_location;
+  }catch(e){console.error('fillForm:',e);}
+}
+
+// ── กู้ข้อมูลหายตอนรีโหลด / สลับแอป (LOCAL DRAFT AUTOSAVE) ──
+function draftKey(){return CJ?('kdraft_'+CJ):'kdraft_new';}
+
+function getDraftData(){
+  var d=getFormData();
+  // เก็บแถวอะไหล่ทุกแถว รวมที่ยังกรอกไม่ครบ
+  var parts=[];
+  document.querySelectorAll('#partsBody tr').forEach(function(r,i){
+    var inp=r.querySelectorAll('input');
+    parts.push({seq:i+1,
+      part_name:(inp[0]&&inp[0].value)||'',part_code:(inp[1]&&inp[1].value)||'',
+      qty:(inp[2]&&inp[2].value)||'',unit:(inp[3]&&inp[3].value)||'',price:(inp[4]&&inp[4].value)||''});
+  });
+  d.parts=parts;
+  var cd=document.getElementById('custDept');d.cust_dept=cd&&cd.value||'';
+  return d;
+}
+
+var _draftT=null;
+function saveDraft(){
+  try{localStorage.setItem(draftKey(),JSON.stringify({ts:Date.now(),jid:CJ||null,data:getDraftData()}));}catch(e){}
+}
+function scheduleDraftSave(){clearTimeout(_draftT);_draftT=setTimeout(saveDraft,600);}
+function clearDraft(){try{localStorage.removeItem('kdraft_new');if(CJ)localStorage.removeItem('kdraft_'+CJ);}catch(e){}}
+
+var _autosaveBound=false;
+function bindAutosave(){
+  if(_autosaveBound)return;_autosaveBound=true;
+  var page=document.getElementById('page');
+  if(page){page.addEventListener('input',scheduleDraftSave,true);page.addEventListener('change',scheduleDraftSave,true);}
+  // บันทึกทันทีตอนสลับแอป/พับจอ/ปิดแท็บ (Android มัก kill แท็บ)
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveDraft();});
+  window.addEventListener('pagehide',saveDraft);
+  window.addEventListener('beforeunload',saveDraft);
+}
+
+function maybeRestoreDraft(key){
+  try{
+    var raw=localStorage.getItem(key);if(!raw)return;
+    var d=JSON.parse(raw);if(!d||!d.data)return;
+    var mins=Math.round((Date.now()-(d.ts||0))/60000);
+    var when=mins<1?'เมื่อสักครู่':mins<60?(mins+' นาทีที่แล้ว'):(Math.round(mins/60)+' ชม.ที่แล้ว');
+    if(confirm('พบข้อมูลที่ยังไม่ได้บันทึก ('+when+')\nต้องการกู้คืนหรือไม่?')){
+      fillForm(d.data,d.data.parts||[]);
+      toastF('กู้คืนข้อมูลแล้ว ✅','ok');
+    }else{localStorage.removeItem(key);}
+  }catch(e){console.error('restoreDraft:',e);}
+}
+
+
 async function cloudInit(){
   try{
     var s=await sb.auth.getSession();
@@ -795,6 +929,8 @@ async function cloudInit(){
       if(dis[0]&&!dis[0].value)dis[0].value=today;
       var ti=document.getElementById('techDate');
       if(ti&&!ti.value)ti.value=today;
+      maybeRestoreDraft('kdraft_new');
+      bindAutosave();
     }
     // โลโก้ topbar
     try{
@@ -890,6 +1026,7 @@ async function saveCloud(){
       var pd=parts.map(function(p){return Object.assign({},p,{job_id:jid});});
       await sb.from('service_parts').insert(pd);
     }
+    clearDraft();
     toastF('✅ บันทึกสำเร็จ!','ok');
     return true;
   }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
@@ -905,62 +1042,10 @@ async function loadJob(id){
     document.getElementById('jnoBadge').textContent=j.job_no||'';
     var ss=document.getElementById('jobStatus');if(ss&&j.status)ss.value=j.status;
     setTimeout(function(){
-      try{
-        var st=document.getElementById('serviceTypeSelect');
-        if(st&&j.service_type){
-          if(j.service_type==='install'||j.service_type==='repair')st.value=j.service_type;
-          else{st.value='other';var oi=document.getElementById('otherServiceInput');if(oi){oi.classList.add('show');oi.value=j.service_type;}}
-        }
-        var dis=document.querySelectorAll('#page input[type="date"]');
-        var tis=document.querySelectorAll('#page input[type="time"]');
-        if(dis[0]&&j.service_date)dis[0].value=j.service_date;
-        if(tis[0]&&j.time_start)tis[0].value=j.time_start;
-        if(tis[1]&&j.time_end)tis[1].value=j.time_end;
-        var cn=document.getElementById('companyName');if(cn)cn.value=j.company||'';
-        var tel=document.querySelector('#page input[type="tel"]');if(tel)tel.value=j.phone||'';
-        var txt=document.querySelectorAll('#page input[type="text"]');
-        if(txt[3])txt[3].value=j.contact_name||'';if(txt[4])txt[4].value=j.position||'';
-        var fw=document.querySelectorAll('.full-width input');if(fw[1])fw[1].value=j.address||'';
-        if(txt[6])txt[6].value=j.machine_name||'';if(txt[7])txt[7].value=j.machine_model||'';
-        if(txt[8])txt[8].value=j.machine_sn||'';
-        if(dis[1]&&j.purchase_date)dis[1].value=j.purchase_date;
-        var ta=document.getElementById('detailTextarea');if(ta)ta.value=j.machine_detail||'';
-        if(j.warranty_status){
-          var wr=document.querySelector('input[name="warranty"][value="'+j.warranty_status+'"]');
-          if(wr){wr.checked=true;toggleWarranty(wr);}
-          var wn=document.getElementById('warrantyNo');if(wn)wn.value=j.warranty_no||'';
-        }
-        if(j.fee_type){
-          var fr=document.querySelector('input[name="feeType"][value="'+j.fee_type+'"]');
-          if(fr){fr.checked=true;toggleFee(fr);}
-          var pi=document.getElementById('provinceInput');if(pi)pi.value=j.province||'';
-        }
-        function fs(iid,bid,cid,d){
-          if(!d)return;
-          var img=document.getElementById(iid),b=document.getElementById(bid),c=document.getElementById(cid);
-          if(img){img.src=d;img.style.display='block';}
-          if(b)b.style.display='none';if(c)c.classList.add('show');
-        }
-        fs('techSigImg','techSigBtn','techClearBtn',j.tech_sig_data);
-        fs('custSigImg','custSigBtn','custClearBtn',j.cust_sig_data);
-        var tn2=document.getElementById('techName');if(tn2)tn2.value=j.tech_name_sign||'';
-        var td2=document.getElementById('techDate');if(td2&&j.tech_sign_date)td2.value=j.tech_sign_date;
-        var cname=document.getElementById('custName');if(cname)cname.value=j.cust_name_sign||'';
-        var cdept=document.getElementById('custDept');if(cdept)cdept.value=j.cust_dept||'';
-        var cdate=document.getElementById('custDate');if(cdate&&j.cust_sign_date)cdate.value=j.cust_sign_date;
-        if(pts.length>0){
-          var tb=document.getElementById('partsBody');tb.innerHTML='';rowCount=0;
-          pts.forEach(function(p){
-            rowCount++;var tr=buildRow(rowCount);tb.appendChild(tr);
-            var inp=tr.querySelectorAll('input');
-            inp[0].value=p.part_name||'';inp[1].value=p.part_code||'';
-            inp[2].value=p.qty||'';inp[3].value=p.unit||'';inp[4].value=p.price||'';
-          });
-          while(rowCount<5){rowCount++;document.getElementById('partsBody').appendChild(buildRow(rowCount));}
-          calcTotal();
-        }
-        toastF('โหลดใบงาน ✅','ok');
-      }catch(e){console.error('fillForm:',e);}
+      fillForm(j,pts);
+      toastF('โหลดใบงาน ✅','ok');
+      maybeRestoreDraft('kdraft_'+id);
+      bindAutosave();
     },400);
   }catch(e){console.error('loadJob:',e);}
 }
