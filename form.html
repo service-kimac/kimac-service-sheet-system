@@ -1013,7 +1013,7 @@ async function saveCloud(){
       if(r1.error)throw r1.error;
       await sb.from('service_parts').delete().eq('job_id',jid);
     }else{
-      var yr=new Date().getFullYear();
+      var yr=fd.service_date?new Date(fd.service_date).getFullYear():new Date().getFullYear();
       var yrPrefix='KIMAC-'+yr+'-';
       var existing=await sb.from('service_jobs').select('job_no').ilike('job_no',yrPrefix+'%').order('job_no',{ascending:false}).limit(1);
       var maxSeq=0;
