@@ -22,17 +22,6 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .tb-logo{width:34px;height:24px;object-fit:contain;border-radius:3px}
 .tb-title{color:#fff;font-size:17px;font-weight:800;letter-spacing:1.5px}
 .tb-r{display:flex;align-items:center;gap:8px}
-@media(max-width:480px){
-  .topbar{padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top))}
-  .tb-logo{width:30px;height:30px}
-  .tb-title{font-size:13px;letter-spacing:0.5px}
-  .uname{max-width:70px;font-size:11px}
-  .urole{display:none}
-  .avatar{width:28px;height:28px;font-size:12px}
-  .btn-out{padding:4px 8px;font-size:11px}
-  .tb-l{gap:6px}
-  .tb-r{gap:5px}
-}
 .avatar{width:34px;height:34px;border-radius:50%;background:#f9c900;color:#1a3a6e;
   font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;
   flex-shrink:0;cursor:pointer}
@@ -270,6 +259,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   </div>
   <div class="ss">
   <div class="sh">ℹ️ เกี่ยวกับ</div>
+  <div class="sr"><div><div class="sl">เวอร์ชัน</div><div class="ssub">KIMAC Service Sheet v3.0 Cloud</div></div></div>
   <div class="sr"><div><div class="sl">ผู้พัฒนา</div><div class="ssub">PHANUPHONG BOONSAWAT</div></div></div>
   <div class="sr"><div><div class="sl">บริษัท</div><div class="ssub">บริษัท คีแมค จำกัด</div></div></div>
   <div class="sr"><div><div class="sl">อัปเดตล่าสุด</div><div class="ssub" id="lastUpdated">-</div></div></div>
@@ -455,7 +445,7 @@ async function loadProfiles(){
 
 function updateStats(){
   const now=new Date();
-  const jj=CP?.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  const jj=jobs;
   const mon=jj.filter(j=>{const d=new Date(j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   // Stats bar removed - elements may not exist
   var eAll=document.getElementById('sAll'); if(eAll) eAll.textContent=jj.length;
@@ -469,7 +459,7 @@ function renderJobs(){
   const st=document.getElementById('fs').value;
   const tech=document.getElementById('filterTech').value;
   const isAdmin=CP?.role==='admin';
-  let jj=isAdmin?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  let jj=jobs;
   if(q)jj=jj.filter(j=>(j.job_no||'').toLowerCase().includes(q)||(j.company||'').toLowerCase().includes(q)||(j.technician_name||'').toLowerCase().includes(q));
   if(st)jj=jj.filter(j=>j.status===st);
   if(tech&&isAdmin)jj=jj.filter(j=>j.technician_name===tech);
@@ -505,7 +495,7 @@ function renderJobs(){
 
 function renderReport(){
   const now=new Date();
-  const jj=CP?.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  const jj=jobs;
   const mon=jj.filter(j=>{const d=new Date(j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   const rev=jj.reduce((s,j)=>s+(parseFloat(j.total)||0),0);
   const avg=jj.length?rev/jj.length:0;
