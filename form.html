@@ -653,8 +653,10 @@ async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
   try{
-    var saved=await saveCloud();
-    if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}return;}
+    if(!CJ_READONLY){
+      var saved=await saveCloud();
+      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}return;}
+    }
     if(btn)btn.textContent='⏳ กำลังสร้าง PDF...';
 
     if (!window.html2pdf) {
@@ -788,13 +790,13 @@ async function exportPDF(){
 var SURL='https://vjblfdlzerpiazmqxuce.supabase.co';
 var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M';
 var sb=supabase.createClient(SURL,SKEY);
-var CU=null,CJ=null,CP=null;
+var CU=null,CJ=null,CP=null,CJTECH=null,CJ_READONLY=false;
 
 function toastF(m,t){
   var el=document.querySelector('.toast-f');
   if(!el){el=document.createElement('div');el.className='toast-f';document.body.appendChild(el);}
   el.textContent=m;
-  el.style.background=t==='ok'?'#16a34a':t==='err'?'#dc2626':'#1a3a6e';
+  el.style.background=t==='ok'?'#16a34a':t==='err'?'#dc2626':t==='info'?'#b45309':'#1a3a6e';
   el.style.color='#fff';el.style.opacity='1';
   clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity='0';},3000);
 }
@@ -999,8 +1001,13 @@ async function saveCloud(){
   try{
     var fd=getFormData();
     var parts=fd.parts;delete fd.parts;
-    fd.technician_id=CU.id;fd.technician_name=CP&&CP.full_name||CU.email;
     var jid=CJ;
+    var isAdminEdit=CP&&CP.role==='admin';
+    if(jid&&isAdminEdit&&CJTECH){
+      fd.technician_id=CJTECH.id;fd.technician_name=CJTECH.name;
+    }else{
+      fd.technician_id=CU.id;fd.technician_name=CP&&CP.full_name||CU.email;
+    }
     if(jid){
       var r1=await sb.from('service_jobs').update(fd).eq('id',jid);
       if(r1.error)throw r1.error;
@@ -1033,10 +1040,25 @@ async function saveCloud(){
   finally{btn.textContent='☁️ บันทึก';btn.disabled=false;}
 }
 
+function setFormReadonly(ro){
+  CJ_READONLY=ro;
+  var page=document.getElementById('page');
+  if(page){
+    page.querySelectorAll('input,textarea,select').forEach(function(el){el.disabled=ro;});
+    page.querySelectorAll('button').forEach(function(el){if(el.id!=='btnPDF')el.disabled=ro;});
+  }
+  var bs=document.getElementById('btnSave');if(bs)bs.style.display=ro?'none':'';
+  if(ro)toastF('👁 ดูได้อย่างเดียว (ไม่ใช่ช่างเจ้าของใบงาน)','info');
+}
+
 async function loadJob(id){
   try{
     var r=await sb.from('service_jobs').select('*').eq('id',id).single();
     var j=r.data;if(!j)return;
+    CJTECH={id:j.technician_id,name:j.technician_name};
+    var isAdmin=CP&&CP.role==='admin';
+    var isOwner=j.technician_id===CU.id;
+    if(!isAdmin&&!isOwner)setFormReadonly(true);
     var rp=await sb.from('service_parts').select('*').eq('job_id',id).order('seq');
     var pts=rp.data||[];
     document.getElementById('jnoBadge').textContent=j.job_no||'';
