@@ -420,7 +420,7 @@ async function init(){
 
 async function loadJobs(){
   try{
-    const{data,error}=await sb.from('service_jobs').select('*').order('created_at',{ascending:false});
+    const{data,error}=await sb.from('service_jobs').select('*').order('service_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
     if(error){showErr('โหลดใบงานไม่ได้: '+error.message);return;}
     jobs=data||[];
     // Update tech filter
@@ -446,7 +446,7 @@ async function loadProfiles(){
 function updateStats(){
   const now=new Date();
   const jj=jobs;
-  const mon=jj.filter(j=>{const d=new Date(j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const mon=jj.filter(j=>{const d=new Date(j.service_date||j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   // Stats bar removed - elements may not exist
   var eAll=document.getElementById('sAll'); if(eAll) eAll.textContent=jj.length;
   var eMon=document.getElementById('sMon'); if(eMon) eMon.textContent=mon.length;
@@ -496,7 +496,7 @@ function renderJobs(){
 function renderReport(){
   const now=new Date();
   const jj=jobs;
-  const mon=jj.filter(j=>{const d=new Date(j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const mon=jj.filter(j=>{const d=new Date(j.service_date||j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   const rev=jj.reduce((s,j)=>s+(parseFloat(j.total)||0),0);
   const avg=jj.length?rev/jj.length:0;
   document.getElementById('rTot').textContent=jj.length;
@@ -512,7 +512,7 @@ function renderReport(){
   const months=[];
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    const cnt=jj.filter(j=>{const jd=new Date(j.created_at);return jd.getMonth()===d.getMonth()&&jd.getFullYear()===d.getFullYear();}).length;
+    const cnt=jj.filter(j=>{const jd=new Date(j.service_date||j.created_at);return jd.getMonth()===d.getMonth()&&jd.getFullYear()===d.getFullYear();}).length;
     months.push({label:d.toLocaleDateString('th-TH',{month:'short',year:'2-digit'}),cnt});
   }
   const mx=Math.max(...months.map(m=>m.cnt),1);
