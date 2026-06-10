@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#1a3a6e">
 <link rel="manifest" href="manifest.json">
-<title>SERVICE SYSTEM ระบบบันทึกงานบริการ</title>
+<title>SERVICE RECORDING SYSTEM ระบบบันทึกงานบริการ</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -180,7 +180,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 <div class="topbar">
   <div class="tb-l">
     <img class="tb-logo" id="logo" src="" alt="KIMAC" style="width:36px;height:36px;object-fit:contain;border-radius:50%;flex-shrink:0" onerror="this.style.display='none'">
-    <span class="tb-title">SERVICE SYSTEM ระบบบันทึกงานบริการ</span>
+    <span class="tb-title">SERVICE RECORDING SYSTEM ระบบบันทึกงานบริการ</span>
   </div>
   <div class="tb-r">
     <div class="avatar" id="av" onclick="swPg('settings')">?</div>
@@ -259,7 +259,6 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   </div>
   <div class="ss">
   <div class="sh">ℹ️ เกี่ยวกับ</div>
-  <div class="sr"><div><div class="sl">เวอร์ชัน</div><div class="ssub">KIMAC Service Sheet v3.0 Cloud</div></div></div>
   <div class="sr"><div><div class="sl">ผู้พัฒนา</div><div class="ssub">PHANUPHONG BOONSAWAT</div></div></div>
   <div class="sr"><div><div class="sl">บริษัท</div><div class="ssub">บริษัท คีแมค จำกัด</div></div></div>
   <div class="sr"><div><div class="sl">อัปเดตล่าสุด</div><div class="ssub" id="lastUpdated">-</div></div></div>
@@ -311,12 +310,14 @@ document.addEventListener('DOMContentLoaded', function () {
     <div class="ff"><label>ชื่อ-นามสกุล</label><input type="text" id="ep-name"></div>
     <div class="ff"><label>ตำแหน่ง</label>
       <select id="ep-pos">
-        <option value="ช่างเทคนิค">ช่างเทคนิค</option>
-        <option value="หัวหน้าช่าง">หัวหน้าช่าง</option>
-        <option value="วิศวกร">วิศวกร</option>
-        <option value="ผู้จัดการ">ผู้จัดการ</option>
+        <option value="หัวหน้าช่างบริการ">หัวหน้าช่างบริการ</option>
+        <option value="ช่างบริการ">ช่างบริการ</option>
+        <option value="วิศวกรฝ่ายขาย">วิศวกรฝ่ายขาย</option>
+        <option value="ผู้จัดการฝ่ายขาย">ผู้จัดการฝ่ายขาย</option>
         <option value="ฝ่ายขาย">ฝ่ายขาย</option>
-        <option value="ธุรการ">ธุรการ</option>
+        <option value="ฝ่ายประสานงานขาย">ฝ่ายประสานงานขาย</option>
+        <option value="การตลาด">การตลาด</option>
+        <option value="บัญชี">บัญชี</option>
         <option value="อื่นๆ">อื่นๆ</option>
       </select>
     </div>
@@ -338,15 +339,15 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
     <div class="ff"><label>ตำแหน่ง</label>
       <select id="sr-pos">
-        <option value="ช่างเทคนิคบริการ">ช่างเทคนิคบริการ</option>
-        <option value="หัวหน้างานบริการ">หัวหน้างานบริการ</option>
-        <option value="วิศวกร">วิศวกร</option>
+     <option value="หัวหน้าช่างบริการ">หัวหน้าช่างบริการ</option>
+        <option value="ช่างบริการ">ช่างบริการ</option>
+        <option value="วิศวกรฝ่ายขาย">วิศวกรฝ่ายขาย</option>
         <option value="ผู้จัดการฝ่ายขาย">ผู้จัดการฝ่ายขาย</option>
         <option value="ฝ่ายขาย">ฝ่ายขาย</option>
-        <option value="ประสานงานฝ่ายขาย">ประสานงานฝ่ายขาย</option>
+        <option value="ฝ่ายประสานงานขาย">ฝ่ายประสานงานขาย</option>
         <option value="การตลาด">การตลาด</option>
         <option value="บัญชี">บัญชี</option>
-        <option value="ธุรการ">ธุรการ</option>
+        <option value="อื่นๆ">อื่นๆ</option>
       </select>
     </div>
     <button class="bsp" onclick="saveRole()" style="background:linear-gradient(135deg,#065f46,#16a34a)">💾 บันทึกสิทธิ์</button>
