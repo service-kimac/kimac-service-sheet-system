@@ -632,7 +632,9 @@ async function saveRole(){
 
 async function chgPwd(){
   try{
-    const{error}=await sb.auth.resetPasswordForEmail(CU.email);
+    const{error}=await sb.auth.resetPasswordForEmail(CU.email,{
+  redirectTo: location.origin + location.pathname.replace(/[^/]+$/, '') + 'reset.html'
+});
     if(error)throw error;
     toast('✅ ส่ง Email รีเซ็ตรหัสผ่านแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
