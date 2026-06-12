@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1a3a6e">
+<title>KIMAC — ตั้งรหัสผ่านใหม่</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Sarabun',sans-serif;
+  background:linear-gradient(160deg,#0d1b35 0%,#1a2a50 60%,#0d1b35 100%)}
+body{display:flex;align-items:center;justify-content:center;
+  min-height:100vh;min-height:-webkit-fill-available;
+  padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom)}
+.card{background:#fff;border-radius:24px;padding:32px 28px 28px;
+  width:100%;max-width:380px;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.brand{text-align:center;font-size:24px;font-weight:800;color:#1a3a6e;letter-spacing:3px}
+.tagline{text-align:center;font-size:12px;color:#888;margin-top:2px;margin-bottom:8px}
+.divider{height:2px;background:linear-gradient(90deg,transparent,#f9c900,transparent);margin:16px 0}
+h1{font-size:18px;color:#1a3a6e;margin-bottom:14px;text-align:center}
+label{display:block;font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:5px;letter-spacing:.5px}
+input{width:100%;padding:12px 14px;border:2px solid #e8eef8;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:15px;color:#1a1a2e;
+  background:#f8faff;outline:none;-webkit-appearance:none;transition:border-color .2s}
+input:focus{border-color:#1a3a6e;background:#fff}
+.fg{margin-bottom:13px}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,#1a3a6e,#2a5298);
+  color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
+  font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn.ghost{background:#f0f4ff;color:#1a3a6e;margin-top:10px}
+.alert{display:none;padding:11px 14px;border-radius:10px;font-size:13px;margin-bottom:13px}
+.alert.show{display:block}
+.alert.err{background:#fde8e8;color:#b91c1c}
+.alert.ok{background:#e7f7ee;color:#157347}
+.muted{text-align:center;font-size:12px;color:#888;margin-top:14px}
+.muted a{color:#1a3a6e;font-weight:700;text-decoration:none}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);
+  border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">KIMAC</div>
+  <div class="tagline">Service Sheet System</div>
+  <div class="divider"></div>
+
+  <!-- สถานะ: กำลังตรวจสอบลิงก์ -->
+  <div id="loadingView">
+    <h1>กำลังตรวจสอบลิงก์...</h1>
+    <p style="text-align:center;color:#888;font-size:13px">
+      <span class="spin" style="border-color:rgba(26,58,110,.3);border-top-color:#1a3a6e"></span>
+    </p>
+  </div>
+
+  <!-- สถานะ: ลิงก์ใช้ได้ → ให้ตั้งรหัสใหม่ -->
+  <div id="formView" style="display:none">
+    <h1>ตั้งรหัสผ่านใหม่</h1>
+    <div id="alertBox" class="alert"></div>
+    <div class="fg">
+      <label>รหัสผ่านใหม่ (อย่างน้อย 6 ตัว)</label>
+      <input type="password" id="p1" placeholder="กรอกรหัสผ่านใหม่" autocomplete="new-password">
+    </div>
+    <div class="fg">
+      <label>ยืนยันรหัสผ่านใหม่</label>
+      <input type="password" id="p2" placeholder="กรอกอีกครั้ง" autocomplete="new-password">
+    </div>
+    <button class="btn" id="btnSave" onclick="savePwd()">บันทึกรหัสผ่านใหม่</button>
+  </div>
+
+  <!-- สถานะ: ลิงก์เสีย/หมดอายุ -->
+  <div id="errorView" style="display:none">
+    <h1>ลิงก์ใช้ไม่ได้</h1>
+    <div class="alert show err" id="errMsg">
+      ลิงก์รีเซ็ตรหัสผ่านหมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่อีกครั้ง
+    </div>
+    <a href="login.html" class="btn ghost" style="display:block;text-align:center;text-decoration:none">
+      กลับไปหน้าเข้าสู่ระบบ
+    </a>
+  </div>
+
+  <div class="muted"><a href="login.html">← กลับหน้าเข้าสู่ระบบ</a></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB = supabase.createClient(
+  'https://vjblfdlzerpiazmqxuce.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M'
+);
+
+function show(view){
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('errorView').style.display = 'none';
+  document.getElementById(view).style.display = 'block';
+}
+function msg(m, type){
+  const e = document.getElementById('alertBox');
+  e.textContent = m;
+  e.className = 'alert show ' + (type === 'ok' ? 'ok' : 'err');
+}
+
+// 1) ถ้าลิงก์ผิดพลาด Supabase จะส่ง #error=...&error_code=otp_expired มาใน hash
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.get('error')) {
+  const code = hash.get('error_code') || '';
+  if (code.includes('expired') || code.includes('otp')) {
+    document.getElementById('errMsg').textContent =
+      'ลิงก์รีเซ็ตรหัสผ่านหมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่อีกครั้ง';
+  } else {
+    document.getElementById('errMsg').textContent =
+      decodeURIComponent(hash.get('error_description') || 'ลิงก์ไม่ถูกต้อง');
+  }
+  show('errorView');
+}
+
+// 2) ลิงก์ที่ถูกต้องจะมี type=recovery → supabase-js จะอ่าน token จาก URL ให้อัตโนมัติ
+//    และยิง event PASSWORD_RECOVERY ทำให้เรารู้ว่าพร้อมตั้งรหัสใหม่ได้
+let recoveryReady = false;
+SB.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+    recoveryReady = true;
+    show('formView');
+  }
+});
+
+// 3) เผื่อ event มาก่อน/ไม่ทันจับ — เช็ค session ซ้ำหลังโหลดเสร็จ
+window.addEventListener('load', () => {
+  setTimeout(async () => {
+    if (recoveryReady || hash.get('error')) return;
+    const { data } = await SB.auth.getSession();
+    if (data && data.session) {
+      show('formView');
+    } else {
+      // ไม่มี token และไม่มี error → ไม่ได้เข้ามาจากลิงก์รีเซ็ต
+      document.getElementById('errMsg').textContent =
+        'ไม่พบข้อมูลการรีเซ็ตรหัสผ่าน กรุณาเปิดลิงก์จากอีเมลอีกครั้ง';
+      show('errorView');
+    }
+  }, 1200);
+});
+
+async function savePwd(){
+  const p1 = document.getElementById('p1').value;
+  const p2 = document.getElementById('p2').value;
+  if (!p1 || p1.length < 6) { msg('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if (p1 !== p2) { msg('รหัสผ่านทั้งสองช่องไม่ตรงกัน'); return; }
+
+  const btn = document.getElementById('btnSave');
+  btn.innerHTML = '<span class="spin"></span> กำลังบันทึก...';
+  btn.disabled = true;
+  try {
+    const { error } = await SB.auth.updateUser({ password: p1 });
+    if (error) {
+      msg(error.message);
+      btn.innerHTML = 'บันทึกรหัสผ่านใหม่';
+      btn.disabled = false;
+      return;
+    }
+    msg('✅ ตั้งรหัสผ่านใหม่สำเร็จ! กำลังพาไปหน้าเข้าสู่ระบบ...', 'ok');
+    await SB.auth.signOut();
+    setTimeout(() => location.href = 'login.html', 1500);
+  } catch (e) {
+    msg('เกิดข้อผิดพลาด: ' + e.message);
+    btn.innerHTML = 'บันทึกรหัสผ่านใหม่';
+    btn.disabled = false;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('formView').style.display !== 'none') savePwd();
+});
+</script>
+</body>
+</html>
