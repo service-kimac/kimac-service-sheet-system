@@ -252,8 +252,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   </div>
   <div class="ss">
     <div class="sh">📋 ข้อมูล</div>
-    <div class="sr" onclick="exportCSV()">
-      <div><div class="sl">Export CSV</div><div class="ssub">บันทึกข้อมูลใบงานทั้งหมด</div></div>
+    <div class="sr" onclick="exportXLSX()">
+      <div><div class="sl">Export Excel (.xlsx)</div><div class="ssub">ตารางจัดช่องสวยงาม เปิดด้วย Excel ได้ทันที</div></div>
       <span class="sa">›</span>
     </div>
   </div>
@@ -679,6 +679,63 @@ function exportCSV(){
   var d=new Date().toISOString().split('T')[0];
   var a=document.createElement('a');a.href=url;a.download='KIMAC_'+d+'.csv';a.click();
   URL.revokeObjectURL(url);toast('✅ Export สำเร็จ','ok');
+}
+
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('โหลดไลบรารีไม่สำเร็จ'));
+    document.head.appendChild(s);
+  });
+}
+
+async function exportXLSX(){
+  var jj=CP&&CP.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
+  toast('⏳ กำลังสร้างไฟล์ Excel...','info');
+  try{
+    if(typeof ExcelJS==='undefined') await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js');
+    const wb=new ExcelJS.Workbook();
+    wb.creator='KIMAC';
+    const ws=wb.addWorksheet('ใบงาน',{views:[{state:'frozen',ySplit:1}]});
+    ws.columns=[
+      {header:'เลขใบงาน',key:'no',width:20},
+      {header:'วันที่',key:'date',width:13},
+      {header:'บริษัท',key:'company',width:42},
+      {header:'ช่าง',key:'tech',width:18},
+      {header:'เครื่อง',key:'machine',width:22},
+      {header:'ยอดรวม (฿)',key:'total',width:15},
+      {header:'สถานะ',key:'status',width:13},
+    ];
+    jj.forEach(j=>ws.addRow({
+      no:j.job_no||'',
+      date:j.service_date||'',
+      company:j.company||'',
+      tech:j.technician_name||'',
+      machine:j.machine_name||'',
+      total:parseFloat(j.total)||0,
+      status:j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'ร่าง'
+    }));
+    const thin={style:'thin',color:{argb:'FFD0D7E6'}};
+    const border={top:thin,left:thin,bottom:thin,right:thin};
+    const hdr=ws.getRow(1);hdr.height=24;
+    hdr.eachCell(c=>{c.font={bold:true,color:{argb:'FFFFFFFF'},size:12};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A3A6E'}};c.alignment={horizontal:'center',vertical:'middle'};c.border=border;});
+    for(let r=2;r<=ws.rowCount;r++){
+      const row=ws.getRow(r);
+      row.eachCell(c=>{c.border=border;c.alignment={vertical:'middle'};});
+      if(r%2===0)row.eachCell(c=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF1F5FF'}};});
+      const tc=row.getCell(6);tc.numFmt='#,##0.00';tc.alignment={horizontal:'right',vertical:'middle'};
+      row.getCell(2).alignment={horizontal:'center',vertical:'middle'};
+      row.getCell(7).alignment={horizontal:'center',vertical:'middle'};
+      row.getCell(3).alignment={vertical:'middle',wrapText:true};
+    }
+    ws.autoFilter='A1:G1';
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const d=new Date().toISOString().split('T')[0];
+    const a=document.createElement('a');a.href=url;a.download='KIMAC_'+d+'.xlsx';a.click();
+    URL.revokeObjectURL(url);toast('✅ Export Excel สำเร็จ','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
 }
 
 function newJob(){localStorage.removeItem('kjid');location.href='form.html';}
