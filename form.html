@@ -723,17 +723,14 @@ async function exportPDF(){
       else if (el.type === 'checkbox' || el.type === 'radio') { d.checked = el.checked; if (el.checked) d.setAttribute('checked','checked'); else d.removeAttribute('checked'); }
       else { d.value = el.value; d.setAttribute('value', el.value); }
     });
-    // html2canvas ไม่เรนเดอร์จุด checked ของ radio native -> วาดวงกลมแทน (เฉพาะช่องสถานะรับประกัน)
+    // html2canvas ไม่เรนเดอร์จุด checked ของ radio native -> วาดวงกลมทึบแทน (เฉพาะช่องสถานะรับประกัน)
+    var warrSel = original.querySelector('input[name="warranty"]:checked');
+    var warrVal = warrSel ? warrSel.value : null;
     clone.querySelectorAll('input[type="radio"][name="warranty"]').forEach(function(r){
-      var on = r.checked;
-      var o = document.createElement('span');
-      o.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border:1.5px solid #1a3a6e;border-radius:50%;box-sizing:border-box;background:#fff;vertical-align:-2px;margin-right:2px;';
-      if (on) {
-        var dot = document.createElement('span');
-        dot.style.cssText = 'width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;';
-        o.appendChild(dot);
-      }
-      r.parentNode.replaceChild(o, r);
+      var on = (warrVal !== null && r.value === warrVal);
+      var s = document.createElement('span');
+      s.style.cssText = 'display:inline-block;width:13px;height:13px;border:2px solid #1a3a6e;border-radius:50%;box-sizing:border-box;vertical-align:middle;margin-right:3px;background:' + (on ? '#1a3a6e' : '#ffffff') + ';';
+      r.parentNode.replaceChild(s, r);
     });
     ['tech','cust'].forEach(t => {
       const srcImg = original.querySelector('#'+t+'SigImg');
