@@ -330,6 +330,18 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
   </div>
 </div>
+<!-- SHARE / ACCESS MODAL -->
+<div class="mo" id="shareMo">
+  <div class="mb">
+    <div class="mt">👥 มอบสิทธิ์เข้าถึงใบงาน <button class="mclose" onclick="closeShare()">✕</button></div>
+    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="shareNo" style="color:#1a3a6e"></b> — เลือกช่างที่ต้องการให้เข้าไปแก้ไขใบงานนี้ได้</p>
+    <div id="shareList" style="max-height:46vh;overflow:auto;margin:8px 0"></div>
+    <div class="mc">
+      <button class="mno" onclick="closeShare()">ยกเลิก</button>
+      <button class="mok" id="shareOk" style="background:#1a3a6e" onclick="saveShare()">💾 บันทึกสิทธิ์</button>
+    </div>
+  </div>
+</div>
 <!-- EDIT PROFILE MODAL -->
 <div class="mo" id="editProfMo">
   <div class="mb">
@@ -498,7 +510,8 @@ function renderJobs(){
   el.innerHTML=jj.map(j=>{
     const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
     const tot=j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-';
-    const canEdit=isAdmin||j.technician_id===CU.id;
+    const sw=Array.isArray(j.shared_with)?j.shared_with:[];
+    const canEdit=isAdmin||j.technician_id===CU.id||sw.includes(CU.id);
     return `<div class="card" onclick="editJob(${j.id})">
       <div class="ch">
         <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
@@ -515,6 +528,7 @@ function renderJobs(){
         <div class="ctot">💰 ฿${tot}</div>
         <div class="cacts" onclick="event.stopPropagation()">
           ${canEdit?`<button class="bsm bedit" onclick="editJob(${j.id})">✏️ แก้ไข</button>`:'<span style="font-size:10px;color:#aaa">👁 ดูได้</span>'}
+          ${isAdmin?`<button class="bsm" style="background:#eef6ff;color:#1a3a6e" onclick="openShare(${j.id})">👥 สิทธิ์</button>`:''}
           ${isAdmin?`<button class="bsm bdel" onclick="askDel(${j.id},'${j.job_no||j.id}')">🗑️</button>`:''}
         </div>
       </div></div>`;
@@ -740,6 +754,58 @@ async function exportXLSX(){
 
 function newJob(){localStorage.removeItem('kjid');location.href='form.html';}
 function editJob(id){localStorage.setItem('kjid',id);location.href='form.html';}
+// ===== SHARE / ACCESS =====
+let shareId=null;
+
+async function openShare(id){
+  const j=jobs.find(x=>x.id===id);
+  if(!j)return;
+  if(!profiles.length)await loadProfiles();
+  shareId=id;
+  document.getElementById('shareNo').textContent=j.job_no||id;
+  renderShareList(j);
+  document.getElementById('shareMo').classList.add('open');
+}
+
+function renderShareList(j){
+  const owner=j.technician_id;
+  const sw=Array.isArray(j.shared_with)?j.shared_with:[];
+  const op=profiles.find(p=>p.id===owner);
+  let html=`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:8px">
+    <span style="font-size:13px;font-weight:700;color:#166534">${(op&&op.full_name)||j.technician_name||'-'}</span>
+    <span style="font-size:10px;background:#16a34a;color:#fff;padding:2px 8px;border-radius:10px;margin-left:auto">เจ้าของใบงาน</span>
+  </div>`;
+  const others=profiles.filter(p=>p.id!==owner);
+  if(!others.length){html+='<div style="font-size:12px;color:#999;padding:8px">ยังไม่มีช่างคนอื่นในระบบ</div>';}
+  others.forEach(p=>{
+    const nm=p.full_name||p.id;
+    const isAdm=p.role==='admin';
+    const checked=isAdm||sw.includes(p.id);
+    html+=`<label style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid #eef2ff;cursor:pointer">
+      <input type="checkbox" class="shareChk" value="${p.id}" ${checked?'checked':''} ${isAdm?'disabled':''} style="width:18px;height:18px;accent-color:#1a3a6e">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:#1a3a6e">${nm}</div>
+        <div style="font-size:11px;color:#888">${p.position||'ช่างเทคนิค'}${isAdm?' · 👑 แอดมิน (เข้าถึงได้อยู่แล้ว)':''}</div>
+      </div>
+    </label>`;
+  });
+  document.getElementById('shareList').innerHTML=html;
+}
+
+function closeShare(){shareId=null;document.getElementById('shareMo').classList.remove('open');}
+
+async function saveShare(){
+  if(!shareId)return;
+  const ids=[...document.querySelectorAll('.shareChk')].filter(c=>!c.disabled&&c.checked).map(c=>c.value);
+  const btn=document.getElementById('shareOk');btn.textContent='กำลังบันทึก...';btn.disabled=true;
+  try{
+    const{error}=await sb.from('service_jobs').update({shared_with:ids}).eq('id',shareId);
+    if(error)throw error;
+    closeShare();await loadJobs();toast('✅ บันทึกสิทธิ์แล้ว','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
+  btn.textContent='💾 บันทึกสิทธิ์';btn.disabled=false;
+}
+
 function askDel(id,no){delId=id;document.getElementById('delNo').textContent=no;document.getElementById('delMo').classList.add('open');}
 function closeDel(){delId=null;document.getElementById('delMo').classList.remove('open');}
 // ===== TRASH / RECOVERY =====
