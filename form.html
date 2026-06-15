@@ -722,13 +722,20 @@ async function exportPDF(){
       if (el.tagName === 'SELECT') { d.value = el.value; }
       else if (el.type === 'checkbox' || el.type === 'radio') {
         // ตัวแปลง PDF (html2canvas) ไม่วาดจุดติ๊กของ input radio/checkbox เอง
-        // จึงแทนด้วยกล่อง span ที่วาด border/พื้นหลังเอง ให้ขึ้นใน PDF แน่นอน
+        // จึงแทนด้วย span วงแหวน + จุดทึบตรงกลาง ให้ขึ้นใน PDF เหมือนปุ่มจริง
+        var isRadio = (el.type === 'radio');
         var mark = clone.ownerDocument.createElement('span');
-        var radius = (el.type === 'radio') ? '50%' : '3px';
         mark.setAttribute('style',
-          'display:inline-block;width:13px;height:13px;box-sizing:border-box;vertical-align:middle;'
-          + 'border:2px solid #1a3a6e;border-radius:' + radius + ';'
-          + 'background:' + (el.checked ? '#1a3a6e' : '#ffffff') + ';');
+          'display:inline-block;position:relative;width:14px;height:14px;box-sizing:border-box;'
+          + 'vertical-align:middle;background:#ffffff;'
+          + 'border:2px solid #1a3a6e;border-radius:' + (isRadio ? '50%' : '3px') + ';');
+        if (el.checked) {
+          var dot = clone.ownerDocument.createElement('span');
+          dot.setAttribute('style',
+            'position:absolute;top:2px;left:2px;right:2px;bottom:2px;background:#1a3a6e;'
+            + 'border-radius:' + (isRadio ? '50%' : '1px') + ';');
+          mark.appendChild(dot);
+        }
         if (d.parentNode) d.parentNode.replaceChild(mark, d);
       }
       else { d.value = el.value; d.setAttribute('value', el.value); }
