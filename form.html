@@ -720,25 +720,20 @@ async function exportPDF(){
     srcEls.forEach((el, i) => {
       const d = dstEls[i]; if (!d) return;
       if (el.tagName === 'SELECT') { d.value = el.value; }
-      else if (el.type === 'checkbox' || el.type === 'radio') {
-        // ตัวแปลง PDF (html2canvas) ไม่วาดจุดติ๊กของ input radio/checkbox เอง
-        // จึงแทนด้วย span วงแหวน + จุดทึบตรงกลาง ให้ขึ้นใน PDF เหมือนปุ่มจริง
-        var isRadio = (el.type === 'radio');
-        var mark = clone.ownerDocument.createElement('span');
-        mark.setAttribute('style',
-          'display:inline-block;position:relative;width:14px;height:14px;box-sizing:border-box;'
-          + 'vertical-align:middle;background:#ffffff;'
-          + 'border:2px solid #1a3a6e;border-radius:' + (isRadio ? '50%' : '3px') + ';');
-        if (el.checked) {
-          var dot = clone.ownerDocument.createElement('span');
-          dot.setAttribute('style',
-            'position:absolute;top:2px;left:2px;right:2px;bottom:2px;background:#1a3a6e;'
-            + 'border-radius:' + (isRadio ? '50%' : '1px') + ';');
-          mark.appendChild(dot);
-        }
-        if (d.parentNode) d.parentNode.replaceChild(mark, d);
-      }
+      else if (el.type === 'checkbox' || el.type === 'radio') { d.checked = el.checked; if (el.checked) d.setAttribute('checked','checked'); else d.removeAttribute('checked'); }
       else { d.value = el.value; d.setAttribute('value', el.value); }
+    });
+    // วาดปุ่ม radio (สถานะรับประกัน / ประเภทค่าบริการ) ใหม่ ให้ html2canvas จับสถานะที่ติ๊กได้ตอน export PDF
+    clone.querySelectorAll('input[type=radio]').forEach(function(r){
+      var checked = r.checked;
+      var span = document.createElement('span');
+      span.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#ffffff;border:1px solid '+(checked?'#1a3a6e':'#777777')+';';
+      if (checked){
+        var dot = document.createElement('span');
+        dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#1a3a6e;display:block;';
+        span.appendChild(dot);
+      }
+      if (r.parentNode) r.parentNode.replaceChild(span, r);
     });
     ['tech','cust'].forEach(t => {
       const srcImg = original.querySelector('#'+t+'SigImg');
