@@ -1056,7 +1056,7 @@ async function saveCloud(){
     var parts=fd.parts;delete fd.parts;
     var jid=CJ;
     var isAdminEdit=CP&&CP.role==='admin';
-    if(jid&&isAdminEdit&&CJTECH){
+    if(jid&&CJTECH){
       fd.technician_id=CJTECH.id;fd.technician_name=CJTECH.name;
     }else{
       fd.technician_id=CU.id;fd.technician_name=CP&&CP.full_name||CU.email;
@@ -1111,7 +1111,8 @@ async function loadJob(id){
     CJTECH={id:j.technician_id,name:j.technician_name};
     var isAdmin=CP&&CP.role==='admin';
     var isOwner=j.technician_id===CU.id;
-    if(!isAdmin&&!isOwner)setFormReadonly(true);
+    var isShared=Array.isArray(j.shared_with)&&j.shared_with.includes(CU.id);
+    if(!isAdmin&&!isOwner&&!isShared)setFormReadonly(true);
     var rp=await sb.from('service_parts').select('*').eq('job_id',id).order('seq');
     var pts=rp.data||[];
     document.getElementById('jnoBadge').textContent=j.job_no||'';
