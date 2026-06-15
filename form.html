@@ -720,20 +720,16 @@ async function exportPDF(){
     srcEls.forEach((el, i) => {
       const d = dstEls[i]; if (!d) return;
       if (el.tagName === 'SELECT') { d.value = el.value; }
-      else if (el.type === 'checkbox' || el.type === 'radio') { d.checked = el.checked; if (el.checked) d.setAttribute('checked','checked'); else d.removeAttribute('checked'); }
-      else { d.value = el.value; d.setAttribute('value', el.value); }
-    });
-    // html2canvas ไม่เรนเดอร์สถานะ checked ของ radio native -> วาดวงกลม + เครื่องหมายถูก SVG แทน (เฉพาะช่องสถานะรับประกัน)
-    var warrSel = original.querySelector('input[name="warranty"]:checked');
-    var warrVal = warrSel ? warrSel.value : null;
-    clone.querySelectorAll('input[type="radio"][name="warranty"]').forEach(function(r){
-      var on = warrVal !== null ? (r.value === warrVal) : !!r.checked;
-      var o = document.createElement('span');
-      o.style.cssText = 'position:relative;display:inline-block;width:14px;height:14px;border:2px solid #1a3a6e;border-radius:50%;box-sizing:border-box;vertical-align:middle;margin-right:3px;background:#ffffff;';
-      if (on) {
-        o.innerHTML = '<svg width="10" height="10" viewBox="0 0 12 12" style="position:absolute;top:0;left:0;"><path d="M2.5 6.5 L5 9 L9.5 3" fill="none" stroke="#1a3a6e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      else if (el.type === 'checkbox' || el.type === 'radio') {
+        d.checked = el.checked;
+        if (el.checked) d.setAttribute('checked','checked'); else d.removeAttribute('checked');
+        // html2canvas ไม่วาดจุด/ติ๊กของ radio-checkbox เอง จึงวาดด้วย CSS ให้ขึ้นใน PDF
+        var rad = (el.type === 'radio') ? '50%' : '3px';
+        d.style.cssText += ';-webkit-appearance:none;appearance:none;width:14px;height:14px;'
+          + 'border:1px solid #1a3a6e;border-radius:'+rad+';display:inline-block;vertical-align:middle;box-sizing:border-box;'
+          + 'background:' + (el.checked ? '#1a3a6e' : '#ffffff') + ';';
       }
-      r.parentNode.replaceChild(o, r);
+      else { d.value = el.value; d.setAttribute('value', el.value); }
     });
     ['tech','cust'].forEach(t => {
       const srcImg = original.querySelector('#'+t+'SigImg');
