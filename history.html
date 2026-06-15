@@ -257,6 +257,13 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
       <span class="sa">›</span>
     </div>
   </div>
+  <div class="ss" id="trashSetting" style="display:none">
+    <div class="sh">🗑️ การกู้คืน</div>
+    <div class="sr" onclick="swPg('trash')">
+      <div><div class="sl">ถังขยะ / กู้คืนเอกสาร</div><div class="ssub">ดูและกู้คืนใบงานที่ลบไปแล้ว</div></div>
+      <span class="sa">›</span>
+    </div>
+  </div>
   <div class="ss">
   <div class="sh">ℹ️ เกี่ยวกับ</div>
   <div class="sr"><div><div class="sl">ผู้พัฒนา</div><div class="ssub">PHANUPHONG BOONSAWAT</div></div></div>
@@ -284,6 +291,15 @@ document.addEventListener('DOMContentLoaded', function () {
       font-size:15px;font-weight:700;cursor:pointer;-webkit-appearance:none">🚪 ออกจากระบบ</button>
   </div>
 </div>
+<!-- TRASH / RECOVERY PAGE -->
+<div id="pg-trash" class="pg">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <button onclick="swPg('settings')" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
+    <div style="font-size:14px;font-weight:800;color:#1a3a6e">🗑️ ถังขยะ — กู้คืนเอกสาร</div>
+  </div>
+  <p style="font-size:12px;color:#888;margin-bottom:12px">ใบงานที่ลบจะมาอยู่ที่นี่ กด "กู้คืน" เพื่อนำกลับ หรือ "ลบถาวร" เพื่อลบออกอย่างถาวร (ไม่สามารถกู้คืนได้)</p>
+  <div id="trashList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
+</div>
 <!-- BOTTOM NAV -->
 <div class="bnav">
   <button class="bni on" id="nav-jobs" onclick="swPg('jobs')"><span class="bni-ic">📋</span>ประวัติใบงาน</button>
@@ -295,11 +311,22 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- DELETE MODAL -->
 <div class="mo" id="delMo">
   <div class="mb">
-    <div class="mt">🗑️ ยืนยันการลบ <button class="mclose" onclick="closeDel()">✕</button></div>
-    <p style="font-size:13px;color:#555">ลบใบงาน <b id="delNo" style="color:#dc2626"></b>?</p>
+    <div class="mt">🗑️ ย้ายไปถังขยะ <button class="mclose" onclick="closeDel()">✕</button></div>
+    <p style="font-size:13px;color:#555">ย้ายใบงาน <b id="delNo" style="color:#dc2626"></b> ไปถังขยะ?<br><span style="font-size:12px;color:#16a34a">✓ กู้คืนได้ภายหลังที่หน้า "ถังขยะ" ในเมนูตั้งค่า</span></p>
     <div class="mc">
       <button class="mno" onclick="closeDel()">ยกเลิก</button>
-      <button class="mok" id="mok" onclick="doDel()">ลบเลย</button>
+      <button class="mok" id="mok" onclick="doDel()">ย้ายไปถังขยะ</button>
+    </div>
+  </div>
+</div>
+<!-- PERMANENT DELETE MODAL -->
+<div class="mo" id="purgeMo">
+  <div class="mb">
+    <div class="mt">⚠️ ลบถาวร <button class="mclose" onclick="closePurge()">✕</button></div>
+    <p style="font-size:13px;color:#555">ลบใบงาน <b id="purgeNo" style="color:#dc2626"></b> อย่างถาวร?<br><span style="font-size:12px;color:#dc2626">⚠️ การลบนี้ไม่สามารถกู้คืนได้</span></p>
+    <div class="mc">
+      <button class="mno" onclick="closePurge()">ยกเลิก</button>
+      <button class="mok" id="purgeOk" onclick="doPurge()">ลบถาวร</button>
     </div>
   </div>
 </div>
@@ -412,7 +439,7 @@ async function init(){
     document.getElementById('av').textContent=nm[0].toUpperCase();
     document.getElementById('uname').textContent=nm+(role==='admin'?' 👑':'');
     document.getElementById('urole').textContent=pos;
-    if(role==='admin') document.getElementById('filterBar').classList.add('show');
+    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; }
   }catch(e){console.error('Profile catch:',e);}
 
   await loadJobs();
@@ -421,7 +448,7 @@ async function init(){
 
 async function loadJobs(){
   try{
-    const{data,error}=await sb.from('service_jobs').select('*').order('service_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
+    const{data,error}=await sb.from('service_jobs').select('*').is('deleted_at',null).order('service_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
     if(error){showErr('โหลดใบงานไม่ได้: '+error.message);return;}
     jobs=data||[];
     // Update tech filter
@@ -567,6 +594,7 @@ function swPg(name){
   if(name==='report')renderReport();
   if(name==='team')renderTeam();
   if(name==='settings')loadSettingsProf();
+  if(name==='trash')loadTrash();
 }
 
 function loadSettingsProf(){
@@ -657,15 +685,86 @@ function newJob(){localStorage.removeItem('kjid');location.href='form.html';}
 function editJob(id){localStorage.setItem('kjid',id);location.href='form.html';}
 function askDel(id,no){delId=id;document.getElementById('delNo').textContent=no;document.getElementById('delMo').classList.add('open');}
 function closeDel(){delId=null;document.getElementById('delMo').classList.remove('open');}
+// ===== TRASH / RECOVERY =====
+let trashJobs=[],purgeId=null;
+
+function timeAgo(iso){
+  if(!iso)return'';
+  const diff=Date.now()-new Date(iso).getTime();
+  const day=Math.floor(diff/86400000);
+  if(day<=0)return'วันนี้';
+  if(day===1)return'เมื่อวาน';
+  return day+' วันก่อน';
+}
+
+async function loadTrash(){
+  const el=document.getElementById('trashList');
+  if(CP?.role!=='admin'){el.innerHTML='<div class="empty"><div class="empty-ic">🔒</div><b>เฉพาะผู้ดูแลระบบ</b></div>';return;}
+  el.innerHTML='<div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div>';
+  try{
+    const{data,error}=await sb.from('service_jobs').select('*').not('deleted_at','is',null).order('deleted_at',{ascending:false});
+    if(error){el.innerHTML='<div class="empty"><div class="empty-ic">⚠️</div><b>โหลดไม่ได้</b><p style="margin-top:6px;font-size:12px">'+error.message+'</p></div>';return;}
+    trashJobs=data||[];
+    renderTrash();
+  }catch(e){el.innerHTML='<div class="empty"><div class="empty-ic">⚠️</div><b>เกิดข้อผิดพลาด</b><p style="margin-top:6px;font-size:12px">'+e.message+'</p></div>';}
+}
+
+function renderTrash(){
+  const el=document.getElementById('trashList');
+  if(!trashJobs.length){el.innerHTML='<div class="empty"><div class="empty-ic">🗑️</div><b>ถังขยะว่างเปล่า</b><p style="margin-top:6px;font-size:13px">ไม่มีใบงานที่ถูกลบ</p></div>';return;}
+  el.innerHTML=trashJobs.map(j=>{
+    const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="card">
+      <div class="ch">
+        <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
+        <div class="cdate">📅 ${d} · 🔧 ${j.technician_name||'-'}</div></div>
+        <span class="badge" style="background:#fff0f0;color:#dc2626">ลบเมื่อ ${timeAgo(j.deleted_at)}</span>
+      </div>
+      <div class="cb">
+        <div class="ci">🏢 <b>${j.company||'-'}</b></div>
+        <div class="ci">⚙️ <b>${j.machine_name||'-'}</b></div>
+      </div>
+      <div class="cf">
+        <div class="ctot">💰 ฿${j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-'}</div>
+        <div class="cacts">
+          <button class="bsm bedit" onclick="restoreJob(${j.id})">♻️ กู้คืน</button>
+          <button class="bsm bdel" onclick="askPurge(${j.id},'${j.job_no||j.id}')">🗑️ ลบถาวร</button>
+        </div>
+      </div></div>`;
+  }).join('');
+}
+
+async function restoreJob(id){
+  try{
+    const{error}=await sb.from('service_jobs').update({deleted_at:null}).eq('id',id);
+    if(error)throw error;
+    await loadTrash();await loadJobs();toast('♻️ กู้คืนสำเร็จ','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
+}
+
+function askPurge(id,no){purgeId=id;document.getElementById('purgeNo').textContent=no;document.getElementById('purgeMo').classList.add('open');}
+function closePurge(){purgeId=null;document.getElementById('purgeMo').classList.remove('open');}
+async function doPurge(){
+  if(!purgeId)return;
+  const btn=document.getElementById('purgeOk');btn.textContent='กำลังลบ...';btn.disabled=true;
+  try{
+    await sb.from('service_parts').delete().eq('job_id',purgeId);
+    const{error}=await sb.from('service_jobs').delete().eq('id',purgeId);
+    if(error)throw error;
+    closePurge();await loadTrash();toast('ลบถาวรแล้ว','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
+  btn.textContent='ลบถาวร';btn.disabled=false;
+}
+
 async function doDel(){
   if(!delId)return;
   const btn=document.getElementById('mok');btn.textContent='กำลังลบ...';btn.disabled=true;
   try{
-    await sb.from('service_parts').delete().eq('job_id',delId);
-    await sb.from('service_jobs').delete().eq('id',delId);
-    closeDel();await loadJobs();toast('ลบสำเร็จ','ok');
+    const{error}=await sb.from('service_jobs').update({deleted_at:new Date().toISOString()}).eq('id',delId);
+    if(error)throw error;
+    closeDel();await loadJobs();toast('🗑️ ย้ายไปถังขยะแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
-  btn.textContent='ลบเลย';btn.disabled=false;
+  btn.textContent='ย้ายไปถังขยะ';btn.disabled=false;
 }
 async function doLogout(){
   await sb.auth.signOut();
