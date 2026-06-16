@@ -593,6 +593,10 @@ function renderTeam(){
           style="margin-top:6px;padding:4px 10px;background:#f0f4ff;color:#1a3a6e;
           border:1px solid #c7d7ff;border-radius:6px;font-family:'Sarabun',sans-serif;
           font-size:11px;font-weight:600;cursor:pointer;-webkit-appearance:none">⚙️ จัดการ</button>`:''}
+        ${isAdmin&&!isMe?`<button onclick="deleteMember('${p.id}')"
+          style="margin-top:6px;padding:4px 10px;background:#fff0f0;color:#dc2626;
+          border:1px solid #f5b5b5;border-radius:6px;font-family:'Sarabun',sans-serif;
+          font-size:11px;font-weight:600;cursor:pointer;-webkit-appearance:none">🗑️ ลบ</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -657,6 +661,23 @@ function openSetRole(id,name,role,pos){
   document.getElementById('sr-role').value=role;
   document.getElementById('sr-pos').value=pos;
   document.getElementById('setRoleMo').classList.add('open');
+}
+
+async function deleteMember(id){
+  const p=profiles.find(x=>x.id===id);
+  const name=(p&&p.full_name)||id;
+  const cnt=jobs.filter(j=>j.technician_id===id).length;
+  if(!confirm('⚠️ ลบสมาชิก "'+name+'" ?\n\n• ลบบัญชีเข้าระบบ\n• ลบโปรไฟล์ออกจากทีม\n\n✅ ใบงาน '+cnt+' ใบ (และอะไหล่) เก็บไว้ครบ ไม่ลบ\n\n(อีเมลเดิมสมัครกลับเข้ามาใหม่ได้)'))return;
+  if(!confirm('ยืนยันอีกครั้ง — ลบสมาชิก "'+name+'" ?'))return;
+  try{
+    const{data,error}=await sb.functions.invoke('delete-member',{body:{userId:id}});
+    if(error)throw error;
+    if(data&&data.error)throw new Error(data.error);
+    toast('✅ ลบ '+name+' แล้ว (ใบงานเก็บไว้ '+((data&&data.keptJobs)||0)+' ใบ)','ok');
+    await loadProfiles();
+    if(typeof loadJobs==='function'){try{await loadJobs();}catch(e){}}
+    renderTeam();
+  }catch(e){toast('❌ '+(e.message||e),'err');}
 }
 
 async function saveRole(){
