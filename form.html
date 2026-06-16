@@ -687,6 +687,24 @@ window.addEventListener('orientationchange', () => {
   if (document.getElementById('sigModalOverlay').classList.contains('open')) setTimeout(resizeModalCanvas, 300);
 });
 
+// แทรกจุดตัดคำไทยอัตโนมัติด้วย zero-width space (\u200B) เพื่อให้ html2canvas ตัดบรรทัดถูก ตัวอักษรไม่ซ้อนกัน
+// ใช้ตัวตัดคำในตัวเบราว์เซอร์ (Intl.Segmenter) ถ้ามี / ถ้าไม่มีก็คืนข้อความเดิม
+function thaiBreakable(text){
+  if(!text) return text;
+  try{
+    if(window.Intl && Intl.Segmenter){
+      var seg = new Intl.Segmenter('th', { granularity: 'word' });
+      return text.split('\n').map(function(line){
+        if(!line) return line;
+        var out = '';
+        for(const s of seg.segment(line)){ out += s.segment + '\u200B'; }
+        return out;
+      }).join('\n');
+    }
+  }catch(e){ console.warn('thaiBreakable:', e); }
+  return text;
+}
+
 async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
@@ -732,8 +750,8 @@ async function exportPDF(){
     const linePx = 24; // line-height แบบ px ชัดเจน กันบรรทัดไทยซ้อนกันใน html2canvas
     const fiveLinesPx = (linePx * 5) + (paddingPx * 2);
     const detailDiv = document.createElement('div');
-    detailDiv.style.cssText = ['width:100%','border:1px solid #bfa000','border-radius:4px','background:rgba(255,255,255,0.7)','padding:'+paddingPx+'px','font-family:Sarabun,sans-serif','font-size:'+fontSize+'px','line-height:'+linePx+'px','color:#222','white-space:pre-wrap','word-break:break-word','min-height:'+fiveLinesPx+'px','overflow:visible','box-sizing:border-box'].join(';');
-    detailDiv.textContent = textareaValue;
+    detailDiv.style.cssText = ['width:100%','border:1px solid #bfa000','border-radius:4px','background:rgba(255,255,255,0.7)','padding:'+paddingPx+'px','font-family:Sarabun,sans-serif','font-size:'+fontSize+'px','line-height:'+linePx+'px','color:#222','white-space:pre-wrap','word-break:break-word','overflow-wrap:anywhere','min-height:'+fiveLinesPx+'px','overflow:visible','box-sizing:border-box'].join(';');
+    detailDiv.textContent = thaiBreakable(textareaValue);
     textareaParent.replaceChild(detailDiv, textarea);
 
     const original = document.getElementById('page');
