@@ -306,8 +306,8 @@ body {
     <div class="field full-width"><label>บริษัท / ห้างฯ / ร้าน ลูกค้า :</label><input id="companyName" type="text" style="min-width:300px;"></div>
   </div>
   <div class="form-row">
-    <div class="field"><label>ติดต่อคุณ :</label><input type="text"></div>
-    <div class="field"><label>ตำแหน่ง :</label><input type="text"></div>
+    <div class="field"><label>ติดต่อคุณ :</label><input type="text" id="contactName"></div>
+    <div class="field"><label>ตำแหน่ง :</label><input type="text" id="positionInput"></div>
     <div class="field"><label>เบอร์โทร :</label><input type="tel"></div>
   </div>
   <div class="form-row">
@@ -893,7 +893,8 @@ function fillForm(j,pts){
         var cn=document.getElementById('companyName');if(cn)cn.value=j.company||'';
         var tel=document.querySelector('#page input[type="tel"]');if(tel)tel.value=j.phone||'';
         var txt=document.querySelectorAll('#page input[type="text"]');
-        if(txt[3])txt[3].value=j.contact_name||'';if(txt[4])txt[4].value=j.position||'';
+        var ci=document.getElementById('contactName');if(ci)ci.value=j.contact_name||'';
+        var pin=document.getElementById('positionInput');if(pin)pin.value=j.position||'';
         var fw=document.querySelectorAll('.full-width input');if(fw[1])fw[1].value=j.address||'';
         if(txt[6])txt[6].value=j.machine_name||'';if(txt[7])txt[7].value=j.machine_model||'';
         if(txt[8])txt[8].value=j.machine_sn||'';
@@ -1034,7 +1035,6 @@ async function cloudInit(){
     var eid=localStorage.getItem('kjid');
     if(eid){CJ=parseInt(eid);await loadJob(CJ);}
     else{
-      alert('🆕 เปิดเป็น "ฟอร์มใหม่" (ไม่พบ kjid ใน localStorage)\nถ้าคุณตั้งใจจะเปิดใบงานเดิม แปลว่าการเปิดจากรายการไม่ได้ส่ง id มา');
       var today=new Date().toISOString().split('T')[0];
       var dis=document.querySelectorAll('#page input[type="date"]');
       if(dis[0]&&!dis[0].value)dis[0].value=today;
@@ -1083,8 +1083,8 @@ function getFormData(){
     service_type:stype,service_date:dis[0]&&dis[0].value||null,
     time_start:tis[0]&&tis[0].value||null,time_end:tis[1]&&tis[1].value||null,
     company:document.getElementById('companyName')&&document.getElementById('companyName').value||'',
-    contact_name:txt[3]&&txt[3].value||'',
-    position:txt[4]&&txt[4].value||'',phone:tel&&tel.value||'',
+    contact_name:document.getElementById('contactName')&&document.getElementById('contactName').value||'',
+    position:document.getElementById('positionInput')&&document.getElementById('positionInput').value||'',phone:tel&&tel.value||'',
     address:fw[1]&&fw[1].value||'',
     service_location:document.querySelector('.status-block select')&&document.querySelector('.status-block select').value||'',
     warranty_status:warr&&warr.value||'',
@@ -1155,19 +1155,6 @@ async function saveCloud(){
       if(!rip.data||!rip.data.length)throw new Error('บันทึกรายการอะไหล่ไม่สำเร็จ (ตรวจสิทธิ์ RLS ของ service_parts)');
     }
     clearDraft();
-    // ── ตัวตรวจ: อ่านค่าจริงกลับจากเซิร์ฟเวอร์ทันทีหลังบันทึก เพื่อดูว่าข้อมูลลงจริงไหม ──
-    try{
-      var chk=await sb.from('service_jobs').select('id,technician_id,company,machine_name,machine_detail').eq('id',jid).single();
-      var sv=chk.data||{};
-      console.log('[VERIFY] sent=',{company:fd.company,machine_name:fd.machine_name,detailLen:(fd.machine_detail||'').length,technician_id:fd.technician_id});
-      console.log('[VERIFY] server=',chk.data,'err=',chk.error);
-      alert('🔎 ตรวจหลังบันทึก (id='+jid+')\n'+
-        '— ส่งไป: company="'+(fd.company||'')+'" | machine="'+(fd.machine_name||'')+'" | detail '+((fd.machine_detail||'').length)+' ตัวอักษร\n'+
-        '— เซิร์ฟเวอร์: company="'+(sv.company||'')+'" | machine="'+(sv.machine_name||'')+'" | detail '+((sv.machine_detail||'').length)+' ตัวอักษร\n'+
-        '— technician_id บนแถว: '+(sv.technician_id||'(ว่าง)')+'\n'+
-        '— ผู้ใช้นี้: '+(CU&&CU.id)+' (role='+(CP&&CP.role)+')'+
-        (chk.error?('\n— อ่านกลับ error: '+chk.error.message):''));
-    }catch(ee){console.error('[VERIFY] fail',ee);}
     toastF('✅ บันทึกสำเร็จ!','ok');
     return true;
   }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
@@ -1188,9 +1175,8 @@ function setFormReadonly(ro){
 async function loadJob(id){
   try{
     var r=await sb.from('service_jobs').select('*').eq('id',id).single();
-    if(r.error){ alert('⚠️ โหลดใบงานไม่สำเร็จ id='+id+'\n'+r.error.message+'\n(อาจเป็นสิทธิ์ RLS อ่านไม่ได้)'); console.error('[LOAD] error',r.error); return; }
-    var j=r.data;if(!j){ alert('⚠️ ไม่พบใบงาน id='+id+' (อ่านได้ 0 แถว — อาจถูก RLS ปิดกั้น)'); return; }
-    console.log('[LOAD] id='+id+' technician_id='+j.technician_id+' company="'+(j.company||'')+'" detailLen='+((j.machine_detail||'').length)+' me='+(CU&&CU.id)+' role='+(CP&&CP.role));
+    if(r.error){console.error('loadJob:',r.error);return;}
+    var j=r.data;if(!j)return;
     CJTECH={id:j.technician_id,name:j.technician_name};
     CJ_UPDATED=j.updated_at||j.created_at||null; // เวลาที่ข้อมูลบนเซิร์ฟเวอร์ถูกแก้ล่าสุด ใช้กันร่างเก่าทับของใหม่
     var isAdmin=CP&&CP.role==='admin';
@@ -1202,13 +1188,6 @@ async function loadJob(id){
     document.getElementById('jnoBadge').textContent=j.job_no||'';
     var ss=document.getElementById('jobStatus');if(ss&&j.status)ss.value=j.status;
     setTimeout(function(){
-      alert('📂 เปิดใบงาน id='+id+'\n'+
-        '— company="'+(j.company||'')+'"\n'+
-        '— machine="'+(j.machine_name||'')+'" | detail '+((j.machine_detail||'').length)+' ตัวอักษร\n'+
-        '— จำนวนอะไหล่ที่โหลดมา: '+pts.length+' แถว\n'+
-        '— technician_id แถวนี้: '+(j.technician_id||'(ว่าง)')+'\n'+
-        '— ผู้ใช้: '+(CU&&CU.id)+' (role='+(CP&&CP.role)+')\n'+
-        'กำลังเติมลงฟอร์ม...');
       fillForm(j,pts);
       toastF('โหลดใบงาน ✅','ok');
       maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
