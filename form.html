@@ -938,6 +938,16 @@ function fillForm(j,pts){
 }
 
 // ── กู้ข้อมูลหายตอนรีโหลด / สลับแอป (LOCAL DRAFT AUTOSAVE) ──
+// ล้างร่างเก่าที่อาจค้างจากเวอร์ชันก่อนแก้บั๊ก (ทำครั้งเดียวต่อเครื่อง เมื่อโหลดโค้ดใหม่ครั้งแรก)
+(function purgeLegacyDrafts(){
+  try{
+    var FIXV='2026-06-fix1';
+    if(localStorage.getItem('kfix_ver')===FIXV)return;
+    Object.keys(localStorage).forEach(function(k){ if(k.indexOf('kdraft_')===0) localStorage.removeItem(k); });
+    localStorage.setItem('kfix_ver',FIXV);
+  }catch(e){}
+})();
+
 function draftKey(){return CJ?('kdraft_'+CJ):'kdraft_new';}
 
 function getDraftData(){
@@ -983,7 +993,7 @@ function isPageReload(){
   return false;
 }
 
-function maybeRestoreDraft(key, serverTs){
+function maybeRestoreDraft(key, serverTs, existing){
   try{
     var raw=localStorage.getItem(key);if(!raw)return;
     var d=JSON.parse(raw);if(!d||!d.data){localStorage.removeItem(key);return;}
@@ -993,8 +1003,13 @@ function maybeRestoreDraft(key, serverTs){
       var sv=Date.parse(serverTs);
       if(!isNaN(sv) && (d.ts||0) <= sv + 60000){ localStorage.removeItem(key); return; }
     }
-    // ถามกู้คืนเฉพาะตอนรีเฟรช/รีโหลดหน้าเท่านั้น ตอนเปิดใบงานปกติไม่ต้องถาม (เก็บร่างไว้เผื่อรีโหลดทีหลัง)
-    if(!isPageReload())return;
+    // ถามกู้คืนเฉพาะตอนรีเฟรช/รีโหลดหน้าเท่านั้น
+    if(!isPageReload()){
+      // ใบงานที่มีบนเซิร์ฟเวอร์อยู่แล้ว: เปิดปกติให้ยึดเซิร์ฟเวอร์เสมอ และลบร่างเก่าทิ้งกันมาหลอนภายหลัง
+      // (ถ้าแก้ระหว่างนี้ autosave จะสร้างร่างใหม่เอง ยังกู้ได้ตอนรีโหลด/แครช)
+      if(existing) localStorage.removeItem(key);
+      return;
+    }
     var mins=Math.round((Date.now()-(d.ts||0))/60000);
     var when=mins<1?'เมื่อสักครู่':mins<60?(mins+' นาทีที่แล้ว'):(Math.round(mins/60)+' ชม.ที่แล้ว');
     if(confirm('พบข้อมูลที่ยังไม่ได้บันทึก ('+when+')\nต้องการกู้คืนหรือไม่?')){
@@ -1173,7 +1188,7 @@ async function loadJob(id){
     setTimeout(function(){
       fillForm(j,pts);
       toastF('โหลดใบงาน ✅','ok');
-      maybeRestoreDraft('kdraft_'+id, CJ_UPDATED);
+      maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
       bindAutosave();
     },400);
   }catch(e){console.error('loadJob:',e);}
