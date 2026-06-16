@@ -671,7 +671,17 @@ async function deleteMember(id){
   if(!confirm('ยืนยันอีกครั้ง — ลบสมาชิก "'+name+'" ?'))return;
   try{
     const{data,error}=await sb.functions.invoke('delete-member',{body:{userId:id}});
-    if(error)throw error;
+    if(error){
+      let msg=error.message||String(error);
+      try{
+        if(error.context){
+          const st=error.context.status;
+          const b=await error.context.json().catch(function(){return null;});
+          msg=(b&&b.error)?b.error:(msg+' (HTTP '+st+')');
+        }
+      }catch(_){}
+      throw new Error(msg);
+    }
     if(data&&data.error)throw new Error(data.error);
     toast('✅ ลบ '+name+' แล้ว (ใบงานเก็บไว้ '+((data&&data.keptJobs)||0)+' ใบ)','ok');
     await loadProfiles();
