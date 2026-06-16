@@ -1034,6 +1034,7 @@ async function cloudInit(){
     var eid=localStorage.getItem('kjid');
     if(eid){CJ=parseInt(eid);await loadJob(CJ);}
     else{
+      alert('🆕 เปิดเป็น "ฟอร์มใหม่" (ไม่พบ kjid ใน localStorage)\nถ้าคุณตั้งใจจะเปิดใบงานเดิม แปลว่าการเปิดจากรายการไม่ได้ส่ง id มา');
       var today=new Date().toISOString().split('T')[0];
       var dis=document.querySelectorAll('#page input[type="date"]');
       if(dis[0]&&!dis[0].value)dis[0].value=today;
@@ -1201,6 +1202,13 @@ async function loadJob(id){
     document.getElementById('jnoBadge').textContent=j.job_no||'';
     var ss=document.getElementById('jobStatus');if(ss&&j.status)ss.value=j.status;
     setTimeout(function(){
+      alert('📂 เปิดใบงาน id='+id+'\n'+
+        '— company="'+(j.company||'')+'"\n'+
+        '— machine="'+(j.machine_name||'')+'" | detail '+((j.machine_detail||'').length)+' ตัวอักษร\n'+
+        '— จำนวนอะไหล่ที่โหลดมา: '+pts.length+' แถว\n'+
+        '— technician_id แถวนี้: '+(j.technician_id||'(ว่าง)')+'\n'+
+        '— ผู้ใช้: '+(CU&&CU.id)+' (role='+(CP&&CP.role)+')\n'+
+        'กำลังเติมลงฟอร์ม...');
       fillForm(j,pts);
       toastF('โหลดใบงาน ✅','ok');
       maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
