@@ -1154,6 +1154,19 @@ async function saveCloud(){
       if(!rip.data||!rip.data.length)throw new Error('บันทึกรายการอะไหล่ไม่สำเร็จ (ตรวจสิทธิ์ RLS ของ service_parts)');
     }
     clearDraft();
+    // ── ตัวตรวจ: อ่านค่าจริงกลับจากเซิร์ฟเวอร์ทันทีหลังบันทึก เพื่อดูว่าข้อมูลลงจริงไหม ──
+    try{
+      var chk=await sb.from('service_jobs').select('id,technician_id,company,machine_name,machine_detail').eq('id',jid).single();
+      var sv=chk.data||{};
+      console.log('[VERIFY] sent=',{company:fd.company,machine_name:fd.machine_name,detailLen:(fd.machine_detail||'').length,technician_id:fd.technician_id});
+      console.log('[VERIFY] server=',chk.data,'err=',chk.error);
+      alert('🔎 ตรวจหลังบันทึก (id='+jid+')\n'+
+        '— ส่งไป: company="'+(fd.company||'')+'" | machine="'+(fd.machine_name||'')+'" | detail '+((fd.machine_detail||'').length)+' ตัวอักษร\n'+
+        '— เซิร์ฟเวอร์: company="'+(sv.company||'')+'" | machine="'+(sv.machine_name||'')+'" | detail '+((sv.machine_detail||'').length)+' ตัวอักษร\n'+
+        '— technician_id บนแถว: '+(sv.technician_id||'(ว่าง)')+'\n'+
+        '— ผู้ใช้นี้: '+(CU&&CU.id)+' (role='+(CP&&CP.role)+')'+
+        (chk.error?('\n— อ่านกลับ error: '+chk.error.message):''));
+    }catch(ee){console.error('[VERIFY] fail',ee);}
     toastF('✅ บันทึกสำเร็จ!','ok');
     return true;
   }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
@@ -1174,7 +1187,9 @@ function setFormReadonly(ro){
 async function loadJob(id){
   try{
     var r=await sb.from('service_jobs').select('*').eq('id',id).single();
-    var j=r.data;if(!j)return;
+    if(r.error){ alert('⚠️ โหลดใบงานไม่สำเร็จ id='+id+'\n'+r.error.message+'\n(อาจเป็นสิทธิ์ RLS อ่านไม่ได้)'); console.error('[LOAD] error',r.error); return; }
+    var j=r.data;if(!j){ alert('⚠️ ไม่พบใบงาน id='+id+' (อ่านได้ 0 แถว — อาจถูก RLS ปิดกั้น)'); return; }
+    console.log('[LOAD] id='+id+' technician_id='+j.technician_id+' company="'+(j.company||'')+'" detailLen='+((j.machine_detail||'').length)+' me='+(CU&&CU.id)+' role='+(CP&&CP.role));
     CJTECH={id:j.technician_id,name:j.technician_name};
     CJ_UPDATED=j.updated_at||j.created_at||null; // เวลาที่ข้อมูลบนเซิร์ฟเวอร์ถูกแก้ล่าสุด ใช้กันร่างเก่าทับของใหม่
     var isAdmin=CP&&CP.role==='admin';
