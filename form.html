@@ -728,10 +728,11 @@ async function exportPDF(){
     const textarea = document.getElementById('detailTextarea');
     const textareaValue = textarea.value;
     const textareaParent = textarea.parentNode;
-    const lineHeight = 1.6, fontSize = 13, paddingPx = 4;
-    const fiveLinesPx = (fontSize * lineHeight * 5) + (paddingPx * 2);
+    const fontSize = 13, paddingPx = 4;
+    const linePx = 24; // line-height แบบ px ชัดเจน กันบรรทัดไทยซ้อนกันใน html2canvas
+    const fiveLinesPx = (linePx * 5) + (paddingPx * 2);
     const detailDiv = document.createElement('div');
-    detailDiv.style.cssText = ['width:100%','border:1px solid #bfa000','border-radius:4px','background:rgba(255,255,255,0.7)','padding:'+paddingPx+'px','font-family:Sarabun,sans-serif','font-size:'+fontSize+'px','line-height:'+lineHeight,'color:#222','white-space:pre-wrap','word-break:break-word','min-height:'+fiveLinesPx+'px','height:'+fiveLinesPx+'px','overflow:hidden','box-sizing:border-box'].join(';');
+    detailDiv.style.cssText = ['width:100%','border:1px solid #bfa000','border-radius:4px','background:rgba(255,255,255,0.7)','padding:'+paddingPx+'px','font-family:Sarabun,sans-serif','font-size:'+fontSize+'px','line-height:'+linePx+'px','color:#222','white-space:pre-wrap','word-break:break-word','min-height:'+fiveLinesPx+'px','overflow:visible','box-sizing:border-box'].join(';');
     detailDiv.textContent = textareaValue;
     textareaParent.replaceChild(detailDiv, textarea);
 
@@ -801,6 +802,9 @@ async function exportPDF(){
     var dt = document.getElementById('serviceDate')&&document.getElementById('serviceDate').value||'';
     var dateStr = dt ? dt.replace(/-/g,'') : '';
     var pdfName = 'SERVICE_SHEET' + (co?'_'+co:'') + (dateStr?'_'+dateStr:'') + '.pdf';
+    // รอให้ฟอนต์ Sarabun โหลดเสร็จก่อนวาดภาพ ไม่งั้น html2canvas จะวาดด้วย metric ผิดทำให้ตัวอักษรไทยซ้อนกัน
+    try { if (document.fonts && document.fonts.ready) { await document.fonts.ready; await document.fonts.load('400 13px Sarabun'); await document.fonts.load('700 13px Sarabun'); } } catch(e){}
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     try {
       var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (window.html2canvas && J) {
@@ -1068,14 +1072,22 @@ async function saveCloud(){
     }else{
       var yr=fd.service_date?new Date(fd.service_date).getFullYear():new Date().getFullYear();
       var yrPrefix='KIMAC-'+yr+'-';
-      var existing=await sb.from('service_jobs').select('job_no').ilike('job_no',yrPrefix+'%').order('job_no',{ascending:false}).limit(1);
-      var maxSeq=0;
-      if(existing.data&&existing.data.length>0){
-        var lastNo=existing.data[0].job_no;
-        var lastSeq=parseInt(lastNo.split('-').pop());
-        if(!isNaN(lastSeq))maxSeq=lastSeq;
+      var seqNum=null;
+      // ใช้ตัวนับแบบเพิ่มขึ้นอย่างเดียว (ไม่ลดลงเมื่อมีการลบ) เพื่อกันเลขรันซ้ำ
+      var rpc=await sb.rpc('next_job_seq',{p_year:yr});
+      if(!rpc.error && rpc.data!=null){
+        seqNum=parseInt(rpc.data);
+      }else{
+        // เผื่อยังไม่ได้สร้างฟังก์ชันใน Supabase ให้ย้อนไปใช้วิธีหาเลขสูงสุดเดิม
+        var existing=await sb.from('service_jobs').select('job_no').ilike('job_no',yrPrefix+'%').order('job_no',{ascending:false}).limit(1);
+        var maxSeq=0;
+        if(existing.data&&existing.data.length>0){
+          var lastSeq=parseInt(existing.data[0].job_no.split('-').pop());
+          if(!isNaN(lastSeq))maxSeq=lastSeq;
+        }
+        seqNum=maxSeq+1;
       }
-      var sq=String(maxSeq+1).padStart(4,'0');
+      var sq=String(seqNum).padStart(4,'0');
       fd.job_no=yrPrefix+sq;
       var ins=await sb.from('service_jobs').insert(fd).select().single();
       if(ins.error)throw ins.error;
