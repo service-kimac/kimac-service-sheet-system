@@ -34,12 +34,14 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   color:#fff;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
   font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
 
-.filter-bar{background:#0f2347;padding:8px 12px;display:none;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.filter-bar{background:#fff;border:2px solid #e2e8f8;border-radius:12px;padding:10px 14px;
+  margin-bottom:12px;display:none;gap:10px;align-items:center;overflow-x:auto;scrollbar-width:none;
+  box-shadow:0 2px 8px rgba(26,58,110,.06)}
 .filter-bar.show{display:flex}
-.fb-label{color:rgba(255,255,255,.7);font-size:11px;white-space:nowrap}
-.fb-select{padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:8px;
-  font-family:'Sarabun',sans-serif;font-size:12px;color:#fff;
-  background:rgba(255,255,255,.1);outline:none;cursor:pointer}
+.fb-label{color:#1a3a6e;font-size:13px;font-weight:700;white-space:nowrap}
+.fb-select{flex:1;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;
+  background:#f7f9fd;outline:none;cursor:pointer;-webkit-appearance:none}
 .fb-select option{color:#1a1a2e;background:#fff}
 .pg{display:none;padding:12px;max-width:800px;margin:0 auto}
 .pg.on{display:block}
@@ -201,7 +203,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 <!-- JOBS PAGE -->
 <div id="pg-jobs" class="pg on">
   <div class="filter-bar" id="filterBar">
-    <span class="fb-label">รายบุคคล:</span>
+    <span class="fb-label">👤 รายบุคคล:</span>
     <select class="fb-select" id="filterTech" onchange="renderJobs()">
       <option value="">ทุกคน</option>
     </select>
@@ -494,6 +496,25 @@ async function init(){
   await loadJobs();
   await loadProfiles();
 }
+
+// ===== รีเฟรชอัตโนมัติเมื่อกลับเข้าแอป (จากพื้นหลัง/เปิดจากไอคอนหน้าจอโฮม) =====
+let _lastResumeRefresh = 0;
+async function resumeRefresh(){
+  if(!CU) return; // ยังไม่ login เสร็จ ไม่ต้องทำอะไร
+  const now = Date.now();
+  if(now - _lastResumeRefresh < 4000) return; // กันยิงซ้ำถ้า event มาพร้อมกันหลายตัว
+  _lastResumeRefresh = now;
+  try{
+    await loadJobs();
+    await loadProfiles();
+    if(typeof refreshPushStatus === 'function') refreshPushStatus();
+  }catch(e){ console.error('resumeRefresh:', e); }
+}
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState === 'visible') resumeRefresh();
+});
+window.addEventListener('focus', resumeRefresh);
+window.addEventListener('pageshow', function(e){ if(e.persisted) resumeRefresh(); });
 
 async function loadJobs(){
   try{
