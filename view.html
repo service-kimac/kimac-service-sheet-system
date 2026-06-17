@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ใบงานบริการ KIMAC</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Sarabun','Segoe UI',sans-serif;background:#eef2ف7;background:#eef2f7;color:#1f2937;padding:0 0 40px}
+  .top{background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#fff;padding:18px 16px;display:flex;align-items:center;gap:10px}
+  .top .logo{width:38px;height:38px;border-radius:9px;background:#f9c900;color:#1a3a6e;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px}
+  .top .t1{font-size:16px;font-weight:800}
+  .top .t2{font-size:11px;opacity:.85}
+  .wrap{max-width:640px;margin:0 auto;padding:16px}
+  .card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:16px;margin-bottom:14px}
+  .card h3{font-size:13px;color:#1a3a6e;margin-bottom:10px;border-bottom:2px solid #eef2f7;padding-bottom:6px}
+  .row{display:flex;font-size:13px;padding:4px 0;gap:8px}
+  .row .k{color:#6b7280;min-width:96px}
+  .row .v{font-weight:600;color:#111827;flex:1}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+  th,td{border-bottom:1px solid #eef2f7;padding:6px 4px;text-align:left}
+  th{color:#6b7280;font-weight:600}
+  td.r,th.r{text-align:right}
+  .sigbox{border:1px dashed #cbd5e1;border-radius:10px;height:180px;background:#fcfcfd;touch-action:none}
+  .sigimg{max-width:100%;max-height:160px;border:1px solid #eef2f7;border-radius:8px}
+  input[type=text]{width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:9px;font-size:14px;font-family:inherit;margin-top:6px}
+  .btns{display:flex;gap:10px;margin-top:12px}
+  .btn{flex:1;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+  .btn-clear{background:#f3f4f6;color:#374151}
+  .btn-ok{background:linear-gradient(135deg,#065f46,#16a34a);color:#fff}
+  .btn-ok:disabled{opacity:.5}
+  .state{text-align:center;padding:50px 20px;color:#6b7280}
+  .state .ic{font-size:46px;margin-bottom:12px}
+  .badge-ok{display:inline-block;background:#dcfce7;color:#166534;font-weight:700;font-size:12px;padding:4px 10px;border-radius:8px}
+  .hint{font-size:11px;color:#9ca3af;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">KMC</div>
+  <div><div class="t1">ใบงานบริการ</div><div class="t2">บริษัท คีแมค จำกัด</div></div>
+</div>
+<div class="wrap" id="wrap">
+  <div class="state" id="loading"><div class="ic">⏳</div>กำลังโหลดใบงาน...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL='https://vjblfdlzerpiazmqxuce.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M';
+const sb=supabase.createClient(SURL,SKEY);
+const token=new URLSearchParams(location.search).get('t');
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function stateMsg(ic,msg){document.getElementById('wrap').innerHTML='<div class="state"><div class="ic">'+ic+'</div>'+msg+'</div>';}
+
+async function load(){
+  if(!token){ stateMsg('⚠️','ลิงก์ไม่ถูกต้อง'); return; }
+  try{
+    const{data,error}=await sb.rpc('get_job_public',{p_token:token});
+    if(error)throw error;
+    if(!data){ stateMsg('⛔','ลิงก์ไม่ถูกต้องหรือหมดอายุแล้ว<div class="hint">ลิงก์มีอายุ 1 วัน กรุณาขอลิงก์ใหม่จากเจ้าหน้าที่</div>'); return; }
+    render(data);
+  }catch(e){ stateMsg('⛔','เปิดใบงานไม่ได้<div class="hint">'+esc(e.message||e)+'</div>'); }
+}
+
+function render(j){
+  const tm=[j.time_start,j.time_end].filter(Boolean).join(' - ');
+  const parts=Array.isArray(j.parts)?j.parts:[];
+  let partsHtml='';
+  if(parts.length){
+    partsHtml='<div class="card"><h3>🧾 รายการอะไหล่/บริการ</h3><table><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">ราคา</th></tr>'+
+      parts.map(p=>'<tr><td>'+esc(p.part_name)+'</td><td class="r">'+esc(p.qty)+' '+esc(p.unit||'')+'</td><td class="r">'+(Number(p.line_total||p.price||0)).toLocaleString('th-TH')+'</td></tr>').join('')+
+      '</table></div>';
+  }
+  const total=Number(j.total||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  let signSection;
+  if(j.signed){
+    signSection='<div class="card"><h3>✍️ ลายเซ็นลูกค้า</h3><div><span class="badge-ok">✓ เซ็นรับงานเรียบร้อยแล้ว</span></div>'+
+      (j.cust_name_sign?'<div class="row" style="margin-top:8px"><div class="k">ชื่อผู้เซ็น</div><div class="v">'+esc(j.cust_name_sign)+'</div></div>':'')+
+      (j.cust_sign_date?'<div class="row"><div class="k">วันที่</div><div class="v">'+esc(j.cust_sign_date)+'</div></div>':'')+
+      (j.cust_sig_data?'<img class="sigimg" src="'+esc(j.cust_sig_data)+'">':'')+'</div>';
+  }else{
+    signSection='<div class="card"><h3>✍️ เซ็นรับงาน</h3>'+
+      '<label style="font-size:13px;color:#374151">ชื่อผู้รับงาน</label>'+
+      '<input type="text" id="cName" placeholder="ชื่อ-นามสกุล">'+
+      '<div style="font-size:13px;color:#374151;margin:12px 0 6px">ลายเซ็น (เซ็นในกรอบด้านล่าง)</div>'+
+      '<canvas id="pad" class="sigbox" style="width:100%"></canvas>'+
+      '<div class="btns"><button class="btn btn-clear" onclick="clearPad()">ล้าง</button>'+
+      '<button class="btn btn-ok" id="okBtn" onclick="submitSign()">✓ ยืนยันเซ็นรับงาน</button></div>'+
+      '<div class="hint">เมื่อกดยืนยัน ลายเซ็นจะถูกบันทึกเข้าใบงานทันที และเซ็นได้เพียงครั้งเดียว</div></div>';
+  }
+
+  document.getElementById('wrap').innerHTML=
+    '<div class="card"><h3>📄 ใบงาน '+esc(j.job_no||'')+'</h3>'+
+      '<div class="row"><div class="k">บริษัท</div><div class="v">'+esc(j.company||'-')+'</div></div>'+
+      '<div class="row"><div class="k">ผู้ติดต่อ</div><div class="v">'+esc(j.contact_name||'-')+'</div></div>'+
+      '<div class="row"><div class="k">ที่อยู่/หน้างาน</div><div class="v">'+esc(j.address||'-')+'</div></div>'+
+      '<div class="row"><div class="k">วันที่บริการ</div><div class="v">'+esc(j.service_date||'-')+(tm?(' ('+esc(tm)+')'):'')+'</div></div>'+
+    '</div>'+
+    '<div class="card"><h3>⚙️ เครื่อง/อุปกรณ์</h3>'+
+      '<div class="row"><div class="k">ชื่อเครื่อง</div><div class="v">'+esc(j.machine_name||'-')+'</div></div>'+
+      '<div class="row"><div class="k">รุ่น</div><div class="v">'+esc(j.machine_model||'-')+'</div></div>'+
+      '<div class="row"><div class="k">S/N</div><div class="v">'+esc(j.machine_sn||'-')+'</div></div>'+
+      (j.machine_detail?'<div class="row"><div class="k">รายละเอียด</div><div class="v">'+esc(j.machine_detail)+'</div></div>':'')+
+    '</div>'+
+    partsHtml+
+    '<div class="card"><h3>💰 รวมทั้งสิ้น</h3><div class="row"><div class="k">ยอดรวม</div><div class="v" style="font-size:18px;color:#16a34a">฿ '+total+'</div></div>'+
+      (j.technician_name?'<div class="row"><div class="k">ช่างผู้ให้บริการ</div><div class="v">'+esc(j.technician_name)+'</div></div>':'')+
+      (j.tech_sig_data?'<div style="margin-top:6px"><div class="k" style="font-size:12px;color:#6b7280">ลายเซ็นช่าง</div><img class="sigimg" src="'+esc(j.tech_sig_data)+'"></div>':'')+
+    '</div>'+
+    signSection;
+
+  if(!j.signed) setupPad();
+}
+
+// ===== ลายเซ็น (canvas) =====
+let ctx,drawing=false,hasInk=false;
+function setupPad(){
+  const c=document.getElementById('pad');
+  const ratio=window.devicePixelRatio||1;
+  const w=c.offsetWidth, h=180;
+  c.width=w*ratio; c.height=h*ratio;
+  ctx=c.getContext('2d'); ctx.scale(ratio,ratio);
+  ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.strokeStyle='#111827';
+  const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};};
+  const start=e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault();};
+  const move=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();hasInk=true;e.preventDefault();};
+  const end=()=>{drawing=false;};
+  c.addEventListener('mousedown',start);c.addEventListener('mousemove',move);window.addEventListener('mouseup',end);
+  c.addEventListener('touchstart',start,{passive:false});c.addEventListener('touchmove',move,{passive:false});c.addEventListener('touchend',end);
+}
+function clearPad(){const c=document.getElementById('pad');if(ctx){ctx.clearRect(0,0,c.width,c.height);}hasInk=false;}
+
+async function submitSign(){
+  const name=(document.getElementById('cName').value||'').trim();
+  if(!name){ alert('กรุณากรอกชื่อผู้รับงาน'); return; }
+  if(!hasInk){ alert('กรุณาเซ็นชื่อในกรอบ'); return; }
+  const btn=document.getElementById('okBtn'); btn.disabled=true; btn.textContent='กำลังบันทึก...';
+  try{
+    const sig=document.getElementById('pad').toDataURL('image/png');
+    const today=new Date().toISOString().split('T')[0];
+    const{data,error}=await sb.rpc('sign_job_public',{p_token:token,p_name:name,p_sig:sig,p_date:today});
+    if(error)throw error;
+    if(data&&data.ok===false){ alert(data.error||'เซ็นไม่สำเร็จ'); btn.disabled=false; btn.textContent='✓ ยืนยันเซ็นรับงาน'; return; }
+    stateMsg('✅','<div style="color:#166534;font-weight:800;font-size:18px">เซ็นรับงานเรียบร้อย</div><div class="hint">ขอบคุณครับ ลายเซ็นถูกบันทึกเข้าระบบแล้ว</div>');
+  }catch(e){ alert('บันทึกไม่สำเร็จ: '+(e.message||e)); btn.disabled=false; btn.textContent='✓ ยืนยันเซ็นรับงาน'; }
+}
+
+load();
+</script>
+</body>
+</html>
