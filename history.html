@@ -222,6 +222,19 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   </div>
   <div id="mineList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
 </div>
+<!-- REPORT PAGE -->
+<div id="pg-report" class="pg">
+  <div class="rg">
+    <div class="rc"><div class="rn" id="rTot">-</div><div class="rl">ใบงานทั้งหมด</div></div>
+    <div class="rc"><div class="rn" id="rMon">-</div><div class="rl">เดือนนี้</div></div>
+    <div class="rc"><div class="rn" id="rRev" style="font-size:18px">-</div><div class="rl">รายได้รวม (฿)</div></div>
+    <div class="rc"><div class="rn" id="rAvg" style="font-size:18px">-</div><div class="rl">เฉลี่ยต่อใบงาน</div></div>
+  </div>
+  <div class="rs"><h3>📊 สัดส่วนสถานะใบงาน</h3><div style="position:relative;height:230px"><canvas id="statusPie"></canvas></div></div>
+  <div class="rs"><h3>📅 จำนวนใบงาน 6 เดือนล่าสุด</h3><div style="position:relative;height:230px"><canvas id="monthBar"></canvas></div></div>
+  <div class="rs"><h3>💰 รายได้ 6 เดือนล่าสุด (฿)</h3><div style="position:relative;height:230px"><canvas id="revLine"></canvas></div></div>
+  <div class="rs" id="techCard"><h3>🔧 ใบงานรายช่าง</h3><div style="position:relative;height:260px"><canvas id="techBar"></canvas></div></div>
+</div>
 <!-- TEAM PAGE -->
 <div id="pg-team" class="pg">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -251,24 +264,15 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
     </div>
   </div>
   <div class="ss">
+    <div class="sr" onclick="swPg('report')">
+  <div><div class="sl">📊 ดูรายงาน</div><div class="ssub">สถิติใบงาน รายได้ และกราฟรายช่าง</div></div>
+  <span class="sa">›</span>
+</div>
     <div class="sh">📋 ข้อมูล</div>
     <div class="sr" onclick="exportXLSX()">
       <div><div class="sl">Export Excel (.xlsx)</div><div class="ssub">ตารางจัดช่องสวยงาม เปิดด้วย Excel ได้ทันที</div></div>
       <span class="sa">›</span>
     </div>
-    <!-- REPORT PAGE -->
-<div id="pg-report" class="pg">
-  <div class="rg">
-    <div class="rc"><div class="rn" id="rTot">-</div><div class="rl">ใบงานทั้งหมด</div></div>
-    <div class="rc"><div class="rn" id="rMon">-</div><div class="rl">เดือนนี้</div></div>
-    <div class="rc"><div class="rn" id="rRev" style="font-size:18px">-</div><div class="rl">รายได้รวม (฿)</div></div>
-    <div class="rc"><div class="rn" id="rAvg" style="font-size:18px">-</div><div class="rl">เฉลี่ยต่อใบงาน</div></div>
-  </div>
-  <div class="rs"><h3>📊 สัดส่วนสถานะใบงาน</h3><div style="position:relative;height:230px"><canvas id="statusPie"></canvas></div></div>
-  <div class="rs"><h3>📅 จำนวนใบงาน 6 เดือนล่าสุด</h3><div style="position:relative;height:230px"><canvas id="monthBar"></canvas></div></div>
-  <div class="rs"><h3>💰 รายได้ 6 เดือนล่าสุด (฿)</h3><div style="position:relative;height:230px"><canvas id="revLine"></canvas></div></div>
-  <div class="rs" id="techCard"><h3>🔧 ใบงานรายช่าง</h3><div style="position:relative;height:260px"><canvas id="techBar"></canvas></div></div>
-</div>
   </div>
   <div class="ss" id="trashSetting" style="display:none">
     <div class="sh">🗑️ การกู้คืน</div>
@@ -317,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="bnav">
   <button class="bni on" id="nav-jobs" onclick="swPg('jobs')"><span class="bni-ic">📋</span>ประวัติใบงาน</button>
   <button class="bni" id="nav-mine" onclick="swPg('mine')"><span class="bni-ic">🧰</span>งานของฉัน<span id="mineBadge" class="nbadge" style="display:none">0</span></button>
-  <button class="bni" id="nav-report" onclick="swPg('report')"><span class="bni-ic">📊</span>รายงาน</button>
   <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใบงานใหม่</button>
   <button class="bni" id="nav-team" onclick="swPg('team')"><span class="bni-ic">👥</span>ทีมงาน</button>
   <button class="bni" id="nav-settings" onclick="swPg('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
