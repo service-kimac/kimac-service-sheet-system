@@ -425,6 +425,7 @@ body {
   <button class="ab ab-hist" onclick="goBack()">📋 ประวัติใบงาน</button>
   <button class="ab ab-save" id="btnSave" onclick="saveCloud()">☁️ บันทึกในระบบ</button>
   <button class="ab ab-pdf" id="btnPDF" onclick="exportPDF()">📄 PDF/พิมพ์</button>
+  <button class="ab" id="btnLink" onclick="custLink()" style="display:none;background:linear-gradient(135deg,#0e7490,#06b6d4);color:#fff">🔗 ลิงก์ลูกค้าเซ็น</button>
 </div>
 
 <!-- FULLSCREEN SIGNATURE MODAL -->
@@ -1028,6 +1029,7 @@ async function cloudInit(){
     CU=s.data.session.user;
     var pr=await sb.from('profiles').select('*').eq('id',CU.id).single();
     CP=pr.data;
+    if(CP&&CP.role==='admin'){var _bl=document.getElementById('btnLink');if(_bl)_bl.style.display='';}
     if(CP&&CP.full_name){
       var tn=document.getElementById('techName');
       if(tn&&!tn.value)tn.value=CP.full_name;
@@ -1197,6 +1199,27 @@ async function loadJob(id){
       bindAutosave();
     },400);
   }catch(e){console.error('loadJob:',e);}
+}
+
+async function custLink(){
+  if(!(CP&&CP.role==='admin')){ alert('เฉพาะแอดมินเท่านั้นที่สร้างลิงก์ได้'); return; }
+  if(!CJ){ alert('กรุณาบันทึกใบงานในระบบก่อน แล้วจึงสร้างลิงก์ให้ลูกค้า'); return; }
+  var btn=document.getElementById('btnLink');
+  var old=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='กำลังสร้างลิงก์...'; }
+  try{
+    var r=await sb.rpc('get_or_create_job_token',{p_job_id:CJ});
+    if(r.error)throw r.error;
+    var link=new URL('view.html?t='+r.data, location.href).href;
+    try{ await navigator.clipboard.writeText(link); }catch(e){}
+    if(navigator.share){
+      try{ await navigator.share({title:'ใบงานบริการ KIMAC', text:'กรุณากดลิงก์เพื่อดูและเซ็นรับงาน', url:link}); }catch(e){}
+    } else {
+      prompt('คัดลอกลิงก์นี้ส่งให้ลูกค้า (ลิงก์มีอายุ 1 วัน):', link);
+    }
+    if(typeof toastF==='function') toastF('🔗 สร้างลิงก์แล้ว (คัดลอกไว้ให้ในคลิปบอร์ด)','info');
+  }catch(e){ alert('สร้างลิงก์ไม่สำเร็จ: '+(e.message||e)); }
+  if(btn){ btn.disabled=false; btn.textContent=old; }
 }
 
 function goBack(){localStorage.removeItem('kjid');location.href='history.html';}
