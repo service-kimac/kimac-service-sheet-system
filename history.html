@@ -193,18 +193,17 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
       <div class="uname" id="uname">กำลังโหลด...</div>
       <div class="urole" id="urole"></div>
     </div>
-    <button class="btn-out" onclick="doLogout()">ออก</button>
   </div>
 </div>
 
-<div class="filter-bar" id="filterBar">
-  <span class="fb-label">รายบุคคล:</span>
-  <select class="fb-select" id="filterTech" onchange="renderJobs()">
-    <option value="">ทุกคน</option>
-  </select>
-</div>
 <!-- JOBS PAGE -->
 <div id="pg-jobs" class="pg on">
+  <div class="filter-bar" id="filterBar">
+    <span class="fb-label">รายบุคคล:</span>
+    <select class="fb-select" id="filterTech" onchange="renderJobs()">
+      <option value="">ทุกคน</option>
+    </select>
+  </div>
   <div class="bar">
     <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
     <select class="fsel" id="fs" onchange="renderJobs()">
@@ -314,6 +313,11 @@ document.addEventListener('DOMContentLoaded', function () {
   if (elC) elC.textContent = '© ' + buddhistYear + ' KIMAC สงวนลิขสิทธิ์';
 });
 </script>
+  <div style="padding:0 0 10px">
+    <button onclick="switchAccount()" style="width:100%;padding:14px;background:#eef2f7;color:#1a3a6e;
+      border:1.5px solid #c7d2e0;border-radius:12px;font-family:'Sarabun',sans-serif;
+      font-size:15px;font-weight:700;cursor:pointer;-webkit-appearance:none">🔁 สลับบัญชี</button>
+  </div>
   <div style="padding:0 0 16px">
     <button onclick="doLogout()" style="width:100%;padding:14px;background:#fff0f0;color:#dc2626;
       border:1.5px solid #fecaca;border-radius:12px;font-family:'Sarabun',sans-serif;
@@ -1087,6 +1091,10 @@ async function doDel(){
   btn.textContent='ย้ายไปถังขยะ';btn.disabled=false;
 }
 async function doLogout(){
+  await sb.auth.signOut();
+  location.href='login.html';
+}
+async function switchAccount(){
   await sb.auth.signOut();
   location.href='login.html';
 }
