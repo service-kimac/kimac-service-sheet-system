@@ -525,8 +525,8 @@ function renderJobs(){
   if(tech&&isAdmin)jj=jj.filter(j=>j.technician_name===tech);
   const el=document.getElementById('list');
   if(!jj.length){el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><b>ไม่พบใบงาน</b><p style="margin-top:6px;font-size:13px">กด "+ ใหม่" เพื่อสร้างใบงาน</p></div>';return;}
-  const slm={draft:'draft',completed:'completed',approved:'approved'};
-  const nm={draft:'ร่าง',completed:'เสร็จสิ้น',approved:'อนุมัติแล้ว'};
+  const slm={draft:'draft',completed:'completed'};
+  const nm={draft:'ร่าง',completed:'เสร็จสิ้น'};
   el.innerHTML=jj.map(j=>{
     const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
     const tot=j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-';
@@ -577,7 +577,7 @@ function renderReport(){
   if(!visible||typeof Chart==='undefined')return;
   Chart.defaults.font.family="'Sarabun',sans-serif";
   // สถานะ (โดนัท)
-  const stKeys=[['draft','ร่าง','#94a3b8'],['completed','เสร็จสิ้น','#16a34a'],['approved','อนุมัติ','#1a3a6e']];
+  const stKeys=[['draft','ร่าง','#94a3b8'],['completed','เสร็จสิ้น','#16a34a']];
   mkChart('statusPie',{type:'doughnut',data:{labels:stKeys.map(k=>k[1]),datasets:[{data:stKeys.map(k=>jj.filter(j=>j.status===k[0]).length),backgroundColor:stKeys.map(k=>k[2]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'}}}});
   // 6 เดือน
   const labels=[],jobCnt=[],revArr=[];
