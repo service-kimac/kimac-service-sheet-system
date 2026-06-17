@@ -264,6 +264,20 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
     </div>
   </div>
   <div class="ss">
+    <div class="sh">🔔 การแจ้งเตือน</div>
+    <div class="sr" onclick="enablePush()">
+      <div><div class="sl">เปิดแจ้งเตือนงานใหม่</div><div class="ssub" id="pushStatus">แตะเพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้</div></div>
+      <span class="sa">›</span>
+    </div>
+  </div>
+  <div class="ss">
+    <div class="sh">📊 รายงาน</div>
+    <div class="sr" onclick="swPg('report')">
+      <div><div class="sl">รายงาน / สรุปยอด</div><div class="ssub">สถิติใบงาน รายได้ และสถานะ</div></div>
+      <span class="sa">›</span>
+    </div>
+  </div>
+  <div class="ss">
     <div class="sh">📋 ข้อมูล</div>
     <div class="sr" onclick="swPg('report')">
   <div><div class="sl">📊 ดูรายงาน</div><div class="ssub">สถิติใบงาน รายได้ และกราฟรายช่าง</div></div>
@@ -690,10 +704,11 @@ function swPg(name){
   if(pg)pg.classList.add('on');
   const nav=document.getElementById('nav-'+name);
   if(nav)nav.classList.add('on');
+  if(name==='report'){const ns=document.getElementById('nav-settings');if(ns)ns.classList.add('on');}
   if(name==='mine'){renderMine();markMineSeen();}
   if(name==='report')renderReport();
   if(name==='team')renderTeam();
-  if(name==='settings')loadSettingsProf();
+  if(name==='settings'){loadSettingsProf();refreshPushStatus();}
   if(name==='trash')loadTrash();
 }
 
@@ -915,9 +930,56 @@ async function saveShare(){
 }
 
 async function notifyAssign(jobId,userId){
-  // ส่งอีเมลแจ้งช่างผ่าน Edge Function (best-effort: ถ้าล้มเหลวไม่กระทบการบันทึก)
-  try{ await sb.functions.invoke('notify-email',{body:{job_id:jobId,user_id:userId}}); }
-  catch(e){ console.warn('notify-email:',e); }
+  // เด้งแจ้งเตือน Web Push ให้ช่าง (best-effort: ถ้าล้มเหลวไม่กระทบการบันทึก)
+  try{ await sb.functions.invoke('notify-push',{body:{job_id:jobId,user_id:userId}}); }
+  catch(e){ console.warn('notify-push:',e); }
+}
+
+// ===== Web Push: เปิดการแจ้งเตือนบนอุปกรณ์ =====
+const VAPID_PUBLIC='BIqAHXB1lUv5T_VO1O3t7ECi2TAoP8IdV5wOXWUGvRaq9CtFW5nAyksiDbHOS2CEtAQawloxSs62APX0tGCNpkc';
+function urlB64ToUint8Array(b){
+  const pad='='.repeat((4-b.length%4)%4);
+  const base=(b+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base);const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+function pushStandalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+async function enablePush(){
+  try{
+    const iOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    if(!('serviceWorker' in navigator)||!('PushManager' in window)){
+      if(iOS) alert('สำหรับ iPhone/iPad ต้อง "เพิ่มลงในหน้าจอโฮม" ก่อน:\n1) กดปุ่มแชร์ในซาฟารี\n2) เลือก "เพิ่มลงในหน้าจอโฮม"\n3) เปิดแอปจากไอคอนบนหน้าจอ แล้วกดเปิดแจ้งเตือนอีกครั้ง');
+      else alert('อุปกรณ์/เบราว์เซอร์นี้ยังไม่รองรับการแจ้งเตือน');
+      return;
+    }
+    if(iOS&&!pushStandalone()){
+      alert('สำหรับ iPhone/iPad ต้อง "เพิ่มลงในหน้าจอโฮม" ก่อน:\n1) กดปุ่มแชร์ในซาฟารี\n2) เลือก "เพิ่มลงในหน้าจอโฮม"\n3) เปิดแอปจากไอคอนบนหน้าจอ แล้วกดเปิดแจ้งเตือนอีกครั้ง');
+      return;
+    }
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ toast('❌ ไม่ได้อนุญาตแจ้งเตือน','err'); refreshPushStatus(); return; }
+    await navigator.serviceWorker.register('sw.js').catch(()=>{});
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC)});
+    const j=sub.toJSON();
+    const{error}=await sb.from('push_subscriptions').upsert(
+      {user_id:CU.id,endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth},
+      {onConflict:'endpoint'});
+    if(error)throw error;
+    toast('✅ เปิดแจ้งเตือนแล้ว','ok');
+    refreshPushStatus();
+  }catch(e){ toast('❌ '+(e&&e.message||e),'err'); console.warn('enablePush',e); }
+}
+async function refreshPushStatus(){
+  const el=document.getElementById('pushStatus');if(!el)return;
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){ el.textContent='อุปกรณ์นี้ยังไม่รองรับการแจ้งเตือน'; return; }
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    const sub=await reg.pushManager.getSubscription();
+    el.textContent=(sub&&Notification.permission==='granted')?'✅ เปิดอยู่ บนอุปกรณ์นี้':'แตะเพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้';
+  }catch(_){ el.textContent='แตะเพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้'; }
 }
 
 async function transferOwner(pid,ev){

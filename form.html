@@ -1032,6 +1032,9 @@ async function cloudInit(){
       var tn=document.getElementById('techName');
       if(tn&&!tn.value)tn.value=CP.full_name;
     }
+    // รองรับลิงก์ตรงจากแจ้งเตือน: form.html?id=123
+    var urlId=new URLSearchParams(location.search).get('id');
+    if(urlId){localStorage.setItem('kjid',urlId);}
     var eid=localStorage.getItem('kjid');
     if(eid){CJ=parseInt(eid);await loadJob(CJ);}
     else{

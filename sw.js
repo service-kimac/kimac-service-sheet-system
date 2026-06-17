@@ -1,4 +1,4 @@
-const VER = 'kimac-v19';
+const VER = 'kimac-v20';
 const BASE = '/kimac-service-sheet-system';
 const CORE = [
   BASE+'/',
@@ -30,4 +30,25 @@ self.addEventListener('fetch', e => {
     return;
   }
   e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
+});
+
+self.addEventListener('push', e => {
+  let d={};
+  try{ d = e.data ? e.data.json() : {}; }catch(_){ d = { body: e.data && e.data.text() }; }
+  const opt = {
+    body: d.body || 'มีงานใหม่',
+    data: { url: d.url || (BASE+'/history.html') },
+    tag: d.tag || 'kimac-job',
+    renotify: true,
+    vibrate: [80,40,80]
+  };
+  e.waitUntil(self.registration.showNotification(d.title || 'KIMAC Service', opt));
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || (BASE+'/');
+  e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cls => {
+    for(const c of cls){ if('focus' in c){ try{ c.navigate(url); }catch(_){ } return c.focus(); } }
+    if(self.clients.openWindow) return self.clients.openWindow(url);
+  }));
 });
