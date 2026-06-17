@@ -866,6 +866,9 @@ var SURL='https://vjblfdlzerpiazmqxuce.supabase.co';
 var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M';
 var sb=supabase.createClient(SURL,SKEY);
 var CU=null,CJ=null,CP=null,CJTECH=null,CJ_READONLY=false,CJ_UPDATED=null;
+// CJ_SHARED = ผู้ใช้ปัจจุบันเป็นช่างที่แอดมินเพิ่มสิทธิ์ให้แก้ใบงานนี้ (อยู่ใน shared_with) หรือไม่
+// CJ_SIGN0 = ค่าชื่อช่างที่เซ็นไว้เดิมตอนโหลดใบงาน (ใช้ตรวจว่ามีการลงชื่อใหม่หรือไม่)
+var CJ_SHARED=false,CJ_SIGN0='';
 
 function toastF(m,t){
   var el=document.querySelector('.toast-f');
@@ -1111,9 +1114,26 @@ async function saveCloud(){
     var fd=getFormData();
     var parts=fd.parts;delete fd.parts;
     var jid=CJ;
-    var isAdminEdit=CP&&CP.role==='admin';
+    var isAdmin=CP&&CP.role==='admin';
     if(jid&&CJTECH){
-      fd.technician_id=CJTECH.id;fd.technician_name=CJTECH.name;
+      // ค่าเริ่มต้น: คงเจ้าของใบงานเดิมไว้
+      fd.technician_id=CJTECH.id;
+      fd.technician_name=CJTECH.name;
+      // โอนความเป็นเจ้าของใบงาน:
+      // ถ้าผู้ใช้ปัจจุบันเป็น "ช่างที่แอดมินเพิ่มสิทธิ์ให้แก้ใบงานนี้" (อยู่ใน shared_with)
+      // ไม่ใช่เจ้าของเดิม และไม่ใช่แอดมิน และได้ "ลงชื่อตัวเอง" ในช่องชื่อช่าง
+      // ให้คนนั้นกลายเป็นเจ้าของใบงานแทน
+      var signedName=(document.getElementById('techName')&&document.getElementById('techName').value||'').trim();
+      var myName=(CP&&CP.full_name||'').trim();
+      var takesOver = !isAdmin
+                   && CJ_SHARED
+                   && CJTECH.id!==CU.id
+                   && signedName!==''
+                   && ( signedName===myName || signedName!==CJ_SIGN0 );
+      if(takesOver){
+        fd.technician_id=CU.id;
+        fd.technician_name=myName||signedName||CU.email;
+      }
     }else{
       fd.technician_id=CU.id;fd.technician_name=CP&&CP.full_name||CU.email;
     }
@@ -1121,6 +1141,9 @@ async function saveCloud(){
       var r1=await sb.from('service_jobs').update(fd).eq('id',jid).select();
       if(r1.error)throw r1.error;
       if(!r1.data||!r1.data.length)throw new Error('บันทึกไม่สำเร็จ: ไม่มีสิทธิ์แก้ไขใบงานนี้ หรือไม่พบใบงาน (ตรวจสิทธิ์ RLS ของ service_jobs)');
+      // อัปเดตเจ้าของในหน่วยความจำ เผื่อมีการโอนเจ้าของใบงานในการบันทึกครั้งนี้
+      CJTECH={id:fd.technician_id,name:fd.technician_name};
+      CJ_SIGN0=(fd.tech_name_sign||'').trim();
       var rdel=await sb.from('service_parts').delete().eq('job_id',jid);
       if(rdel.error)throw rdel.error;
     }else{
@@ -1182,6 +1205,8 @@ async function loadJob(id){
     var isAdmin=CP&&CP.role==='admin';
     var isOwner=j.technician_id===CU.id;
     var isShared=Array.isArray(j.shared_with)&&j.shared_with.includes(CU.id);
+    CJ_SHARED=isShared;
+    CJ_SIGN0=(j.tech_name_sign||'').trim();
     if(!isAdmin&&!isOwner&&!isShared)setFormReadonly(true);
     var rp=await sb.from('service_parts').select('*').eq('job_id',id).order('seq');
     var pts=rp.data||[];
