@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="mo" id="shareMo">
   <div class="mb">
     <div class="mt">👥 มอบสิทธิ์เข้าถึงใบงาน <button class="mclose" onclick="closeShare()">✕</button></div>
-    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="shareNo" style="color:#1a3a6e"></b> — เลือกช่างที่ต้องการให้เข้าไปแก้ไขใบงานนี้ได้</p>
+    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="shareNo" style="color:#1a3a6e"></b> — ติ๊กเพื่อให้สิทธิ์เข้าไปแก้ไข หรือกด “⭐ ตั้งเป็นเจ้าของ” เพื่อโอนความเป็นเจ้าของใบงานให้คนนั้นทันที</p>
     <div id="shareList" style="max-height:46vh;overflow:auto;margin:8px 0"></div>
     <div class="mc">
       <button class="mno" onclick="closeShare()">ยกเลิก</button>
@@ -801,13 +801,14 @@ function renderShareList(j){
     const nm=p.full_name||p.id;
     const isAdm=p.role==='admin';
     const checked=isAdm||sw.includes(p.id);
-    html+=`<label style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid #eef2ff;cursor:pointer">
+    html+=`<div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid #eef2ff">
       <input type="checkbox" class="shareChk" value="${p.id}" ${checked?'checked':''} ${isAdm?'disabled':''} style="width:18px;height:18px;accent-color:#1a3a6e">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:#1a3a6e">${nm}</div>
         <div style="font-size:11px;color:#888">${p.position||'ช่างเทคนิค'}${isAdm?' · 👑 แอดมิน (เข้าถึงได้อยู่แล้ว)':''}</div>
       </div>
-    </label>`;
+      <button onclick="transferOwner('${p.id}',event)" style="font-size:11px;font-weight:700;color:#fff;background:#16a34a;border:none;padding:6px 10px;border-radius:8px;cursor:pointer;white-space:nowrap">⭐ ตั้งเป็นเจ้าของ</button>
+    </div>`;
   });
   document.getElementById('shareList').innerHTML=html;
 }
@@ -824,6 +825,28 @@ async function saveShare(){
     closeShare();await loadJobs();toast('✅ บันทึกสิทธิ์แล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
   btn.textContent='💾 บันทึกสิทธิ์';btn.disabled=false;
+}
+
+async function transferOwner(pid,ev){
+  if(!shareId)return;
+  const j=jobs.find(x=>x.id===shareId);
+  if(!j)return;
+  const p=profiles.find(x=>x.id===pid);
+  if(!p){toast("❌ ไม่พบช่างที่เลือก","err");return;}
+  const newName=p.full_name||p.id;
+  if(!confirm('ตั้งให้ "'+newName+'" เป็นเจ้าของใบงาน '+(j.job_no||shareId)+' ?'))return;
+  // คงสิทธิ์เข้าถึงเดิมไว้ + ให้เจ้าของเดิมยังเข้าถึงได้ (กันข้อมูลหลุดมือ) และเอาเจ้าของใหม่ออกจาก shared_with
+  let sw=Array.isArray(j.shared_with)?j.shared_with.slice():[];
+  if(j.technician_id) sw.push(j.technician_id);
+  sw=[...new Set(sw.filter(id=>id&&id!==pid))];
+  const btn=ev&&ev.target;if(btn){btn.textContent="กำลังโอน...";btn.disabled=true;}
+  try{
+    const{error}=await sb.from("service_jobs").update({technician_id:pid,technician_name:newName,shared_with:sw}).eq("id",shareId);
+    if(error)throw error;
+    closeShare();
+    await loadJobs();
+    toast("✅ ตั้ง "+newName+" เป็นเจ้าของใบงานแล้ว","ok");
+  }catch(e){toast("❌ "+e.message,"err");if(btn){btn.textContent="⭐ ตั้งเป็นเจ้าของ";btn.disabled=false;}}
 }
 
 function askDel(id,no){delId=id;document.getElementById('delNo').textContent=no;document.getElementById('delMo').classList.add('open');}
