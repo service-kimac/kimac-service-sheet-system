@@ -2,6 +2,12 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{
+  var pref=localStorage.getItem('kimac_theme')||'auto';
+  var sysDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var eff=pref==='auto'?(sysDark?'dark':'light'):pref;
+  document.documentElement.setAttribute('data-theme',eff);
+}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -183,6 +189,56 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;
   box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none;
   max-width:90vw;text-align:center;white-space:nowrap}
+/* ===== สวิตช์เปิด/ปิด ===== */
+.tgl{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;cursor:pointer}
+.tgl input{display:none}
+.tgl-track{position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:background .2s}
+.tgl-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;
+  transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tgl input:checked + .tgl-track{background:#16a34a}
+.tgl input:checked + .tgl-track .tgl-thumb{left:23px}
+.tgl input:disabled + .tgl-track{opacity:.5;cursor:not-allowed}
+
+/* ===== ปุ่มเลือกธีม ===== */
+.theme-row{display:flex;gap:8px;padding:12px 14px}
+.theme-btn{flex:1;padding:10px 6px;border:2px solid #e2e8f8;border-radius:10px;background:#fff;
+  color:#1a3a6e;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;-webkit-appearance:none}
+.theme-btn.active{background:#1a3a6e;color:#fff;border-color:#1a3a6e}
+
+/* ===== ธีมมืด ===== */
+[data-theme="dark"]{color-scheme:dark}
+[data-theme="dark"] body{background:#0d1424;color:#e2e8f0}
+[data-theme="dark"] .filter-bar{background:#172033;border-color:#2a3650;box-shadow:none}
+[data-theme="dark"] .fb-label{color:#cbd5e1}
+[data-theme="dark"] .fb-select,[data-theme="dark"] .fsel,[data-theme="dark"] .srch input{
+  background:#1a2332;border-color:#2a3650;color:#e2e8f0}
+[data-theme="dark"] .card,[data-theme="dark"] .rs,[data-theme="dark"] .ss{background:#172033;box-shadow:none}
+[data-theme="dark"] .cjno{color:#9fc1ff}
+[data-theme="dark"] .cdate,[data-theme="dark"] .ci,[data-theme="dark"] .ssub{color:#94a3b8}
+[data-theme="dark"] .sl{color:#e2e8f0}
+[data-theme="dark"] .sa{color:#475569}
+[data-theme="dark"] .empty{color:#64748b}
+[data-theme="dark"] .bnav{background:#101729;border-top-color:#1f2940}
+[data-theme="dark"] .bni{color:#64748b}
+[data-theme="dark"] .bni.on{color:#9fc1ff}
+[data-theme="dark"] .mb{background:#172033}
+[data-theme="dark"] .mt{color:#e2e8f0}
+[data-theme="dark"] .mno{background:#1a2332;color:#cbd5e1}
+[data-theme="dark"] .mclose{color:#64748b}
+[data-theme="dark"] .ff label{color:#9fc1ff}
+[data-theme="dark"] .ff input,[data-theme="dark"] .ff select{background:#1a2332;border-color:#2a3650;color:#e2e8f0}
+[data-theme="dark"] .ff input:focus,[data-theme="dark"] .ff select:focus{background:#1a2332;border-color:#5a7fc9}
+[data-theme="dark"] .theme-btn{background:#1a2332;border-color:#2a3650;color:#cbd5e1}
+[data-theme="dark"] .theme-btn.active{background:#2a5298;border-color:#2a5298;color:#fff}
+[data-theme="dark"] .tgl-track{background:#334155}
+[data-theme="dark"] #srInfo{background:#1a2332!important;color:#cbd5e1!important}
+[data-theme="dark"] #acctList,[data-theme="dark"] #acctList *,
+[data-theme="dark"] #teamList *,[data-theme="dark"] #shareList *{color:#e2e8f0!important}
+[data-theme="dark"] #acctList div[style*="border-bottom"],
+[data-theme="dark"] #teamList div[style*="border-bottom"],
+[data-theme="dark"] #shareList div[style*="border-bottom"]{border-bottom-color:#2a3650!important}
+[data-theme="dark"] #shareList > div:first-child{background:#15291f!important;border-color:#1f3d2a!important}
+[data-theme="dark"] #shareList > div:first-child span:first-child{color:#86efac!important}
 </style>
 </head>
 <body>
@@ -270,9 +326,17 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   </div>
   <div class="ss">
     <div class="sh">🔔 การแจ้งเตือน</div>
-    <div class="sr" onclick="enablePush()">
-      <div><div class="sl">เปิดแจ้งเตือนงานใหม่</div><div class="ssub" id="pushStatus">แตะเพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้</div></div>
-      <span class="sa">›</span>
+    <div class="sr">
+      <div><div class="sl">เปิดแจ้งเตือนงานใหม่</div><div class="ssub" id="pushStatus">แตะสวิตช์เพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้</div></div>
+      <label class="tgl"><input type="checkbox" id="pushToggle" onchange="onPushToggle(this)"><span class="tgl-track"><span class="tgl-thumb"></span></span></label>
+    </div>
+  </div>
+  <div class="ss">
+    <div class="sh">🎨 ธีมแอป</div>
+    <div class="theme-row">
+      <button class="theme-btn" id="themeBtnLight" onclick="setTheme('light')">☀️ สว่าง</button>
+      <button class="theme-btn" id="themeBtnDark" onclick="setTheme('dark')">🌙 มืด</button>
+      <button class="theme-btn" id="themeBtnAuto" onclick="setTheme('auto')">🔄 อัตโนมัติ</button>
     </div>
   </div>
   <div class="ss">
@@ -317,10 +381,13 @@ document.addEventListener('DOMContentLoaded', function () {
   if (elC) elC.textContent = '© ' + buddhistYear + ' KIMAC สงวนลิขสิทธิ์';
 });
 </script>
-  <div style="padding:0 0 10px">
-    <button onclick="switchAccount()" style="width:100%;padding:14px;background:#eef2f7;color:#1a3a6e;
-      border:1.5px solid #c7d2e0;border-radius:12px;font-family:'Sarabun',sans-serif;
-      font-size:15px;font-weight:700;cursor:pointer;-webkit-appearance:none">🔁 สลับบัญชี</button>
+  <div class="ss">
+    <div class="sh">🔁 สลับบัญชี</div>
+    <div style="padding:6px 14px 2px" id="acctList"></div>
+    <div class="sr" onclick="goAddAccount()">
+      <div><div class="sl">+ เข้าสู่ระบบบัญชีอื่น</div><div class="ssub">เพิ่ม/บันทึกบัญชีใหม่ลงในเครื่องนี้</div></div>
+      <span class="sa">›</span>
+    </div>
   </div>
   <div style="padding:0 0 16px">
     <button onclick="doLogout()" style="width:100%;padding:14px;background:#fff0f0;color:#dc2626;
@@ -409,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
     <div id="srInfo" style="font-size:13px;color:#555;margin-bottom:14px;padding:10px;background:#f0f4ff;border-radius:8px"></div>
     <div class="ff"><label>บทบาท</label>
       <select id="sr-role">
-        <option value="technician">🔧 ช่างเทคนิค</option>
+        <option value="technician">🔧 พนักงาน</option>
         <option value="admin">👑 Admin</option>
       </select>
     </div>
@@ -436,6 +503,94 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
 const sb = supabase.createClient('https://vjblfdlzerpiazmqxuce.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M');
+
+// ===== สลับบัญชีในเครื่องเดียว (จดจำหลายบัญชี ไม่ต้องพิมพ์รหัสผ่านซ้ำ) =====
+const ACCT_KEY='kimac_saved_accounts';
+function getSavedAccounts(){ try{ return JSON.parse(localStorage.getItem(ACCT_KEY)||'[]'); }catch(e){ return []; } }
+function setSavedAccounts(list){ try{ localStorage.setItem(ACCT_KEY, JSON.stringify(list)); }catch(e){} }
+function saveAccountToSwitcher(session, profile){
+  if(!session||!session.user)return;
+  const list=getSavedAccounts();
+  const idx=list.findIndex(a=>a.id===session.user.id);
+  const entry={
+    id:session.user.id, email:session.user.email,
+    full_name:(profile&&profile.full_name)||(session.user.email||'').split('@')[0],
+    role:(profile&&profile.role)||'', position:(profile&&profile.position)||'',
+    access_token:session.access_token, refresh_token:session.refresh_token,
+    updated_at:Date.now()
+  };
+  if(idx>=0) list[idx]=entry; else list.push(entry);
+  setSavedAccounts(list);
+}
+function removeSavedAccount(id){ setSavedAccounts(getSavedAccounts().filter(a=>a.id!==id)); renderAccountSwitcher(); }
+async function switchToAccount(id){
+  const acc=getSavedAccounts().find(a=>a.id===id);
+  if(!acc)return;
+  try{
+    const{error}=await sb.auth.setSession({access_token:acc.access_token,refresh_token:acc.refresh_token});
+    if(error)throw error;
+    location.href='history.html';
+  }catch(e){
+    alert('บัญชีนี้ต้องเข้าสู่ระบบใหม่ (เซสชันหมดอายุ)');
+    removeSavedAccount(id);
+    try{ localStorage.setItem('kprefill_email', acc.email||''); }catch(_){}
+    location.href='login.html';
+  }
+}
+function goAddAccount(){ location.href='login.html'; }
+function renderAccountSwitcher(){
+  const el=document.getElementById('acctList'); if(!el)return;
+  const others=getSavedAccounts().filter(a=>!CU||a.id!==CU.id);
+  if(!others.length){ el.innerHTML='<div style="font-size:12px;color:#9ca3af;padding:6px 2px 10px">ยังไม่มีบัญชีอื่นที่บันทึกไว้บนเครื่องนี้ — เข้าสู่ระบบบัญชีอื่นหนึ่งครั้ง ระบบจะจดจำไว้ให้</div>'; return; }
+  el.innerHTML=others.map(a=>{
+    const initial=(a.full_name||a.email||'?')[0].toUpperCase();
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid #eef2ff">'
+      +'<div onclick="switchToAccount(\''+a.id+'\')" style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:#1a3a6e;color:#f9c900;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">'+initial+'</div>'
+      +'<div><div style="font-size:13px;font-weight:700;color:#1a3a6e">'+(a.full_name||a.email)+'</div>'
+      +'<div style="font-size:11px;color:#888">'+(a.email||'')+'</div></div></div>'
+      +'<button onclick="removeSavedAccount(\''+a.id+'\')" title="ลบออกจากรายการ" style="background:none;border:none;color:#cbd5e1;font-size:16px;padding:6px;cursor:pointer">✕</button>'
+      +'</div>';
+  }).join('');
+}
+// คอย sync token ล่าสุดให้บัญชีปัจจุบันในรายการที่บันทึกไว้ (กัน token เก่าใช้ไม่ได้ตอนสลับย้อนมา)
+sb.auth.onAuthStateChange((_event, session)=>{
+  if(!session||!session.user)return;
+  try{
+    const list=getSavedAccounts();
+    const idx=list.findIndex(a=>a.id===session.user.id);
+    if(idx>=0){ list[idx].access_token=session.access_token; list[idx].refresh_token=session.refresh_token; list[idx].updated_at=Date.now(); setSavedAccounts(list); }
+  }catch(e){}
+});
+
+// ===== ธีมแอป: สว่าง / มืด / อัตโนมัติ =====
+const THEME_KEY='kimac_theme';
+function getThemePref(){ try{ return localStorage.getItem(THEME_KEY)||'auto'; }catch(e){ return 'auto'; } }
+function applyTheme(pref){
+  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const effective = pref==='auto' ? (sysDark?'dark':'light') : pref;
+  document.documentElement.setAttribute('data-theme', effective);
+  ['light','dark','auto'].forEach(function(k){
+    const id='themeBtn'+k.charAt(0).toUpperCase()+k.slice(1);
+    const b=document.getElementById(id);
+    if(b) b.classList.toggle('active', pref===k);
+  });
+  if(typeof renderReport==='function'){
+    const onReport=document.getElementById('pg-report')&&document.getElementById('pg-report').classList.contains('on');
+    if(onReport) renderReport();
+  }
+}
+function setTheme(pref){
+  try{ localStorage.setItem(THEME_KEY, pref); }catch(e){}
+  applyTheme(pref);
+}
+applyTheme(getThemePref());
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){
+    if(getThemePref()==='auto') applyTheme('auto');
+  });
+}
+
 let jobs=[],profiles=[],delId=null,roleTarget=null,CU=null,CP=null;
 
 function toast(m,t){
@@ -472,11 +627,13 @@ window.addEventListener('load', async function(){
 });
 
 async function init(){
+  let _session=null;
   try{
     const{data:{session},error}=await sb.auth.getSession();
     if(error){showErr('Session error: '+error.message);return;}
     if(!session){location.href='login.html';return;}
     CU=session.user;
+    _session=session;
   }catch(e){showErr('Auth error: '+e.message);return;}
 
   try{
@@ -484,13 +641,16 @@ async function init(){
     if(error)console.error('Profile error:',error);
     CP=p;
     const nm=p?.full_name||CU.email;
-    const pos=p?.position||'ช่างเทคนิค';
+    const pos=p?.position||'พนักงาน';
     const role=p?.role||'technician';
     document.getElementById('av').textContent=nm[0].toUpperCase();
     document.getElementById('uname').textContent=nm+(role==='admin'?' 👑':'');
     document.getElementById('urole').textContent=pos;
     if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; }
   }catch(e){console.error('Profile catch:',e);}
+
+  if(_session && typeof saveAccountToSwitcher==='function') saveAccountToSwitcher(_session, CP);
+  if(typeof rebindPushToCurrentUser==='function') rebindPushToCurrentUser();
 
   await loadJobs();
   await loadProfiles();
@@ -507,6 +667,7 @@ async function resumeRefresh(){
     await loadJobs();
     await loadProfiles();
     if(typeof refreshPushStatus === 'function') refreshPushStatus();
+    if(typeof rebindPushToCurrentUser === 'function') rebindPushToCurrentUser();
   }catch(e){ console.error('resumeRefresh:', e); }
 }
 document.addEventListener('visibilitychange', function(){
@@ -615,6 +776,7 @@ function renderReport(){
   const visible=document.getElementById('pg-report')&&document.getElementById('pg-report').classList.contains('on');
   if(!visible||typeof Chart==='undefined')return;
   Chart.defaults.font.family="'Sarabun',sans-serif";
+  Chart.defaults.color = document.documentElement.getAttribute('data-theme')==='dark' ? '#cbd5e1' : '#1a1a2e';
   // สถานะ (โดนัท)
   const stKeys=[['draft','ร่าง','#94a3b8'],['completed','เสร็จสิ้น','#16a34a']];
   mkChart('statusPie',{type:'doughnut',data:{labels:stKeys.map(k=>k[1]),datasets:[{data:stKeys.map(k=>jj.filter(j=>j.status===k[0]).length),backgroundColor:stKeys.map(k=>k[2]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'}}}});
@@ -696,7 +858,7 @@ function renderTeam(){
   const isAdmin=CP?.role==='admin';
   el.innerHTML=profiles.map(p=>{
     const nm=p.full_name||p.id;
-    const pos=p.position||'ช่างเทคนิค';
+    const pos=p.position||'พนักงาน';
     const role=p.role||'technician';
     const cnt=jobs.filter(j=>j.technician_id===p.id).length;
     const isMe=p.id===CU.id;
@@ -733,7 +895,7 @@ function swPg(name){
   if(name==='mine'){renderMine();markMineSeen();}
   if(name==='report')renderReport();
   if(name==='team')renderTeam();
-  if(name==='settings'){loadSettingsProf();refreshPushStatus();}
+  if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
   if(name==='trash')loadTrash();
 }
 
@@ -743,13 +905,13 @@ function loadSettingsProf(){
   document.getElementById('profAv').textContent=nm[0].toUpperCase();
   document.getElementById('profName').textContent=nm;
   document.getElementById('profEmail').textContent=CU.email;
-  document.getElementById('profRole').textContent=(CP.position||'ช่างเทคนิค')+(CP.role==='admin'?' · 👑 Admin':'');
+  document.getElementById('profRole').textContent=(CP.position||'พนักงาน')+(CP.role==='admin'?' · 👑 Admin':'');
 }
 
 function openEditProf(){
   document.getElementById('ep-name').value=CP?.full_name||'';
   document.getElementById('ep-phone').value=CP?.phone||'';
-  const pos=CP?.position||'ช่างเทคนิค';
+  const pos=CP?.position||'พนักงาน';
   const sel=document.getElementById('ep-pos');
   const opts=[...sel.options].map(o=>o.value);
   if(opts.includes(pos)){sel.value=pos;document.getElementById('ep-custom').value='';}
@@ -927,7 +1089,7 @@ function renderShareList(j){
       <input type="checkbox" class="shareChk" value="${p.id}" ${checked?'checked':''} ${isAdm?'disabled':''} style="width:18px;height:18px;accent-color:#1a3a6e">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:#1a3a6e">${nm}</div>
-        <div style="font-size:11px;color:#888">${p.position||'ช่างเทคนิค'}${isAdm?' · 👑 แอดมิน (เข้าถึงได้อยู่แล้ว)':''}</div>
+        <div style="font-size:11px;color:#888">${p.position||'พนักงาน'}${isAdm?' · 👑 แอดมิน (เข้าถึงได้อยู่แล้ว)':''}</div>
       </div>
       <button onclick="transferOwner('${p.id}',event)" style="font-size:11px;font-weight:700;color:#fff;background:#16a34a;border:none;padding:6px 10px;border-radius:8px;cursor:pointer;white-space:nowrap">⭐ ตั้งเป็นเจ้าของ</button>
     </div>`;
@@ -970,6 +1132,26 @@ function urlB64ToUint8Array(b){
   return arr;
 }
 function pushStandalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+
+// เครื่องนี้รับ Push ได้ "ช่องเดียว" ต่อเบราว์เซอร์ ไม่ใช่ต่อบัญชี
+// ถ้าเครื่องนี้เคยเปิดแจ้งเตือนไว้แล้ว (สิทธิ์ + ลงทะเบียนไว้แล้ว) ให้ผูกช่องนั้นกับ
+// "บัญชีที่ล็อกอินอยู่ตอนนี้" อัตโนมัติทุกครั้งที่เปิดแอป กันปัญหาเครื่องเดียวสลับหลายบัญชี
+// แล้วแจ้งเตือนไปเข้าบัญชีเก่าที่กดเปิดไว้ล่าสุด
+async function rebindPushToCurrentUser(){
+  try{
+    if(!CU)return;
+    if(!('serviceWorker' in navigator)||!('PushManager' in window))return;
+    if(Notification.permission!=='granted')return;
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(!reg)return;
+    const sub=await reg.pushManager.getSubscription();
+    if(!sub)return;
+    const j=sub.toJSON();
+    await sb.from('push_subscriptions').upsert(
+      {user_id:CU.id,endpoint:sub.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth},
+      {onConflict:'endpoint'});
+  }catch(e){ console.warn('rebindPushToCurrentUser:',e); }
+}
 async function enablePush(){
   try{
     const iOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -997,14 +1179,47 @@ async function enablePush(){
     refreshPushStatus();
   }catch(e){ toast('❌ '+(e&&e.message||e),'err'); console.warn('enablePush',e); }
 }
+async function onPushToggle(cb){
+  cb.disabled=true;
+  try{
+    if(cb.checked) await enablePush();
+    else await disablePush();
+  }finally{
+    cb.disabled=false;
+    refreshPushStatus();
+  }
+}
+async function disablePush(){
+  try{
+    if('serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(reg){
+        const sub=await reg.pushManager.getSubscription();
+        if(sub){
+          try{ await sb.from('push_subscriptions').delete().eq('endpoint',sub.endpoint); }catch(_){}
+          await sub.unsubscribe();
+        }
+      }
+    }
+    toast('🔕 ปิดแจ้งเตือนแล้ว','info');
+  }catch(e){ console.warn('disablePush',e); toast('❌ ปิดแจ้งเตือนไม่สำเร็จ','err'); }
+}
 async function refreshPushStatus(){
-  const el=document.getElementById('pushStatus');if(!el)return;
-  if(!('serviceWorker' in navigator)||!('PushManager' in window)){ el.textContent='อุปกรณ์นี้ยังไม่รองรับการแจ้งเตือน'; return; }
+  const el=document.getElementById('pushStatus');
+  const cb=document.getElementById('pushToggle');
+  if(!el)return;
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){
+    el.textContent='อุปกรณ์นี้ยังไม่รองรับการแจ้งเตือน';
+    if(cb){cb.checked=false;cb.disabled=true;}
+    return;
+  }
   try{
     const reg=await navigator.serviceWorker.ready;
     const sub=await reg.pushManager.getSubscription();
-    el.textContent=(sub&&Notification.permission==='granted')?'✅ เปิดอยู่ บนอุปกรณ์นี้':'แตะเพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้';
-  }catch(_){ el.textContent='แตะเพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้'; }
+    const on=!!(sub&&Notification.permission==='granted');
+    el.textContent=on?'✅ เปิดอยู่ บนอุปกรณ์นี้':'แตะสวิตช์เพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้';
+    if(cb){cb.disabled=false;cb.checked=on;}
+  }catch(_){ el.textContent='แตะสวิตช์เพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้'; if(cb)cb.checked=false; }
 }
 
 async function transferOwner(pid,ev){
@@ -1114,10 +1329,7 @@ async function doDel(){
   btn.textContent='ย้ายไปถังขยะ';btn.disabled=false;
 }
 async function doLogout(){
-  await sb.auth.signOut();
-  location.href='login.html';
-}
-async function switchAccount(){
+  if(CU){ try{ removeSavedAccount(CU.id); }catch(e){} }
   await sb.auth.signOut();
   location.href='login.html';
 }
