@@ -567,7 +567,13 @@ async function switchToAccount(id){
     location.href='login.html';
   }
 }
-function goAddAccount(){ location.href='login.html'; }
+async function goAddAccount(){
+  // ล้าง session ปัจจุบันออกจากเครื่องชั่วคราว (ไม่แจ้งเซิร์ฟเวอร์ให้ตัดสิทธิ์)
+  // เพื่อให้หน้า login.html แสดงฟอร์มล็อกอินจริง ๆ ไม่เด้งกลับเข้าแอปเอง
+  // บัญชีเดิมยังสลับกลับมาได้ปกติเพราะ token ที่บันทึกไว้ยังไม่ถูกเพิกถอน
+  try{ await sb.auth.signOut({scope:'local'}); }catch(e){}
+  location.href='login.html';
+}
 function renderAccountSwitcher(){
   const el=document.getElementById('acctList'); if(!el)return;
   const others=getSavedAccounts().filter(a=>!CU||a.id!==CU.id);
