@@ -301,8 +301,8 @@ body {
   <div class="section-title">ส่วนที่ 1 ข้อมูลลูกค้า</div>
   <div class="form-row">
     <div class="field"><label>วันที่บริการ :</label><input id="serviceDate" type="date"></div>
-    <div class="field"><label>เวลาเริ่ม :</label><input type="time"></div>
-    <div class="field"><label>เวลาจบงาน :</label><input type="time"></div>
+    <div class="field"><label>เวลาเริ่ม :</label><input type="time" id="timeStart"></div>
+    <div class="field"><label>เวลาจบงาน :</label><input type="time" id="timeEnd"></div>
   </div>
   <div class="form-row">
     <div class="field full-width"><label>บริษัท / ห้างฯ / ร้าน ลูกค้า :</label><input id="companyName" type="text" style="min-width:300px;"></div>
@@ -310,7 +310,7 @@ body {
   <div class="form-row">
     <div class="field"><label>ติดต่อคุณ :</label><input type="text" id="contactName"></div>
     <div class="field"><label>ตำแหน่ง :</label><input type="text" id="positionInput"></div>
-    <div class="field"><label>เบอร์โทร :</label><input type="tel"></div>
+    <div class="field"><label>เบอร์โทร :</label><input type="tel" id="contactPhone"></div>
   </div>
   <div class="form-row">
     <div class="field full-width"><label>ที่อยู่ :</label><input type="text" style="min-width:350px;"></div>
@@ -889,12 +889,13 @@ function fillForm(j,pts){
           else{st.value='other';var oi=document.getElementById('otherServiceInput');if(oi){oi.classList.add('show');oi.value=j.service_type;}}
         }
         var dis=document.querySelectorAll('#page input[type="date"]');
-        var tis=document.querySelectorAll('#page input[type="time"]');
+        var _tsEl=document.getElementById('timeStart');
+  var _teEl=document.getElementById('timeEnd');
         if(dis[0]&&j.service_date)dis[0].value=j.service_date;
-        if(tis[0]&&j.time_start)tis[0].value=j.time_start;
-        if(tis[1]&&j.time_end)tis[1].value=j.time_end;
+        if(_tsEl&&j.time_start)_tsEl.value=j.time_start;
+        if(_teEl&&j.time_end)_teEl.value=j.time_end;
         var cn=document.getElementById('companyName');if(cn)cn.value=j.company||'';
-        var tel=document.querySelector('#page input[type="tel"]');if(tel)tel.value=j.phone||'';
+        var tel=document.getElementById('contactPhone');if(tel)tel.value=j.phone||'';
         var txt=document.querySelectorAll('#page input[type="text"]');
         var ci=document.getElementById('contactName');if(ci)ci.value=j.contact_name||'';
         var pin=document.getElementById('positionInput');if(pin)pin.value=j.position||'';
@@ -1067,7 +1068,8 @@ function getFormData(){
   var warr=document.querySelector('input[name="warranty"]:checked');
   var fee=document.querySelector('input[name="feeType"]:checked');
   var dis=document.querySelectorAll('#page input[type="date"]');
-  var tis=document.querySelectorAll('#page input[type="time"]');
+  var _tsEl=document.getElementById('timeStart');
+  var _teEl=document.getElementById('timeEnd');
   var ta=document.getElementById('detailTextarea');
   var parts=[];
   document.querySelectorAll('#partsBody tr').forEach(function(r,i){
@@ -1081,14 +1083,14 @@ function getFormData(){
   });
   var fw=document.querySelectorAll('.full-width input');
   var txt=document.querySelectorAll('#page input[type="text"]');
-  var tel=document.querySelector('#page input[type="tel"]');
+  var tel=document.getElementById('contactPhone');
   var tsi=document.getElementById('techSigImg');
   var csi=document.getElementById('custSigImg');
   function gv(id){var e=document.getElementById(id);return parseFloat((e&&e.value||'0').replace(/,/g,''))||0;}
   var status=document.getElementById('jobStatus')&&document.getElementById('jobStatus').value||'draft';
   return{
     service_type:stype,service_date:dis[0]&&dis[0].value||null,
-    time_start:tis[0]&&tis[0].value||null,time_end:tis[1]&&tis[1].value||null,
+    time_start:_tsEl&&_tsEl.value||null,time_end:_teEl&&_teEl.value||null,
     company:document.getElementById('companyName')&&document.getElementById('companyName').value||'',
     contact_name:document.getElementById('contactName')&&document.getElementById('contactName').value||'',
     position:document.getElementById('positionInput')&&document.getElementById('positionInput').value||'',phone:tel&&tel.value||'',
