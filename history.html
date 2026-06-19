@@ -124,11 +124,11 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .rg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .rc{background:#fff;border-radius:14px;padding:16px;text-align:center;
   box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
-.rn{font-size:28px;font-weight:800;color:#427aa1}
+.rn{font-size:24px;font-weight:800;color:#427aa1}
 .rl{font-size:12px;color:#888;margin-top:4px}
 .rs{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
-.rs h3{font-size:14px;font-weight:800;color:#427aa1;margin-bottom:12px}
+.rs h3{font-size:14px;font-weight:700;color:#427aa1;margin-bottom:10px;letter-spacing:.3px}
 .br{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .bl{font-size:12px;color:#555;width:70px;flex-shrink:0;font-weight:600}
 .bt{flex:1;height:8px;background:#f0f4ff;border-radius:4px;overflow:hidden}
@@ -375,7 +375,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     </div>
     <button class="btn-refresh" onclick="location.reload()" title="รีเฟรช หากรายการโหลดไม่ขึ้นหรือค้าง">🔄</button>
   </div>
-  <div id="list"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
+  <div id="list"><div class="ld" id="listLoadingMsg"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...<div id="loadRetryBtn" style="display:none;margin-top:16px"><button onclick="location.reload()" style="padding:10px 24px;background:#1a3a6e;color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer">🔄 โหลดใหม่</button><div style="font-size:12px;color:#94a3b8;margin-top:6px">การเชื่อมต่ออาจช้า กรุณาลองใหม่</div></div></div></div>
 </div>
 <!-- MY JOBS PAGE -->
 <div id="pg-mine" class="pg">
@@ -906,6 +906,12 @@ window.addEventListener('focus', resumeRefresh);
 window.addEventListener('pageshow', function(e){ if(e.persisted) resumeRefresh(); });
 
 async function loadJobs(){
+  // Auto-show retry button if loading hangs for 10s
+  const _ltimer = setTimeout(function(){
+    var lm = document.getElementById('listLoadingMsg');
+    var rb = document.getElementById('loadRetryBtn');
+    if(lm && lm.parentNode.children.length <= 1 && rb) rb.style.display='block';
+  }, 10000);
   try{
     const{data,error}=await sb.from('service_jobs').select('*').is('deleted_at',null).order('service_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
     if(error){showErr('โหลดใบงานไม่ได้: '+error.message);return;}
@@ -916,6 +922,8 @@ async function loadJobs(){
     const techs=[...new Set(jobs.map(j=>j.technician_name).filter(Boolean))];
     techs.forEach(t=>{if(!existing.includes(t)){const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);}});
     updateStats();
+    clearTimeout(_ltimer);
+    var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
     renderJobs();
     renderReport();
     updateMineBadge();
@@ -1076,7 +1084,8 @@ function renderReport(){
   const te=Object.entries(techMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const tc=document.getElementById('techCard');
   if(tc)tc.style.display=te.length?'':'none';
-  mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:'#f9c900',borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
+  const techColors=['#2a5298','#16a34a','#dc2626','#f59e0b','#7c3aed','#0891b2','#ea580c','#be185d'];
+  mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:te.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' ใบงาน'}}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
 }
 
 // ===== งานของฉัน + badge =====
@@ -2097,6 +2106,8 @@ function checkSigCompleteNotifs() {
         list.unshift(notif);
         saveAdminNotifs(list.slice(0, 100));
         showAdminSigPopup(notif);
+        // Send Web Push to admin devices
+        sendSigCompletePushToAdmin(j);
         added = true;
       }
       seen.add(j.id);
@@ -2141,6 +2152,36 @@ function showAdminSigPopup(notif) {
   document.body.appendChild(overlay);
   document.body.appendChild(container);
   setTimeout(_closeAdminSigPopup, 30000);
+}
+
+
+// ===== ส่ง Web Push แจ้งเตือนแอดมินเมื่อช่าง+ลูกค้าเซ็นครบ =====
+async function sendSigCompletePushToAdmin(job) {
+  try {
+    // ส่ง Web Push แจ้งเตือนไปทุก admin device ผ่าน Edge Function notify-push
+    await sb.functions.invoke('notify-push', { body: {
+      role: 'admin',
+      title: '✅ เซ็นใบงานครบแล้ว',
+      body: '📄 ' + (job.job_no || '-') + ' · ' + (job.company || '-') + '\n🔧 ช่าง: ' + (job.technician_name || '-'),
+      data: { type: 'sig_complete', job_id: job.id, url: '/history.html' },
+      tag: 'sig_complete_' + job.id
+    }});
+  } catch(e) { console.warn('sendSigCompletePushToAdmin (optional):', e); }
+  // Fallback: แสดง Web Push ในอุปกรณ์ admin ที่กำลังเปิดอยู่ (ถ้ามีสิทธิ์)
+  try {
+    if (Notification && Notification.permission === 'granted' && CP && CP.role === 'admin') {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification('✅ เซ็นใบงานครบแล้ว', {
+          body: '📄 ' + (job.job_no || '-') + ' · ' + (job.company || '-') + '\n🔧 ช่าง: ' + (job.technician_name || '-'),
+          tag: 'sig_complete_' + job.id,
+          renotify: true,
+          vibrate: [80, 40, 80],
+          data: { url: '/history.html', job_id: job.id }
+        });
+      }
+    }
+  } catch(e2) { console.warn('local showNotification (optional):', e2); }
 }
 
 function updateBellBadge() {

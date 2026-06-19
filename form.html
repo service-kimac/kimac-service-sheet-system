@@ -1174,6 +1174,37 @@ async function saveCloud(){
     }
     clearDraft();
     toastF('✅ บันทึกสำเร็จ!','ok');
+    // ถ้าบันทึกครั้งนี้มีทั้งลายเซ็นช่างและลูกค้าครบ → แจ้งเตือนแอดมินทันที
+    var _hasTech = !!(document.getElementById('techSigImg') && document.getElementById('techSigImg').style.display !== 'none' && document.getElementById('techSigImg').src);
+    var _hasCust = !!(document.getElementById('custSigImg') && document.getElementById('custSigImg').style.display !== 'none' && document.getElementById('custSigImg').src);
+    var _jnoBadge = document.getElementById('jnoBadge');
+    var _jno = _jnoBadge ? _jnoBadge.textContent : '-';
+    var _comp = document.getElementById('companyName') ? document.getElementById('companyName').value : '-';
+    if (_hasTech && _hasCust) {
+      // 1) ส่งผ่าน Edge Function (fan-out ไปทุก admin device)
+      try {
+        await sb.functions.invoke('notify-push', { body: {
+          role: 'admin',
+          title: '✅ เซ็นใบงานครบแล้ว',
+          body: '📄 ' + _jno + ' · ' + _comp,
+          data: { type: 'sig_complete', job_id: jid, url: '/history.html' },
+          tag: 'sig_complete_' + jid
+        }});
+      } catch(e) { console.warn('sig push to admin (optional):', e); }
+      // 2) Fallback: ถ้าเปิดในอุปกรณ์ admin เองให้แสดง native notification ทันที
+      try {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+          var _reg = await navigator.serviceWorker.ready;
+          await _reg.showNotification('✅ เซ็นใบงานครบแล้ว', {
+            body: '📄 ' + _jno + ' · ' + _comp,
+            tag: 'sig_complete_' + jid,
+            renotify: true,
+            vibrate: [80, 40, 80],
+            data: { url: '/history.html', job_id: jid }
+          });
+        }
+      } catch(e2) { console.warn('local sig notification (optional):', e2); }
+    }
     return true;
   }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
   finally{btn.textContent='☁️ บันทึก';btn.disabled=false;}
