@@ -764,13 +764,16 @@ async function exportPDF(){
     const clone = original.cloneNode(true);
     clone.id = 'pageClone';
     clone.style.width = A4_W_PX + 'px';
-    clone.style.minHeight = A4_H_PX + 'px';
-    clone.style.height = A4_H_PX + 'px';
+    clone.style.minHeight = 'auto';
+    clone.style.height = 'auto';
     clone.style.boxShadow = 'none';
     clone.style.margin = '0';
     clone.style.transform = 'none';
     clone.style.display = 'flex';
     clone.style.flexDirection = 'column';
+    // แก้ footer margin-top:auto → กัน gap ใต้ลายเซ็น
+    var _footer = clone.querySelector('.footer');
+    if(_footer){ _footer.style.marginTop = '8px'; }
 
     const exportHost = document.createElement('div');
     exportHost.id = 'pdfExportHost';
@@ -829,15 +832,21 @@ async function exportPDF(){
     try {
       var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (window.html2canvas && J) {
-        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, scrollX: 0, scrollY: 0 });
+        // วัด actual height หลัง render (กัน gap ใต้ลายเซ็น)
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const actualH = clone.scrollHeight || clone.offsetHeight || A4_H_PX;
+        const renderH = Math.max(actualH, 400);
+        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: renderH, windowWidth: A4_W_PX, windowHeight: renderH, scrollX: 0, scrollY: 0 });
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
-        const ratio = Math.min(pw / canvas.width, ph / canvas.height);
-        const iw = canvas.width * ratio, ih = canvas.height * ratio;
-        const x = (pw - iw) / 2, y = (ph - ih) / 2; // จัดให้อยู่กึ่งกลางกระดาษ A4
-        pdf.addImage(imgData, 'JPEG', x, y, iw, ih);
+        // fit width → scale by A4 width
+        const scaleRatio = pw / (A4_W_PX * 2);
+        let iw = pw;
+        let ih = canvas.height * scaleRatio;
+        if(ih > ph){ const sr2 = ph/(renderH*2); iw = canvas.width*sr2; ih = ph; }
+        pdf.addImage(imgData, 'JPEG', 0, 0, iw, ih);
         pdf.save(pdfName);
       } else {
         await html2pdf().set({

@@ -1976,10 +1976,11 @@ async function renderJobPDF(job){
 
   var clone=origPage.cloneNode(true);
   clone.id='_pdfPageClone';
-  clone.style.cssText='width:'+A4W+'px;min-height:'+A4H+'px;height:'+A4H+'px;box-shadow:none;margin:0;border-radius:0;padding:5mm 7mm 4mm 7mm;font-size:9.5pt;display:flex;flex-direction:column;overflow:hidden;background:#fff;';
+  // ขั้นแรก: height=auto เพื่อให้เนื้อหาแสดงเต็มโดยไม่ถูกตัด
+  clone.style.cssText='width:'+A4W+'px;min-height:auto;height:auto;box-shadow:none;margin:0;border-radius:0;padding:5mm 7mm 4mm 7mm;font-size:9.5pt;display:flex;flex-direction:column;background:#fff;';
 
   var exportHost=document.createElement('div');
-  exportHost.style.cssText='position:fixed;left:-10000px;top:0;width:'+A4W+'px;background:#fff;z-index:-9998;pointer-events:none;';
+  exportHost.style.cssText='position:fixed;left:-10000px;top:0;width:'+A4W+'px;background:#fff;z-index:-9998;pointer-events:none;overflow:visible;';
   exportHost.appendChild(clone);
   document.body.appendChild(exportHost);
 
@@ -1992,8 +1993,8 @@ async function renderJobPDF(job){
     else if(el.type==='radio'){
       var checked=radioSnap[el.name+'|'+el.value];
       var span=document.createElement('span');
-      span.style.cssText='display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1px solid '+(checked?'#1a3a6e':'#777')+';';
-      if(checked){var dot=document.createElement('span');dot.style.cssText='width:6px;height:6px;border-radius:50%;background:#1a3a6e;display:block;';span.appendChild(dot);}
+      span.style.cssText='display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1px solid '+(checked?'#427aa1':'#777')+';';
+      if(checked){var dot=document.createElement('span');dot.style.cssText='width:6px;height:6px;border-radius:50%;background:#427aa1;display:block;';span.appendChild(dot);}
       if(d.parentNode)d.parentNode.replaceChild(span,d);
     }
     else{d.value=el.value;d.setAttribute('value',el.value);}
@@ -2002,18 +2003,28 @@ async function renderJobPDF(job){
   // ซ่อน UI elements
   clone.querySelectorAll('.btn-add-row,.sig-trigger-btn,.sig-clear-wrap,.btn-clear-sig').forEach(function(b){b.style.display='none';});
 
-  // ── 5. รอ fonts + render ──
+  // แก้ footer: ไม่ margin-top:auto (กันที่ว่างใหญ่ระหว่าง sig กับ footer)
+  var footerEl=clone.querySelector('.footer');
+  if(footerEl){ footerEl.style.marginTop='8px'; footerEl.style.marginBottom='0'; }
+
+  // ── 5. รอ fonts + วัด actual height ──
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
   try{await document.fonts.load('400 13px Sarabun');}catch(e){}
   try{await document.fonts.load('700 13px Sarabun');}catch(e){}
   await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});});
 
-  // ── 6. html2canvas (เหมือน exportPDF ใน form.html) ──
+  // วัด actual scrollHeight หลังเนื้อหา render แล้ว
+  var actualH = clone.scrollHeight || clone.offsetHeight || A4H;
+  // ใช้ height จริง (ไม่บังคับ A4H) เพื่อกันที่ว่างด้านล่าง
+  // แต่ต้องอย่าน้อยกว่า min ที่สมเหตุสมผล
+  var renderH = Math.max(actualH, 400);
+
+  // ── 6. html2canvas ด้วย height จริง ──
   var canvas=await html2canvas(clone,{
     scale:2,useCORS:true,letterRendering:true,
     backgroundColor:'#ffffff',
-    width:A4W,height:A4H,
-    windowWidth:A4W,windowHeight:A4H,
+    width:A4W,height:renderH,
+    windowWidth:A4W,windowHeight:renderH,
     scrollX:0,scrollY:0
   });
 
@@ -2021,12 +2032,18 @@ async function renderJobPDF(job){
   document.body.removeChild(exportHost);
   document.body.removeChild(host);
 
-  // ── 7. → jsPDF (ขยายให้เต็มหน้า A4 พอดี ไม่มีที่ว่าง) ──
+  // ── 7. → jsPDF: scale canvas ให้พอดีกับ A4 (width-fit, ไม่ยืด) ──
   var pdf=new J({unit:'mm',format:'a4',orientation:'portrait',compress:true});
-  var pw=pdf.internal.pageSize.getWidth();   // 210
-  var ph=pdf.internal.pageSize.getHeight();  // 297
-  // scale canvas ให้เต็ม A4 พอดี (ไม่หด ไม่ยืด เกิน ไม่มีที่ว่าง)
-  pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,pw,ph);
+  var pw=pdf.internal.pageSize.getWidth();   // 210 mm
+  var ph=pdf.internal.pageSize.getHeight();  // 297 mm
+  // canvas width = A4W*2 (scale:2), canvas height = renderH*2
+  // fit by width → iw=210mm, ih ตามสัดส่วน
+  var scaleRatio = pw / (A4W * 2); // mm per pixel
+  var iw = pw;
+  var ih = canvas.height * scaleRatio;
+  // ถ้า ih > ph ให้ fit by height แทน (เนื้อหายาวกว่า A4)
+  if(ih > ph){ scaleRatio = ph / (renderH*2); iw = canvas.width*scaleRatio; ih = ph; }
+  pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,iw,ih);
   return pdf.output('arraybuffer');
 }
 
@@ -2079,6 +2096,7 @@ function checkSigCompleteNotifs() {
         const list = getAdminNotifs();
         list.unshift(notif);
         saveAdminNotifs(list.slice(0, 100));
+        showAdminSigPopup(notif);
         added = true;
       }
       seen.add(j.id);
@@ -2088,6 +2106,41 @@ function checkSigCompleteNotifs() {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify([...seen])); } catch(e) {}
   updateBellBadge();
   if (added) renderNotifPanel();
+}
+
+function _closeAdminSigPopup() {
+  var ov = document.getElementById('_adminSigOverlay');
+  var ct = document.getElementById('_adminSigContainer');
+  if (ov) ov.remove();
+  if (ct) ct.remove();
+}
+function showAdminSigPopup(notif) {
+  _closeAdminSigPopup();
+  var overlay = document.createElement('div');
+  overlay.id = '_adminSigOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:8000;';
+  overlay.onclick = _closeAdminSigPopup;
+  var container = document.createElement('div');
+  container.id = '_adminSigContainer';
+  container.style.cssText = [
+    'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)',
+    'width:min(340px,92vw);background:#fffaff',
+    'border-radius:16px;border-top:5px solid #16a34a',
+    'box-shadow:0 8px 32px rgba(0,0,0,.3);padding:18px 16px 14px',
+    'z-index:8001;animation:fadeInDown .25s ease'
+  ].join(';');
+  container.innerHTML = ''
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">'
+    + '<div style="font-size:14px;font-weight:800;color:#065f46">✅ เซ็นใบงานครบแล้ว</div>'
+    + '<button onclick="_closeAdminSigPopup()" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1;padding:0;-webkit-appearance:none">✕</button>'
+    + '</div>'
+    + '<div style="font-size:13px;color:#334155;margin-bottom:3px">📄 ' + (notif.job_no || '-') + ' · ' + (notif.company || '-') + '</div>'
+    + '<div style="font-size:12px;color:#334155;margin-bottom:2px">🔧 ช่าง: ' + (notif.tech_name || '-') + '</div>'
+    + '<div style="font-size:12px;color:#334155;margin-bottom:10px">👤 ลูกค้า: ' + (notif.cust_name || '-') + '</div>'
+    + '<button onclick="_closeAdminSigPopup();editJob(' + notif.job_id + ');" style="width:100%;padding:10px;background:linear-gradient(135deg,#065f46,#16a34a);color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">📄 ดูใบงาน</button>';
+  document.body.appendChild(overlay);
+  document.body.appendChild(container);
+  setTimeout(_closeAdminSigPopup, 30000);
 }
 
 function updateBellBadge() {
@@ -2338,39 +2391,47 @@ async function checkTechDispatchNotifs() {
   } catch(e) { console.warn('checkTechDispatchNotifs:', e); }
 }
 
+function _closeDispatchPopup() {
+  var ov = document.getElementById('_techDispatchOverlay');
+  var ct = document.getElementById('_techDispatchContainer');
+  if (ov) ov.remove();
+  if (ct) ct.remove();
+}
 function showTechDispatchPopup(notif) {
-  // Popup overlay modal
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:6990;';
-  const container = document.createElement('div');
+  // Remove existing popup if any
+  _closeDispatchPopup();
+  var overlay = document.createElement('div');
+  overlay.id = '_techDispatchOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:8000;';
+  overlay.onclick = _closeDispatchPopup;
+  var container = document.createElement('div');
+  container.id = '_techDispatchContainer';
   container.style.cssText = [
     'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)',
     'width:min(340px,92vw);background:#fffaff',
     'border-radius:16px;border-top:5px solid #ffd151',
-    'box-shadow:0 8px 32px rgba(0,0,0,.28);padding:18px 16px 14px',
-    'z-index:7000;animation:fadeInDown .25s ease'
+    'box-shadow:0 8px 32px rgba(0,0,0,.3);padding:18px 16px 14px',
+    'z-index:8001;animation:fadeInDown .25s ease'
   ].join(';');
-  overlay.onclick = function() { overlay.remove(); try{container.remove();}catch(e){} };
-  const d = notif.date_of_work || '';
-  const t = notif.time_of_work ? ' เวลา ' + notif.time_of_work : '';
-  const maps = notif.maps_url
-    ? `<a href="${notif.maps_url}" target="_blank" style="font-size:11px;color:#427aa1;text-decoration:none;display:block;margin-top:4px">🗺️ ดูแผนที่ Google Maps</a>`
+  var d = notif.date_of_work || '';
+  var t = notif.time_of_work ? ' เวลา ' + notif.time_of_work : '';
+  var maps = notif.maps_url
+    ? '<a href="' + notif.maps_url + '" target="_blank" style="font-size:11px;color:#427aa1;text-decoration:none;display:block;margin-top:4px">🗺️ ดูแผนที่ Google Maps</a>'
     : '';
-  container.innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
-      <div style="font-size:14px;font-weight:800;color:#0e1c36">📤 แอดมินส่งงานให้คุณ</div>
-      <button onclick="this.closest('[style*=fixed]').nextElementSibling ? this.closest('[style*=fixed]').nextElementSibling.remove() : null; this.closest('[style*=fixed]').remove();" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;padding:0">✕</button>
-    </div>
-    <div style="font-size:13px;color:#334155;margin-bottom:4px">📅 ${d}${t}</div>
-    <div style="font-size:13px;color:#334155;margin-bottom:4px">📍 ${notif.location || '-'}</div>
-    ${notif.note ? `<div style="font-size:12px;color:#69747c;margin-bottom:4px">📝 ${notif.note}</div>` : ''}
-    ${maps}
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:10px">ส่งโดย ${notif.sent_by || 'แอดมิน'}</div>
-    <button onclick="overlay.remove();container.remove();swPg('mine');" style="width:100%;padding:10px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#ffd151;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer">✅ รับทราบ — ดูงานของฉัน</button>`;
+  container.innerHTML = ''
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">'
+    + '<div style="font-size:14px;font-weight:800;color:#0e1c36">📤 แอดมินส่งงานให้คุณ</div>'
+    + '<button onclick="_closeDispatchPopup()" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;line-height:1;padding:0;-webkit-appearance:none">✕</button>'
+    + '</div>'
+    + '<div style="font-size:13px;color:#334155;margin-bottom:4px">📅 ' + d + t + '</div>'
+    + '<div style="font-size:13px;color:#334155;margin-bottom:4px">📍 ' + (notif.location || '-') + '</div>'
+    + (notif.note ? '<div style="font-size:12px;color:#69747c;margin-bottom:4px">📝 ' + notif.note + '</div>' : '')
+    + maps
+    + '<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">ส่งโดย ' + (notif.sent_by || 'แอดมิน') + '</div>'
+    + '<button onclick="_closeDispatchPopup();swPg('mine');" style="width:100%;padding:10px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#ffd151;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">✅ รับทราบ — ดูงานของฉัน</button>';
   document.body.appendChild(overlay);
   document.body.appendChild(container);
-  // Auto-close after 30s
-  setTimeout(() => { try { overlay.remove(); } catch(e) {} try { container.remove(); } catch(e) {} }, 30000);
+  setTimeout(_closeDispatchPopup, 30000);
 }
 
 function renderTechNotifPanel() {
