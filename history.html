@@ -226,6 +226,29 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .tgl input:disabled + .tgl-track{opacity:.5;cursor:not-allowed}
 
 @keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Notification panel */
+#notifPanel{
+  display:none;position:fixed;
+  top:calc(62px + env(safe-area-inset-top));right:8px;
+  width:min(340px,94vw);max-height:70vh;
+  background:#fff;border-radius:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.18);
+  border:1.5px solid #dce5ff;overflow:hidden;
+  z-index:6000;animation:fadeInDown .2s ease;
+  display:none;flex-direction:column;
+}
+#notifPanel.open{display:flex}
+.notif-panel-head{
+  padding:12px 14px;background:linear-gradient(135deg,#1a3a6e,#2a5298);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.notif-panel-head-title{color:#f9c900;font-size:13px;font-weight:800}
+.notif-panel-clear{background:none;border:none;color:rgba(249,201,0,.6);
+  font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif;padding:2px 6px}
+.notif-panel-clear:hover{color:#f9c900}
+#notifPanelList{flex:1;overflow-y:auto;}
 
 /* ===== ปุ่มเลือกธีม ===== */
 .theme-row{display:flex;gap:8px;padding:12px 14px}
@@ -310,8 +333,21 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
     <span class="tb-title">ระบบบันทึกงานบริการ</span>
   </div>
   <div class="tb-r">
-    <div class="avatar" id="av" onclick="swPg('settings')">?</div>
-    <div class="uinfo" onclick="swPg('settings')">
+    <!-- notification bell (admin-only, hidden until role confirmed) -->
+    <div id="notifBellWrap" style="display:none;position:relative">
+      <button id="notifBell" onclick="toggleNotifPanel()" style="
+        width:36px;height:36px;border-radius:50%;
+        background:rgba(249,201,0,.15);border:1.5px solid rgba(249,201,0,.5);
+        color:#f9c900;font-size:18px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;
+        -webkit-appearance:none;transition:background .15s;flex-shrink:0;"
+        title="การแจ้งเตือน">🔔</button>
+      <span id="notifBellBadge" style="display:none;position:absolute;top:-3px;right:-3px;
+        min-width:16px;height:16px;background:#dc2626;color:#fff;border-radius:8px;
+        font-size:9px;font-weight:800;text-align:center;line-height:16px;padding:0 3px;
+        box-shadow:0 0 0 2px #1a3a6e;pointer-events:none">0</span>
+    </div>
+    <div class="uinfo" onclick="swPg('settings')" style="cursor:pointer">
       <div class="uname" id="uname">กำลังโหลด...</div>
       <div class="urole" id="urole"></div>
     </div>
@@ -441,7 +477,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
     </div>
     <div class="sr" onclick="openNotifLog()">
       <div><div class="sl">ประวัติแจ้งเตือน</div><div class="ssub" id="notifLogCount">-</div></div>
-      <span class="sa" id="notifLogBadge">›</span>
+      <span class="sa">🔔</span>
     </div>
   </div>
   <div class="ss" id="trashSetting" style="display:none">
@@ -513,13 +549,18 @@ document.addEventListener('DOMContentLoaded', function () {
   <button class="bni" id="nav-settings" onclick="swPg('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
 </div>
 
-<!-- ===== ADMIN: Notification Center Popup ===== -->
-<div id="adminNotifCenter" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:5000;pointer-events:none;">
-  <div id="adminNotifList" style="position:absolute;top:calc(60px + env(safe-area-inset-top));right:10px;width:min(360px,94vw);max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;pointer-events:all;"></div>
+<!-- ===== ADMIN: Notification Panel (bell dropdown) ===== -->
+<div id="notifPanel">
+  <div class="notif-panel-head">
+    <span class="notif-panel-head-title">🔔 การแจ้งเตือน</span>
+    <button class="notif-panel-clear" onclick="clearNotifLog()">🗑️ ล้างทั้งหมด</button>
+  </div>
+  <div id="notifPanelList"></div>
 </div>
+<!-- click-outside overlay to close panel -->
+<div id="notifOverlay" onclick="closeNotifPanel()" style="display:none;position:fixed;inset:0;z-index:5999;"></div>
 
-<!-- ===== ADMIN: Dispatch Job Modal ===== -->
-<div class="mo" id="dispatchMo">
+<!-- ===== ADMIN: Dispatch Job Modal ===== --><div class="mo" id="dispatchMo">
   <div class="mb">
     <div class="mt">📤 ส่งงานให้ช่าง <button class="mclose" onclick="closeDispatch()">✕</button></div>
     <div style="font-size:12px;color:#555;margin-bottom:12px">ข้อมูลงานจะถูกบันทึกเป็น JSON และส่งแจ้งเตือนให้ช่างที่เลือก</div>
@@ -545,14 +586,6 @@ document.addEventListener('DOMContentLoaded', function () {
   </div>
 </div>
 
-<!-- ===== ADMIN: Notification History Log Modal ===== -->
-<div class="mo" id="notifLogMo">
-  <div class="mb">
-    <div class="mt">🔔 ประวัติแจ้งเตือน <button class="mclose" onclick="closeNotifLog()">✕</button></div>
-    <div id="notifLogList" style="max-height:60vh;overflow-y:auto"></div>
-    <div class="mc"><button class="mno" onclick="closeNotifLog()">ปิด</button><button class="mok" style="background:#dc2626" onclick="clearNotifLog()">🗑️ ล้างประวัติ</button></div>
-  </div>
-</div>
 <!-- DELETE MODAL -->
 <div class="mo" id="delMo">
   <div class="mb">
@@ -811,7 +844,7 @@ async function init(){
     document.getElementById('av').textContent=nm[0].toUpperCase();
     document.getElementById('uname').textContent=nm+(role==='admin'?' 👑':'');
     document.getElementById('urole').textContent=pos;
-    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; var ads=document.getElementById('adminDispatchSection'); if(ads)ads.style.display='block'; updateNotifLogCount(); }
+    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; var ads=document.getElementById('adminDispatchSection'); if(ads)ads.style.display='block'; var bw=document.getElementById('notifBellWrap'); if(bw)bw.style.display='block'; updateBellBadge(); }
   }catch(e){console.error('Profile catch:',e);}
 
   if(_session && typeof saveAccountToSwitcher==='function') saveAccountToSwitcher(_session, CP);
@@ -1972,7 +2005,6 @@ function editJob(id){localStorage.setItem('kjid',id);location.href='form.html';}
 // ======================================================================
 // ===== ADMIN: Signature-complete notification system ==================
 // ======================================================================
-// Key in localStorage for notification history (admin only)
 const ADMIN_NOTIF_KEY = 'kimac_admin_notifs';
 
 function getAdminNotifs() {
@@ -1982,114 +2014,137 @@ function saveAdminNotifs(list) {
   try { localStorage.setItem(ADMIN_NOTIF_KEY, JSON.stringify(list)); } catch(e) {}
 }
 
-// Called whenever jobs load — check for newly-both-signed jobs Admin hasn't seen yet
+// Called whenever jobs load
 function checkSigCompleteNotifs() {
   if (!CP || CP.role !== 'admin') return;
-  const seen = new Set(getAdminNotifs().map(n => n.job_id + ':sig_complete'));
+  const existing = new Set(getAdminNotifs().map(n => n.id));
+  let added = false;
   jobs.forEach(function(j) {
-    const key = j.id + ':sig_complete';
-    if (j.tech_sig_data && j.cust_sig_data && !seen.has(key)) {
-      triggerAdminSigNotif(j);
+    const id = j.id + ':sig_complete';
+    if (j.tech_sig_data && j.cust_sig_data && !existing.has(id)) {
+      const notif = {
+        id, job_id: j.id,
+        job_no: j.job_no || '-',
+        company: j.company || '-',
+        tech_name: j.technician_name || '-',
+        cust_name: j.cust_name_sign || '-',
+        timestamp: new Date().toISOString(),
+        type: 'sig_complete', read: false
+      };
+      const list = getAdminNotifs();
+      list.unshift(notif);
+      saveAdminNotifs(list.slice(0, 100));
+      added = true;
     }
   });
+  updateBellBadge();
+  if (added) renderNotifPanel();
 }
 
-function triggerAdminSigNotif(job) {
+function updateBellBadge() {
   if (!CP || CP.role !== 'admin') return;
-  const notif = {
-    id: job.id + ':sig_complete',
-    job_id: job.id,
-    job_no: job.job_no || '-',
-    company: job.company || '-',
-    tech_name: job.technician_name || '-',
-    cust_name: job.cust_name_sign || '-',
-    timestamp: new Date().toISOString(),
-    type: 'sig_complete',
-    read: false
-  };
-  // Save to history
-  const list = getAdminNotifs();
-  if (!list.find(n => n.id === notif.id)) {
-    list.unshift(notif);
-    saveAdminNotifs(list.slice(0, 100)); // keep latest 100
+  const unread = getAdminNotifs().filter(n => !n.read).length;
+  const badge = document.getElementById('notifBellBadge');
+  const wrap = document.getElementById('notifBellWrap');
+  if (wrap) wrap.style.display = 'block';
+  if (badge) {
+    if (unread > 0) {
+      badge.textContent = unread > 99 ? '99+' : unread;
+      badge.style.display = 'block';
+    } else {
+      badge.style.display = 'none';
+    }
   }
-  // Show DOM popup
-  showAdminNotifPopup(notif);
+  // also update settings count
   updateNotifLogCount();
 }
 
-function showAdminNotifPopup(notif) {
-  const container = document.getElementById('adminNotifList');
-  if (!container) return;
-  document.getElementById('adminNotifCenter').style.display = 'block';
-  const el = document.createElement('div');
-  el.style.cssText = 'background:#fff;border-left:4px solid #f9c900;border-radius:10px;padding:12px 14px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #dce5ff;border-left:4px solid #f9c900;animation:slideInRight .3s ease';
-  el.innerHTML = `
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-      <div style="font-size:13px;font-weight:800;color:#1a3a6e">✅ เซ็นครบทั้งสองฝ่าย</div>
-      <button onclick="this.closest('[style]').remove();checkNotifCenterEmpty()" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;padding:0;line-height:1">✕</button>
-    </div>
-    <div style="font-size:12px;color:#334155;margin-top:6px">📄 <b>${notif.job_no}</b> · ${notif.company}</div>
-    <div style="font-size:11px;color:#64748b;margin-top:3px">🔧 ${notif.tech_name} &nbsp;|&nbsp; 👤 ${notif.cust_name}</div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <button onclick="editJob(${notif.job_id})" style="flex:1;padding:6px;background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#f9c900;border:none;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;cursor:pointer">🖊 ดูใบงาน</button>
-      <button onclick="this.closest('[style]').remove();checkNotifCenterEmpty()" style="padding:6px 10px;background:#f0f4ff;color:#1a3a6e;border:none;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:600;cursor:pointer">ปิด</button>
-    </div>`;
-  container.appendChild(el);
-  // Auto-remove after 20 seconds
-  setTimeout(function() { try { el.remove(); checkNotifCenterEmpty(); } catch(e) {} }, 20000);
+function toggleNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  const overlay = document.getElementById('notifOverlay');
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    closeNotifPanel();
+  } else {
+    // Mark all as read when panel opens
+    const list = getAdminNotifs();
+    list.forEach(n => n.read = true);
+    saveAdminNotifs(list);
+    updateBellBadge();
+    renderNotifPanel();
+    panel.classList.add('open');
+    if (overlay) overlay.style.display = 'block';
+  }
 }
 
-function checkNotifCenterEmpty() {
-  const container = document.getElementById('adminNotifList');
-  const center = document.getElementById('adminNotifCenter');
-  if (container && center && !container.children.length) {
-    center.style.display = 'none';
+function closeNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  const overlay = document.getElementById('notifOverlay');
+  if (panel) panel.classList.remove('open');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function renderNotifPanel() {
+  const list = getAdminNotifs();
+  const el = document.getElementById('notifPanelList');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<div style="padding:32px 16px;text-align:center;color:#94a3b8;font-size:13px">🔕 ยังไม่มีการแจ้งเตือน</div>';
+    return;
   }
+  el.innerHTML = list.map(function(n) {
+    const d = new Date(n.timestamp).toLocaleString('th-TH', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const icons = {sig_complete:'✅'};
+    const icon = icons[n.type] || '🔔';
+    return `<div style="padding:12px 14px;border-bottom:1px solid #f0f4ff;${n.read?'':'background:#fffbeb;'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:#1a3a6e">${icon} เซ็นครบทั้งสองฝ่าย · ${n.job_no}</div>
+          <div style="font-size:11px;color:#334155;margin-top:3px">🏢 ${n.company}</div>
+          <div style="font-size:10px;color:#64748b;margin-top:2px">🔧 ${n.tech_name} · 👤 ${n.cust_name}</div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:2px">🕐 ${d}</div>
+        </div>
+        <button onclick="editJob(${n.job_id});closeNotifPanel()" style="
+          flex-shrink:0;padding:5px 9px;background:#1a3a6e;color:#f9c900;
+          border:none;border-radius:7px;font-family:'Sarabun',sans-serif;
+          font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;">ดูใบงาน</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function updateNotifLogCount() {
   const list = getAdminNotifs();
   const unread = list.filter(n => !n.read).length;
   const el = document.getElementById('notifLogCount');
-  const badge = document.getElementById('notifLogBadge');
-  if (el) el.textContent = list.length ? list.length + ' รายการ' + (unread ? ' · ' + unread + ' ยังไม่อ่าน' : '') : 'ยังไม่มีการแจ้งเตือน';
-  if (badge) badge.style.cssText = unread ? 'background:#dc2626;color:#fff;font-size:12px;font-weight:800;padding:2px 8px;border-radius:10px' : '';
-  if (badge && !unread) badge.textContent = '›';
+  if (el) el.textContent = list.length ? list.length + ' รายการ' + (unread ? ' · ' + unread + ' ยังไม่อ่าน' : ' · อ่านแล้วทั้งหมด') : 'ยังไม่มีการแจ้งเตือน';
 }
 
 function openNotifLog() {
-  const list = getAdminNotifs();
-  // Mark all as read
-  list.forEach(n => n.read = true);
-  saveAdminNotifs(list);
-  updateNotifLogCount();
-  const el = document.getElementById('notifLogList');
-  if (!list.length) {
-    el.innerHTML = '<div class="empty" style="padding:30px 0"><div class="empty-ic">🔔</div><b>ยังไม่มีการแจ้งเตือน</b></div>';
-  } else {
-    el.innerHTML = list.map(function(n) {
-      const d = new Date(n.timestamp).toLocaleString('th-TH', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-      return `<div style="padding:12px;border-bottom:1px solid #f0f4ff">
-        <div style="font-size:13px;font-weight:700;color:#1a3a6e">✅ เซ็นครบ · ${n.job_no}</div>
-        <div style="font-size:12px;color:#334155;margin-top:3px">🏢 ${n.company}</div>
-        <div style="font-size:11px;color:#64748b;margin-top:2px">🔧 ${n.tech_name} · 👤 ${n.cust_name}</div>
-        <div style="font-size:10px;color:#94a3b8;margin-top:3px">🕐 ${d}</div>
-      </div>`;
-    }).join('');
+  // Just open the bell panel
+  const panel = document.getElementById('notifPanel');
+  if (panel) {
+    const list = getAdminNotifs();
+    list.forEach(n => n.read = true);
+    saveAdminNotifs(list);
+    updateBellBadge();
+    renderNotifPanel();
+    const overlay = document.getElementById('notifOverlay');
+    panel.classList.add('open');
+    if (overlay) overlay.style.display = 'block';
+    // Scroll to settings-accessible version
   }
-  document.getElementById('notifLogMo').classList.add('open');
 }
 
-function closeNotifLog() {
-  document.getElementById('notifLogMo').classList.remove('open');
-}
+function closeNotifLog() { closeNotifPanel(); }
 
 function clearNotifLog() {
   if (!confirm('ลบประวัติแจ้งเตือนทั้งหมด?')) return;
   saveAdminNotifs([]);
-  updateNotifLogCount();
-  closeNotifLog();
+  updateBellBadge();
+  renderNotifPanel();
+  closeNotifPanel();
 }
 
 // ======================================================================
