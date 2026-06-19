@@ -22,30 +22,30 @@
 body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   min-height:100vh;padding-bottom:calc(66px + env(safe-area-inset-bottom))}
 .topbar{position:sticky;top:0;z-index:100;
-  background:linear-gradient(135deg,#0f2347,#1a3a6e);
+  background:linear-gradient(135deg,#0f2347 0%,#1a3a6e 60%,#1e4a8a 100%);
   padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));
   display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 2px 16px rgba(0,0,0,.25)}
+  box-shadow:0 2px 16px rgba(0,0,0,.3),0 0 0 1px rgba(249,201,0,.15)}
 .tb-l{display:flex;align-items:center;gap:10px}
 .tb-logo{width:34px;height:24px;object-fit:contain;border-radius:3px}
-.tb-title{color:#fff;font-size:17px;font-weight:800;letter-spacing:1.5px}
+.tb-title{color:#f9c900;font-size:17px;font-weight:800;letter-spacing:1.5px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
 .tb-r{display:flex;align-items:center;gap:8px}
 .avatar{width:34px;height:34px;border-radius:50%;background:#f9c900;color:#1a3a6e;
   font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;cursor:pointer}
+  flex-shrink:0;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 .uinfo{line-height:1.3;color:#fff;cursor:pointer}
 .uname{font-size:12px;font-weight:700;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.urole{font-size:10px;opacity:.7}
-.btn-out{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
-  color:#fff;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
+.urole{font-size:10px;opacity:.8;color:#f9c900}
+.btn-out{background:rgba(249,201,0,.15);border:1px solid rgba(249,201,0,.35);
+  color:#f9c900;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
   font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
 
-.filter-bar{background:#fff;border:2px solid #e2e8f8;border-radius:12px;padding:10px 14px;
+.filter-bar{background:#fff;border:2px solid #dce5ff;border-radius:12px;padding:10px 14px;
   margin-bottom:12px;display:none;gap:10px;align-items:center;overflow-x:auto;scrollbar-width:none;
   box-shadow:0 2px 8px rgba(26,58,110,.06)}
 .filter-bar.show{display:flex}
 .fb-label{color:#1a3a6e;font-size:13px;font-weight:700;white-space:nowrap}
-.fb-select{flex:1;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;
+.fb-select{flex:1;padding:9px 10px;border:2px solid #dce5ff;border-radius:10px;
   font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;
   background:#f7f9fd;outline:none;cursor:pointer;-webkit-appearance:none}
 .fb-select option{color:#1a1a2e;background:#fff}
@@ -55,7 +55,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .btn-cal{padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;
   background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;
   line-height:1;position:relative;transition:background .15s}
-.btn-cal.active{background:#1a3a6e;color:#fff;border-color:#1a3a6e}
+.btn-cal.active{background:#1a3a6e;color:#f9c900;border-color:#1a3a6e}
 .btn-cal .cal-badge{position:absolute;top:-5px;right:-5px;width:10px;height:10px;
   background:#ef4444;border-radius:50%;display:none}
 .btn-cal.has-filter .cal-badge{display:block}
@@ -87,21 +87,23 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .btn-new{padding:10px 16px;background:linear-gradient(135deg,#1a3a6e,#2a5298);
   color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
   font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
-.btn-refresh{padding:10px 12px;background:#eff6ff;color:#1e40af;border:2px solid #dbeafe;
-  border-radius:10px;font-size:14px;cursor:pointer;-webkit-appearance:none;line-height:1}
+.btn-refresh{padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;
+  background:#eff6ff;color:#1e40af;font-size:14px;cursor:pointer;-webkit-appearance:none;line-height:1;
+  position:relative;transition:background .15s}
+.btn-refresh:active{background:#1a3a6e;color:#fff;border-color:#1a3a6e}
 .card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff;cursor:pointer}
+  box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #dce5ff;cursor:pointer}
 .card:active{transform:scale(.99);opacity:.9}
 .ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
 .cjno{font-size:14px;font-weight:800;color:#1a3a6e}
-.cdate{font-size:11px;color:#888;margin-top:2px}
+.cdate{font-size:11px;color:#4a5568;margin-top:2px}
 .badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700}
-.draft{background:#fef3c7;color:#92400e}
+.draft{background:#fef3c7;color:#78350f}
 .completed{background:#d1fae5;color:#065f46}
 .approved{background:#dbeafe;color:#1e40af}
 .cb{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
-.ci{font-size:11px;color:#555}
-.ci b{color:#1a3a6e}
+.ci{font-size:11px;color:#4a5568}
+.ci b{color:#1a3a6e;font-weight:700}
 .cf{display:flex;align-items:center;justify-content:space-between;
   padding-top:8px;border-top:1px solid #f0f4ff}
 .ctot{font-size:13px;font-weight:800;color:#1a3a6e}
@@ -153,15 +155,15 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .rt{background:#dbeafe;color:#1e40af}
 /* SETTINGS */
 .ss{background:#fff;border-radius:14px;overflow:hidden;margin-bottom:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
-.sh{background:#1a3a6e;color:#fff;padding:10px 16px;font-size:13px;font-weight:700}
+  box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #d4deff}
+.sh{background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#f9c900;padding:10px 16px;font-size:13px;font-weight:700;letter-spacing:.5px}
 .sr{display:flex;align-items:center;justify-content:space-between;
   padding:14px 16px;border-bottom:1px solid #f0f4ff;cursor:pointer}
 .sr:last-child{border-bottom:none}
-.sr:active{background:#f8faff}
+.sr:active{background:#f0f4ff}
 .sl{font-size:14px;color:#1a1a2e;font-weight:600}
-.ssub{font-size:11px;color:#888;margin-top:2px}
-.sa{color:#ccc;font-size:18px}
+.ssub{font-size:11px;color:#64748b;margin-top:2px}
+.sa{color:#2a5298;font-size:18px;font-weight:700}
 .ph{display:flex;align-items:center;gap:14px;padding:16px;
   background:#fff;border-radius:14px;margin-bottom:12px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
@@ -173,13 +175,14 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .pr{display:inline-block;background:#f0f4ff;color:#1a3a6e;
   padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:4px}
 /* NAV */
-.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8eef8;
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid #dce5ff;
   display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);
   box-shadow:0 -3px 16px rgba(0,0,0,.07)}
-.bni{flex:1;padding:10px 4px;text-align:center;cursor:pointer;color:#888;
+.bni{flex:1;padding:10px 4px;text-align:center;cursor:pointer;color:#64748b;
   font-size:10px;font-weight:600;border:none;background:none;
   font-family:'Sarabun',sans-serif;transition:color .2s;-webkit-appearance:none}
 .bni.on{color:#1a3a6e}
+.bni.on .bni-ic{filter:drop-shadow(0 0 3px rgba(249,201,0,.5))}
 .bni{position:relative}
 .nbadge{position:absolute;top:3px;left:50%;margin-left:5px;min-width:15px;height:15px;line-height:15px;padding:0 3px;background:#dc2626;color:#fff;border-radius:8px;font-size:9px;font-weight:800;text-align:center;box-shadow:0 0 0 2px #fff}
 .newtag{display:inline-block;background:#fee2e2;color:#dc2626;font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:4px;vertical-align:middle}
@@ -221,6 +224,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .tgl input:checked + .tgl-track{background:#16a34a}
 .tgl input:checked + .tgl-track .tgl-thumb{left:23px}
 .tgl input:disabled + .tgl-track{opacity:.5;cursor:not-allowed}
+
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
 /* ===== ปุ่มเลือกธีม ===== */
 .theme-row{display:flex;gap:8px;padding:12px 14px}
@@ -427,6 +432,18 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
       <span class="sa">›</span>
     </div>
   </div>
+  <!-- Admin-only: dispatch + notif log -->
+  <div class="ss" id="adminDispatchSection" style="display:none">
+    <div class="sh">📤 จัดการงาน (Admin)</div>
+    <div class="sr" onclick="openDispatch()">
+      <div><div class="sl">ส่งงานให้ช่าง</div><div class="ssub">สร้างใบงานภาคสนามและแจ้งช่าง</div></div>
+      <span class="sa">›</span>
+    </div>
+    <div class="sr" onclick="openNotifLog()">
+      <div><div class="sl">ประวัติแจ้งเตือน</div><div class="ssub" id="notifLogCount">-</div></div>
+      <span class="sa" id="notifLogBadge">›</span>
+    </div>
+  </div>
   <div class="ss" id="trashSetting" style="display:none">
     <div class="sh">🗑️ การกู้คืน</div>
     <div class="sr" onclick="swPg('trash')">
@@ -494,6 +511,47 @@ document.addEventListener('DOMContentLoaded', function () {
   <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใบงานใหม่</button>
   <button class="bni" id="nav-team" onclick="swPg('team')"><span class="bni-ic">👥</span>ทีมงาน</button>
   <button class="bni" id="nav-settings" onclick="swPg('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
+</div>
+
+<!-- ===== ADMIN: Notification Center Popup ===== -->
+<div id="adminNotifCenter" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:5000;pointer-events:none;">
+  <div id="adminNotifList" style="position:absolute;top:calc(60px + env(safe-area-inset-top));right:10px;width:min(360px,94vw);max-height:70vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;pointer-events:all;"></div>
+</div>
+
+<!-- ===== ADMIN: Dispatch Job Modal ===== -->
+<div class="mo" id="dispatchMo">
+  <div class="mb">
+    <div class="mt">📤 ส่งงานให้ช่าง <button class="mclose" onclick="closeDispatch()">✕</button></div>
+    <div style="font-size:12px;color:#555;margin-bottom:12px">ข้อมูลงานจะถูกบันทึกเป็น JSON และส่งแจ้งเตือนให้ช่างที่เลือก</div>
+    <div class="ff"><label>ช่างที่รับงาน</label>
+      <select id="dp-tech"></select>
+    </div>
+    <div class="ff"><label>วันที่ออกงาน</label>
+      <input type="date" id="dp-date">
+    </div>
+    <div class="ff"><label>เวลา (เช่น 09:00)</label>
+      <input type="time" id="dp-time">
+    </div>
+    <div class="ff"><label>สถานที่</label>
+      <input type="text" id="dp-place" placeholder="ชื่อบริษัท / ที่อยู่...">
+    </div>
+    <div class="ff"><label>ลิงก์ Google Maps</label>
+      <input type="url" id="dp-maps" placeholder="https://maps.google.com/...">
+    </div>
+    <div class="ff"><label>หมายเหตุ / รายละเอียด</label>
+      <input type="text" id="dp-note" placeholder="รายละเอียดงานเพิ่มเติม...">
+    </div>
+    <button class="bsp" onclick="saveDispatch()">📤 ส่งงานให้ช่าง</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN: Notification History Log Modal ===== -->
+<div class="mo" id="notifLogMo">
+  <div class="mb">
+    <div class="mt">🔔 ประวัติแจ้งเตือน <button class="mclose" onclick="closeNotifLog()">✕</button></div>
+    <div id="notifLogList" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="mc"><button class="mno" onclick="closeNotifLog()">ปิด</button><button class="mok" style="background:#dc2626" onclick="clearNotifLog()">🗑️ ล้างประวัติ</button></div>
+  </div>
 </div>
 <!-- DELETE MODAL -->
 <div class="mo" id="delMo">
@@ -753,7 +811,7 @@ async function init(){
     document.getElementById('av').textContent=nm[0].toUpperCase();
     document.getElementById('uname').textContent=nm+(role==='admin'?' 👑':'');
     document.getElementById('urole').textContent=pos;
-    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; }
+    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; var ads=document.getElementById('adminDispatchSection'); if(ads)ads.style.display='block'; updateNotifLogCount(); }
   }catch(e){console.error('Profile catch:',e);}
 
   if(_session && typeof saveAccountToSwitcher==='function') saveAccountToSwitcher(_session, CP);
@@ -798,6 +856,8 @@ async function loadJobs(){
     renderReport();
     updateMineBadge();
     if(document.getElementById('pg-mine')&&document.getElementById('pg-mine').classList.contains('on'))renderMine();
+    // Check for both-signed jobs → notify admin
+    if(typeof checkSigCompleteNotifs === 'function') setTimeout(checkSigCompleteNotifs, 500);
   }catch(e){showErr('เกิดข้อผิดพลาด: '+e.message);}
 }
 
@@ -1896,20 +1956,227 @@ async function renderJobPDF(job){
   document.body.removeChild(exportHost);
   document.body.removeChild(host);
 
-  // ── 7. → jsPDF ──
+  // ── 7. → jsPDF (ขยายให้เต็มหน้า A4 พอดี ไม่มีที่ว่าง) ──
   var pdf=new J({unit:'mm',format:'a4',orientation:'portrait',compress:true});
-  var pw=pdf.internal.pageSize.getWidth();
-  var ph=pdf.internal.pageSize.getHeight();
-  var ratio=Math.min(pw/canvas.width,ph/canvas.height);
-  var iw=canvas.width*ratio,ih=canvas.height*ratio;
-  var x=(pw-iw)/2,y=(ph-ih)/2;
-  pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',x,y,iw,ih);
+  var pw=pdf.internal.pageSize.getWidth();   // 210
+  var ph=pdf.internal.pageSize.getHeight();  // 297
+  // scale canvas ให้เต็ม A4 พอดี (ไม่หด ไม่ยืด เกิน ไม่มีที่ว่าง)
+  pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,pw,ph);
   return pdf.output('arraybuffer');
 }
 
 
 function newJob(){localStorage.removeItem('kjid');location.href='form.html';}
 function editJob(id){localStorage.setItem('kjid',id);location.href='form.html';}
+
+// ======================================================================
+// ===== ADMIN: Signature-complete notification system ==================
+// ======================================================================
+// Key in localStorage for notification history (admin only)
+const ADMIN_NOTIF_KEY = 'kimac_admin_notifs';
+
+function getAdminNotifs() {
+  try { return JSON.parse(localStorage.getItem(ADMIN_NOTIF_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveAdminNotifs(list) {
+  try { localStorage.setItem(ADMIN_NOTIF_KEY, JSON.stringify(list)); } catch(e) {}
+}
+
+// Called whenever jobs load — check for newly-both-signed jobs Admin hasn't seen yet
+function checkSigCompleteNotifs() {
+  if (!CP || CP.role !== 'admin') return;
+  const seen = new Set(getAdminNotifs().map(n => n.job_id + ':sig_complete'));
+  jobs.forEach(function(j) {
+    const key = j.id + ':sig_complete';
+    if (j.tech_sig_data && j.cust_sig_data && !seen.has(key)) {
+      triggerAdminSigNotif(j);
+    }
+  });
+}
+
+function triggerAdminSigNotif(job) {
+  if (!CP || CP.role !== 'admin') return;
+  const notif = {
+    id: job.id + ':sig_complete',
+    job_id: job.id,
+    job_no: job.job_no || '-',
+    company: job.company || '-',
+    tech_name: job.technician_name || '-',
+    cust_name: job.cust_name_sign || '-',
+    timestamp: new Date().toISOString(),
+    type: 'sig_complete',
+    read: false
+  };
+  // Save to history
+  const list = getAdminNotifs();
+  if (!list.find(n => n.id === notif.id)) {
+    list.unshift(notif);
+    saveAdminNotifs(list.slice(0, 100)); // keep latest 100
+  }
+  // Show DOM popup
+  showAdminNotifPopup(notif);
+  updateNotifLogCount();
+}
+
+function showAdminNotifPopup(notif) {
+  const container = document.getElementById('adminNotifList');
+  if (!container) return;
+  document.getElementById('adminNotifCenter').style.display = 'block';
+  const el = document.createElement('div');
+  el.style.cssText = 'background:#fff;border-left:4px solid #f9c900;border-radius:10px;padding:12px 14px;box-shadow:0 4px 20px rgba(0,0,0,.15);border:1px solid #dce5ff;border-left:4px solid #f9c900;animation:slideInRight .3s ease';
+  el.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div style="font-size:13px;font-weight:800;color:#1a3a6e">✅ เซ็นครบทั้งสองฝ่าย</div>
+      <button onclick="this.closest('[style]').remove();checkNotifCenterEmpty()" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;padding:0;line-height:1">✕</button>
+    </div>
+    <div style="font-size:12px;color:#334155;margin-top:6px">📄 <b>${notif.job_no}</b> · ${notif.company}</div>
+    <div style="font-size:11px;color:#64748b;margin-top:3px">🔧 ${notif.tech_name} &nbsp;|&nbsp; 👤 ${notif.cust_name}</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button onclick="editJob(${notif.job_id})" style="flex:1;padding:6px;background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#f9c900;border:none;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;cursor:pointer">🖊 ดูใบงาน</button>
+      <button onclick="this.closest('[style]').remove();checkNotifCenterEmpty()" style="padding:6px 10px;background:#f0f4ff;color:#1a3a6e;border:none;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:600;cursor:pointer">ปิด</button>
+    </div>`;
+  container.appendChild(el);
+  // Auto-remove after 20 seconds
+  setTimeout(function() { try { el.remove(); checkNotifCenterEmpty(); } catch(e) {} }, 20000);
+}
+
+function checkNotifCenterEmpty() {
+  const container = document.getElementById('adminNotifList');
+  const center = document.getElementById('adminNotifCenter');
+  if (container && center && !container.children.length) {
+    center.style.display = 'none';
+  }
+}
+
+function updateNotifLogCount() {
+  const list = getAdminNotifs();
+  const unread = list.filter(n => !n.read).length;
+  const el = document.getElementById('notifLogCount');
+  const badge = document.getElementById('notifLogBadge');
+  if (el) el.textContent = list.length ? list.length + ' รายการ' + (unread ? ' · ' + unread + ' ยังไม่อ่าน' : '') : 'ยังไม่มีการแจ้งเตือน';
+  if (badge) badge.style.cssText = unread ? 'background:#dc2626;color:#fff;font-size:12px;font-weight:800;padding:2px 8px;border-radius:10px' : '';
+  if (badge && !unread) badge.textContent = '›';
+}
+
+function openNotifLog() {
+  const list = getAdminNotifs();
+  // Mark all as read
+  list.forEach(n => n.read = true);
+  saveAdminNotifs(list);
+  updateNotifLogCount();
+  const el = document.getElementById('notifLogList');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty" style="padding:30px 0"><div class="empty-ic">🔔</div><b>ยังไม่มีการแจ้งเตือน</b></div>';
+  } else {
+    el.innerHTML = list.map(function(n) {
+      const d = new Date(n.timestamp).toLocaleString('th-TH', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      return `<div style="padding:12px;border-bottom:1px solid #f0f4ff">
+        <div style="font-size:13px;font-weight:700;color:#1a3a6e">✅ เซ็นครบ · ${n.job_no}</div>
+        <div style="font-size:12px;color:#334155;margin-top:3px">🏢 ${n.company}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px">🔧 ${n.tech_name} · 👤 ${n.cust_name}</div>
+        <div style="font-size:10px;color:#94a3b8;margin-top:3px">🕐 ${d}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('notifLogMo').classList.add('open');
+}
+
+function closeNotifLog() {
+  document.getElementById('notifLogMo').classList.remove('open');
+}
+
+function clearNotifLog() {
+  if (!confirm('ลบประวัติแจ้งเตือนทั้งหมด?')) return;
+  saveAdminNotifs([]);
+  updateNotifLogCount();
+  closeNotifLog();
+}
+
+// ======================================================================
+// ===== ADMIN: Dispatch job to technician ==============================
+// ======================================================================
+const DISPATCH_KEY = 'kimac_dispatches';
+
+function openDispatch() {
+  // Populate tech selector
+  const sel = document.getElementById('dp-tech');
+  if (sel) {
+    sel.innerHTML = profiles.filter(p => p.role !== 'admin' || true).map(p =>
+      `<option value="${p.id}">${p.full_name || p.id} (${p.position || 'ช่าง'})</option>`
+    ).join('');
+  }
+  // Default date = today
+  const dateEl = document.getElementById('dp-date');
+  if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
+  document.getElementById('dispatchMo').classList.add('open');
+}
+
+function closeDispatch() {
+  document.getElementById('dispatchMo').classList.remove('open');
+}
+
+async function saveDispatch() {
+  const techId = document.getElementById('dp-tech').value;
+  const date = document.getElementById('dp-date').value;
+  const time = document.getElementById('dp-time').value;
+  const place = document.getElementById('dp-place').value.trim();
+  const maps = document.getElementById('dp-maps').value.trim();
+  const note = document.getElementById('dp-note').value.trim();
+
+  if (!date || !place) { toast('กรุณากรอกวันที่และสถานที่', 'err'); return; }
+
+  const techProfile = profiles.find(p => p.id === techId);
+  const dispatch = {
+    id: Date.now(),
+    created_at: new Date().toISOString(),
+    created_by: CP ? (CP.full_name || CU.email) : 'Admin',
+    technician_id: techId,
+    technician_name: techProfile ? (techProfile.full_name || techId) : techId,
+    date_of_work: date,
+    time_of_work: time || null,
+    location: place,
+    maps_url: maps || null,
+    note: note || null
+  };
+
+  // Save to localStorage
+  try {
+    const list = JSON.parse(localStorage.getItem(DISPATCH_KEY) || '[]');
+    list.unshift(dispatch);
+    localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.slice(0, 200)));
+  } catch(e) {}
+
+  // Also try to store in Supabase if table exists (graceful fail)
+  try {
+    await sb.from('job_dispatches').insert({
+      technician_id: dispatch.technician_id,
+      technician_name: dispatch.technician_name,
+      date_of_work: dispatch.date_of_work,
+      time_of_work: dispatch.time_of_work,
+      location: dispatch.location,
+      maps_url: dispatch.maps_url,
+      note: dispatch.note,
+      created_by: dispatch.created_by
+    });
+  } catch(e) { console.warn('saveDispatch Supabase (optional):', e); }
+
+  // Try to send push notification to technician
+  try {
+    await sb.functions.invoke('notify-push', {body: {
+      user_id: techId,
+      title: '📤 มีงานใหม่จากแอดมิน',
+      body: (place || '') + (date ? ' · ' + date : '') + (time ? ' เวลา ' + time : ''),
+      data: { type: 'dispatch', dispatch_id: dispatch.id }
+    }});
+  } catch(e) { console.warn('dispatch push (optional):', e); }
+
+  toast('✅ ส่งงานให้ ' + dispatch.technician_name + ' แล้ว', 'ok');
+  closeDispatch();
+  // Clear form
+  ['dp-time','dp-place','dp-maps','dp-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+}
+
+
 // ===== SHARE / ACCESS =====
 let shareId=null;
 
