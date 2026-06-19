@@ -1348,63 +1348,64 @@ async function renderJobPDF(job){
 
   // ── Build A4 HTML ──
   var A4W=794;
-  var html='<!DOCTYPE html><html lang="th"><head>'
-    +'<meta charset="UTF-8">'
-    +'<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">'
-    +'<style>'
-    +'*{box-sizing:border-box;margin:0;padding:0}'
-    +'body{font-family:\'Sarabun\',sans-serif;background:#fff;width:'+A4W+'px}'
-    +'.page{width:'+A4W+'px;background:#fff;padding:19px 30px 15px 30px;font-size:9.5pt;color:#222}'
-    +'.header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a3a6e;padding-bottom:4px;margin-bottom:5px}'
-    +'.header-logo-wrap{display:flex;flex-direction:column;align-items:center}'
-    +'.header-logo{width:90px;height:65px;object-fit:contain}'
-    +'.header-center{text-align:center;flex:1}'
-    +'.header-center h1{font-size:22px;font-weight:700;color:#1a3a6e;letter-spacing:2px}'
-    +'.header-center p{font-size:11px;color:#555}'
-    +'.header-spacer{width:90px}'
-    +'.service-type-bar{background:#fff9c4;border:1px solid #f9c900;border-radius:4px;padding:3px 8px;margin-bottom:5px;font-weight:600;color:#1a3a6e;font-size:9pt}'
-    +'.section-title{background:#1a3a6e;color:#fff;padding:3px 8px;font-weight:700;font-size:9pt;border-radius:3px;margin-bottom:4px;margin-top:5px}'
-    +'.form-row{display:flex;gap:6px;margin-bottom:3px;align-items:center;flex-wrap:wrap}'
-    +'.field{display:flex;align-items:center;gap:4px;flex:1}'
-    +'.field label{white-space:nowrap;color:#444;font-weight:600;font-size:8.5pt}'
-    +'.field-val{flex:1;border-bottom:1px solid #bfa000;font-size:9pt;padding:1px 4px;min-width:60px;min-height:16px}'
-    +'.full-width{flex:none;width:100%}'
-    +'.status-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:4px}'
-    +'.status-block{display:flex;align-items:center;gap:8px;background:#fff9c4;border:1px solid #f9c900;border-radius:4px;padding:3px 8px;flex-wrap:wrap;font-size:8.5pt}'
-    +'.status-block label{font-weight:600;color:#1a3a6e;white-space:nowrap;font-size:8.5pt}'
-    +'.parts-table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8.5pt}'
-    +'.parts-table th{background:#1a3a6e;color:#fff;padding:3px 4px;text-align:center;font-size:8pt;font-weight:600}'
-    +'.parts-table td{border:1px solid #d4c000;padding:2px 4px;background:#fff}'
-    +'.parts-table td:first-child{text-align:center;width:28px;background:#fff9c4;font-weight:600;color:#1a3a6e}'
-    +'.total-label{text-align:right;font-weight:700;background:#fff9c4;color:#1a3a6e;padding-right:8px;border:1px solid #d4c000}'
-    +'.total-val{text-align:right;background:#fffde0;font-weight:700;color:#c00;border:1px solid #d4c000;padding-right:6px;min-width:90px}'
-    +'.total-net-label{text-align:right;font-weight:700;color:#1a3a6e;font-size:10pt;padding:4px 8px;border:1px solid #d4c000;background:#f0f4ff}'
-    +'.total-net-val{text-align:right;background:#f0f4ff;font-weight:700;color:#1a3a6e;border:1px solid #d4c000;padding-right:6px;font-size:10pt}'
-    +'.sig-section{display:flex;gap:10px;margin-top:6px;margin-bottom:6px}'
-    +'.sig-box{flex:1;border:1.5px solid #1a3a6e;border-radius:6px;padding:5px 10px 7px;background:#fff;text-align:center}'
-    +'.sig-title{font-size:10pt;font-weight:700;color:#1a3a6e;margin-bottom:5px}'
-    +'.sig-preview-wrap{width:100%;height:72px;border:1px dashed #bfa000;border-radius:4px;background:#f8f8f8;overflow:hidden;display:flex;align-items:center;justify-content:center}'
-    +'.sig-meta{display:flex;gap:5px;margin-top:4px;font-size:8pt;align-items:center;flex-wrap:wrap}'
-    +'.sig-meta label{color:#555;font-size:8pt;white-space:nowrap}'
-    +'.detail-box{border:1px solid #bfa000;border-radius:4px;background:rgba(255,255,255,.7);padding:5px;width:100%;font-size:9pt;line-height:1.6;white-space:pre-wrap;min-height:44px;text-align:left}'
-    +'.footer{text-align:center;border-top:2px solid #1a3a6e;padding-top:4px;margin-top:auto;color:#1a3a6e;font-size:8.5pt;line-height:1.5}'
-    +'.footer .company-name{font-size:11pt;font-weight:700;color:#1a3a6e}'
-    +'.footer .contact{color:#444;font-size:8.5pt}'
-    +'</style></head><body><div class="page">'
+  // ── CSS สำหรับใบงาน (เหมือน form.html) ──
+  var pageCSS=[
+    "@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');",
+    "*{box-sizing:border-box;margin:0;padding:0}",
+    "body,html{font-family:'Sarabun',sans-serif;background:#fff}",
+    ".pdf-page{font-family:'Sarabun',sans-serif;background:#fff;width:"+A4W+"px;padding:19px 30px 15px 30px;font-size:9.5pt;color:#222}",
+    ".header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a3a6e;padding-bottom:4px;margin-bottom:5px}",
+    ".header-logo-wrap{display:flex;flex-direction:column;align-items:center}",
+    ".header-logo{width:90px;height:65px;object-fit:contain}",
+    ".header-center{text-align:center;flex:1}",
+    ".header-center h1{font-size:22px;font-weight:700;color:#1a3a6e;letter-spacing:2px}",
+    ".header-center p{font-size:11px;color:#555}",
+    ".header-spacer{width:90px}",
+    ".service-type-bar{background:#fff9c4;border:1px solid #f9c900;border-radius:4px;padding:3px 8px;margin-bottom:5px;font-weight:600;color:#1a3a6e;font-size:9pt}",
+    ".section-title{background:#1a3a6e;color:#fff;padding:3px 8px;font-weight:700;font-size:9pt;border-radius:3px;margin-bottom:4px;margin-top:5px}",
+    ".form-row{display:flex;gap:6px;margin-bottom:3px;align-items:center;flex-wrap:wrap}",
+    ".field{display:flex;align-items:center;gap:4px;flex:1}",
+    ".field label{white-space:nowrap;color:#444;font-weight:600;font-size:8.5pt}",
+    ".field-val{flex:1;border-bottom:1px solid #bfa000;font-size:9pt;padding:1px 4px;min-width:60px;min-height:16px;display:inline-block}",
+    ".full-width{flex:none;width:100%}",
+    ".status-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:4px}",
+    ".status-block{display:flex;align-items:center;gap:8px;background:#fff9c4;border:1px solid #f9c900;border-radius:4px;padding:3px 8px;flex-wrap:wrap;font-size:8.5pt}",
+    ".status-block label{font-weight:600;color:#1a3a6e;white-space:nowrap;font-size:8.5pt}",
+    ".parts-table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:8.5pt}",
+    ".parts-table th{background:#1a3a6e;color:#fff;padding:3px 4px;text-align:center;font-size:8pt;font-weight:600}",
+    ".parts-table td{border:1px solid #d4c000;padding:2px 4px;background:#fff}",
+    ".parts-table td:first-child{text-align:center;width:28px;background:#fff9c4;font-weight:600;color:#1a3a6e}",
+    ".total-label{text-align:right;font-weight:700;background:#fff9c4;color:#1a3a6e;padding-right:8px;border:1px solid #d4c000}",
+    ".total-val{text-align:right;background:#fffde0;font-weight:700;color:#c00;border:1px solid #d4c000;padding-right:6px;min-width:90px}",
+    ".total-net-label{text-align:right;font-weight:700;color:#1a3a6e;font-size:10pt;padding:4px 8px;border:1px solid #d4c000;background:#f0f4ff}",
+    ".total-net-val{text-align:right;background:#f0f4ff;font-weight:700;color:#1a3a6e;border:1px solid #d4c000;padding-right:6px;font-size:10pt}",
+    ".sig-section{display:flex;gap:10px;margin-top:6px;margin-bottom:6px}",
+    ".sig-box{flex:1;border:1.5px solid #1a3a6e;border-radius:6px;padding:5px 10px 7px;background:#fff;text-align:center}",
+    ".sig-title{font-size:10pt;font-weight:700;color:#1a3a6e;margin-bottom:5px}",
+    ".sig-preview-wrap{width:100%;height:72px;border:1px dashed #bfa000;border-radius:4px;background:#f8f8f8;overflow:hidden;display:flex;align-items:center;justify-content:center}",
+    ".sig-meta{display:flex;gap:5px;margin-top:4px;font-size:8pt;align-items:center;flex-wrap:wrap}",
+    ".sig-meta label{color:#555;font-size:8pt;white-space:nowrap}",
+    ".detail-box{border:1px solid #bfa000;border-radius:4px;background:rgba(255,255,255,.7);padding:5px;width:100%;font-size:9pt;line-height:1.6;white-space:pre-wrap;min-height:44px;text-align:left}",
+    ".footer{text-align:center;border-top:2px solid #1a3a6e;padding-top:4px;margin-top:6px;color:#1a3a6e;font-size:8.5pt;line-height:1.5}",
+    ".footer .company-name{font-size:11pt;font-weight:700;color:#1a3a6e}",
+    ".footer .contact{color:#444;font-size:8.5pt}"
+  ].join('\n');
 
-    // ── Header ──
+  // ── Body HTML (เฉพาะ .pdf-page ไม่รวม DOCTYPE) ──
+  var bodyHTML=''
+    +'<div class="pdf-page">'
+
+    // Header
     +'<div class="header">'
       +'<div class="header-logo-wrap">'
-        +'<img class="header-logo" src="data:image/jpeg;base64,'+LOGO_B64+'" alt="KIMAC">'
+        +'<img class="header-logo" src="data:image/jpeg;base64,'+LOGO_B64+'" crossorigin="anonymous">'
       +'</div>'
       +'<div class="header-center"><h1>SERVICE SHEET</h1><p>ใบบันทึกงานบริการ</p></div>'
       +'<div class="header-spacer"></div>'
     +'</div>'
-
-    // ── service type ──
     +'<div class="service-type-bar">งานบริการ : '+escH(stLabel)+'</div>'
 
-    // ── Section 1 ──
+    // Section 1
     +'<div class="section-title">ส่วนที่ 1 ข้อมูลลูกค้า</div>'
     +'<div class="form-row">'
       +'<div class="field"><label>วันที่บริการ :</label><span class="field-val">'+escH(sDate)+'</span></div>'
@@ -1419,7 +1420,7 @@ async function renderJobPDF(job){
     +'</div>'
     +'<div class="form-row"><div class="field full-width"><label>ที่อยู่ :</label><span class="field-val" style="min-width:350px">'+escH(job.address||'')+'</span></div></div>'
 
-    // ── Section 2 ──
+    // Section 2
     +'<div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>'
     +'<div class="status-row">'
       +'<div class="status-block"><label>สถานที่บริการ :</label><span>'+escH(job.service_location||'-')+'</span></div>'
@@ -1436,7 +1437,7 @@ async function renderJobPDF(job){
       +'<div class="detail-box">'+escH(job.machine_detail||'')+'</div>'
     +'</div></div>'
 
-    // ── Section 3 ──
+    // Section 3
     +'<div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
     +'<table class="parts-table"><thead><tr>'
       +'<th style="text-align:center">ลำดับ</th>'
@@ -1453,59 +1454,66 @@ async function renderJobPDF(job){
       +'<tr><td colspan="5" class="total-net-label">รวมยอดสุทธิ</td><td class="total-net-val">'+fmt(net)+'</td></tr>'
     +'</tfoot></table>'
 
-    // ── Section 4 ──
+    // Section 4
     +'<div class="section-title">ส่วนที่ 4 ประเภทค่าบริการ</div>'
     +'<div style="background:#f8f8f8;border:1px solid #d4c000;border-radius:4px;padding:4px 8px;margin-bottom:4px;font-size:9pt">'
       +escH(feeMap[job.fee_type]||'-')
     +'</div>'
 
-    // ── Section 5 ──
+    // Section 5
     +'<div class="section-title">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
     +'<div class="sig-section">'
       +sigBox('ลายเซ็นช่างผู้ให้บริการ',job.tech_sig_data,'ชื่อช่าง :',job.tech_name_sign||job.technician_name,'','','วันที่ :',job.tech_sign_date)
       +sigBox('ลายเซ็นลูกค้า / ผู้ตรวจรับงาน',job.cust_sig_data,'ชื่อ :',job.cust_name_sign,'แผนก :',job.cust_dept,'วันที่ :',job.cust_sign_date)
     +'</div>'
 
-    // ── Footer ──
+    // Footer
     +'<div class="footer">'
       +'<div class="company-name">บริษัท คีแมค จำกัด</div>'
       +'<div class="contact">298 ถนนสามวา แขวงบางชัน เขตคลองสามวา กรุงเทพมหานคร 10510</div>'
       +'<div class="contact">โทร.02-956-8291-2 &nbsp; Line : @kimac &nbsp; www.kimacthailand.com</div>'
     +'</div>'
+    +'</div>';
 
-    +'</div></body></html>';
+  // ── Render: inject <style>+HTML เข้า body โดยตรง ──
+  var styleTag=document.createElement('style');
+  styleTag.id='_pdfStyle';
+  styleTag.textContent=pageCSS;
+  document.head.appendChild(styleTag);
 
-  // ── Render ──
-  var iframe=document.createElement('iframe');
-  iframe.style.cssText='position:fixed;left:-9999px;top:0;width:'+A4W+'px;height:1200px;border:none;visibility:hidden';
-  document.body.appendChild(iframe);
-  var idoc=iframe.contentDocument||iframe.contentWindow.document;
-  idoc.open();idoc.write(html);idoc.close();
+  var wrapper=document.createElement('div');
+  wrapper.id='_pdfWrap';
+  wrapper.style.cssText='position:fixed;left:-9999px;top:0;width:'+A4W+'px;background:#fff;z-index:-1;pointer-events:none';
+  wrapper.innerHTML=bodyHTML;
+  document.body.appendChild(wrapper);
 
-  // รอฟอนต์+รูปโหลด
-  await new Promise(function(res){
-    var t=0;
-    function chk(){
-      var imgs=idoc.querySelectorAll('img');
-      var allOk=true;
-      imgs.forEach(function(img){if(!img.complete)allOk=false;});
-      if(allOk||t>3000){res();}else{t+=80;setTimeout(chk,80);}
-    }
-    setTimeout(chk,300);
-  });
-  try{if(idoc.fonts&&idoc.fonts.ready)await idoc.fonts.ready;}catch(e){}
+  // รอ img (logo base64 โหลดทันที แต่รอ render cycle)
+  var allImgs=Array.from(wrapper.querySelectorAll('img'));
+  await Promise.all(allImgs.map(function(img){
+    if(img.complete&&img.naturalWidth>0)return Promise.resolve();
+    return new Promise(function(res){img.onload=res;img.onerror=res;setTimeout(res,2000);});
+  }));
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
   await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});});
+  await new Promise(function(r){setTimeout(r,150);});
 
-  var pageEl=idoc.querySelector('.page');
-  var A4H=Math.round(A4W*297/210); // 1123px
+  var pageEl=wrapper.querySelector('.pdf-page');
+  var A4H=Math.round(A4W*297/210);
 
   var canvas=await html2canvas(pageEl,{
     scale:2,useCORS:true,allowTaint:true,letterRendering:true,
     backgroundColor:'#ffffff',
     width:A4W,height:pageEl.scrollHeight,
-    windowWidth:A4W,scrollX:0,scrollY:0
+    windowWidth:A4W,scrollX:0,scrollY:0,
+    logging:false,
+    onclone:function(clonedDoc){
+      // ทำให้ wrapper visible ใน clone
+      var el=clonedDoc.getElementById('_pdfWrap');
+      if(el)el.style.cssText='position:absolute;left:0;top:0;width:'+A4W+'px;background:#fff';
+    }
   });
-  document.body.removeChild(iframe);
+  document.head.removeChild(styleTag);
+  document.body.removeChild(wrapper);
 
   var pdf=new J({unit:'mm',format:'a4',orientation:'portrait',compress:true});
   var pw=pdf.internal.pageSize.getWidth();   // 210mm
