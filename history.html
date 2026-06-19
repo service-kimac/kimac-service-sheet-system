@@ -22,7 +22,7 @@
 body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   min-height:100vh;padding-bottom:calc(66px + env(safe-area-inset-bottom))}
 .topbar{position:sticky;top:0;z-index:100;
-  background:linear-gradient(135deg,#0f2347,#1a3a6e,#2a5298);
+  background:linear-gradient(135deg,#0f2347,#1a3a6e);
   padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));
   display:flex;align-items:center;justify-content:space-between;
   box-shadow:0 2px 16px rgba(0,0,0,.25)}
@@ -36,9 +36,9 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .uinfo{line-height:1.3;color:#fff;cursor:pointer}
 .uname{font-size:12px;font-weight:700;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .urole{font-size:10px;opacity:.7}
-.btn-out{background:rgba(249,201,0,.15);border:1.5px solid rgba(249,201,0,.45);
-  color:#f9c900;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
-  font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
+.btn-out{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
 
 .filter-bar{background:#fff;border:2px solid #e2e8f8;border-radius:12px;padding:10px 14px;
   margin-bottom:12px;display:none;gap:10px;align-items:center;overflow-x:auto;scrollbar-width:none;
@@ -87,11 +87,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .btn-new{padding:10px 16px;background:linear-gradient(135deg,#1a3a6e,#2a5298);
   color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
   font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
-.btn-refresh{padding:10px 12px;background:linear-gradient(135deg,#fefce8,#fef9c3);color:#1a3a6e;border:2px solid #f9c900;
-  border-radius:10px;font-size:14px;cursor:pointer;-webkit-appearance:none;line-height:1;font-weight:700;
-  box-shadow:0 2px 8px rgba(212,168,0,.2);transition:all .18s}
-.btn-refresh:hover{background:#f9c900;box-shadow:0 4px 12px rgba(212,168,0,.35);transform:translateY(-1px)}
-.btn-refresh:active{transform:translateY(0);opacity:.88}
+.btn-refresh{padding:10px 12px;background:#eff6ff;color:#1e40af;border:2px solid #dbeafe;
+  border-radius:10px;font-size:14px;cursor:pointer;-webkit-appearance:none;line-height:1}
 .card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff;cursor:pointer}
 .card:active{transform:scale(.99);opacity:.9}
@@ -103,7 +100,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
 .completed{background:#d1fae5;color:#065f46}
 .approved{background:#dbeafe;color:#1e40af}
 .cb{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
-.ci{font-size:11px;color:#334155}
+.ci{font-size:11px;color:#555}
 .ci b{color:#1a3a6e}
 .cf{display:flex;align-items:center;justify-content:space-between;
   padding-top:8px;border-top:1px solid #f0f4ff}
@@ -490,21 +487,12 @@ document.addEventListener('DOMContentLoaded', function () {
   <p style="font-size:12px;color:#888;margin-bottom:12px">ใบงานที่ลบจะมาอยู่ที่นี่ กด "กู้คืน" เพื่อนำกลับ หรือ "ลบถาวร" เพื่อลบออกอย่างถาวร (ไม่สามารถกู้คืนได้)</p>
   <div id="trashList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
 </div>
-<!-- NOTIFICATIONS PAGE (Admin only) -->
-<div id="pg-notif" class="pg">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div style="font-size:14px;font-weight:800;color:#1a3a6e">🔔 ประวัติแจ้งเตือน</div>
-    <button onclick="markAllNotifsRead();renderNotifHistory()" style="padding:6px 12px;background:#fefce8;color:#1a3a6e;border:1.5px solid #f9c900;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;cursor:pointer">✓ อ่านทั้งหมด</button>
-  </div>
-  <div id="notif-history-list"><div class="empty"><div class="empty-ic">🔕</div><b>ยังไม่มีการแจ้งเตือน</b></div></div>
-</div>
 <!-- BOTTOM NAV -->
 <div class="bnav">
   <button class="bni on" id="nav-jobs" onclick="swPg('jobs')"><span class="bni-ic">📋</span>ประวัติใบงาน</button>
   <button class="bni" id="nav-mine" onclick="swPg('mine')"><span class="bni-ic">🧰</span>งานของฉัน<span id="mineBadge" class="nbadge" style="display:none">0</span></button>
   <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใบงานใหม่</button>
   <button class="bni" id="nav-team" onclick="swPg('team')"><span class="bni-ic">👥</span>ทีมงาน</button>
-  <button class="bni" id="nav-notif" onclick="swPg('notif')" style="display:none"><span class="bni-ic">🔔</span>แจ้งเตือน<span id="admin-notif-badge" class="nbadge" style="display:none">0</span></button>
   <button class="bni" id="nav-settings" onclick="swPg('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
 </div>
 <!-- DELETE MODAL -->
@@ -770,7 +758,6 @@ async function init(){
 
   if(_session && typeof saveAccountToSwitcher==='function') saveAccountToSwitcher(_session, CP);
   if(typeof rebindPushToCurrentUser==='function') rebindPushToCurrentUser();
-  if(CP && CP.role==='admin') initAdminNotifications(sb, CU, CP);
 
   await loadJobs();
   await loadProfiles();
@@ -1064,7 +1051,6 @@ function swPg(name){
   if(name==='team')renderTeam();
   if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
   if(name==='trash')loadTrash();
-  if(name==='notif'){markAllNotifsRead();renderNotifHistory();}
 }
 
 function loadSettingsProf(){
@@ -2198,225 +2184,6 @@ async function doLogout(){
   if(CU){ try{ removeSavedAccount(CU.id); }catch(e){} }
   await sb.auth.signOut();
   location.href='login.html';
-}
-
-/* ═══════════════════════════════════════════
-   ADMIN NOTIFICATION SYSTEM
-═══════════════════════════════════════════ */
-let _notifChannel = null;
-
-function initAdminNotifications(sbClient, currentUser, currentProfile) {
-  if (!currentProfile || currentProfile.role !== 'admin') return;
-  if (_notifChannel) return;
-  // Show notification nav
-  const navNotif = document.getElementById('nav-notif');
-  if (navNotif) navNotif.style.display = '';
-
-  _notifChannel = sbClient
-    .channel('admin-sig-notify')
-    .on('postgres_changes', {
-      event: 'UPDATE', schema: 'public', table: 'service_jobs'
-    }, (payload) => {
-      const job = payload.new;
-      if (job.tech_sig_data && job.cust_sig_data) {
-        const notif = {
-          id: (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)),
-          type: 'both_signed',
-          job_id: job.id,
-          job_no: job.job_no || '',
-          technician_name: job.technician_name || '',
-          company: job.company || '',
-          signed_at: new Date().toISOString(),
-          is_read: false
-        };
-        pushAdminNotification(notif);
-        saveNotifToDB(sbClient, notif).catch(e => console.warn('notif save:', e));
-      }
-    })
-    .subscribe();
-
-  updateNotifBadge();
-}
-
-function getStoredNotifs() {
-  try { return JSON.parse(localStorage.getItem('kimac_admin_notifs') || '[]'); }
-  catch { return []; }
-}
-function saveStoredNotifs(arr) {
-  localStorage.setItem('kimac_admin_notifs', JSON.stringify(arr));
-}
-function addStoredNotif(notif) {
-  const arr = getStoredNotifs();
-  arr.unshift(notif);
-  if (arr.length > 200) arr.length = 200;
-  saveStoredNotifs(arr);
-}
-
-async function saveNotifToDB(sbClient, notif) {
-  try {
-    await sbClient.from('admin_notifications').insert({
-      id: notif.id, type: notif.type, job_id: notif.job_id,
-      job_no: notif.job_no, technician_name: notif.technician_name,
-      company: notif.company, signed_at: notif.signed_at, is_read: false
-    });
-  } catch (e) { console.warn('notif DB:', e); }
-}
-
-function pushAdminNotification(notif) {
-  addStoredNotif(notif);
-  showNotifPopup(notif);
-  updateNotifBadge();
-  if (document.getElementById('pg-notif')?.classList.contains('on')) renderNotifHistory();
-}
-
-function showNotifPopup(notif) {
-  let container = document.getElementById('admin-notif-center');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'admin-notif-center';
-    container.style.cssText = 'position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:99999;display:flex;flex-direction:column;gap:8px;max-width:340px;pointer-events:none;';
-    document.body.appendChild(container);
-  }
-  if (!document.getElementById('_notif-kf')) {
-    const s = document.createElement('style');
-    s.id = '_notif-kf';
-    s.textContent = '@keyframes _slideInNotif{from{opacity:0;transform:translateX(120%)}to{opacity:1;transform:translateX(0)}}';
-    document.head.appendChild(s);
-  }
-  const card = document.createElement('div');
-  card.style.cssText = 'background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 8px 32px rgba(26,58,110,.22),0 0 0 2px #f9c900;pointer-events:all;animation:_slideInNotif .3s ease;border-left:4px solid #f9c900;';
-  card.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <span style="font-size:12px;font-weight:800;color:#1a3a6e">🔔 เซ็นชื่อครบทั้ง 2 ฝ่าย</span>
-      <button onclick="this.closest('div[style]').remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#888;line-height:1;padding:0">×</button>
-    </div>
-    <div style="font-size:13px;color:#1e293b;font-weight:600">ใบงาน: ${notif.job_no}</div>
-    <div style="font-size:12px;color:#475569;margin-top:2px">ลูกค้า: ${notif.company}</div>
-    <div style="font-size:11px;color:#888;margin-top:2px">ช่าง: ${notif.technician_name}</div>
-    <div style="font-size:10px;color:#aaa;margin-top:4px">${new Date(notif.signed_at).toLocaleString('th-TH')}</div>
-    <div style="display:flex;gap:6px;margin-top:10px">
-      <button onclick="openJobFromNotif(${notif.job_id})" style="flex:1;padding:7px;background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#fff;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">เปิดใบงาน</button>
-      <button onclick="openDispatchForm(${notif.job_id},'${notif.job_no}')" style="flex:1;padding:7px;background:#f9c900;color:#1a3a6e;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">ส่งงานช่าง</button>
-    </div>`;
-  container.appendChild(card);
-  setTimeout(() => { if (card.parentNode) card.remove(); }, 12000);
-}
-
-function updateNotifBadge() {
-  const unread = getStoredNotifs().filter(n => !n.is_read).length;
-  const badge = document.getElementById('admin-notif-badge');
-  if (!badge) return;
-  badge.textContent = unread > 99 ? '99+' : unread;
-  badge.style.display = unread ? '' : 'none';
-}
-
-function markAllNotifsRead() {
-  const arr = getStoredNotifs().map(n => ({ ...n, is_read: true }));
-  saveStoredNotifs(arr);
-  updateNotifBadge();
-}
-
-function openJobFromNotif(jobId) {
-  localStorage.setItem('kjid', jobId);
-  location.href = 'form.html';
-}
-
-function renderNotifHistory() {
-  const el = document.getElementById('notif-history-list');
-  if (!el) return;
-  const arr = getStoredNotifs();
-  if (!arr.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-ic">🔕</div><b>ยังไม่มีการแจ้งเตือน</b></div>';
-    return;
-  }
-  el.innerHTML = arr.map(n => `
-    <div style="background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid ${n.is_read?'#eef2ff':'#f9c900'}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:13px;font-weight:800;color:#1a3a6e">🔔 เซ็นชื่อครบแล้ว</span>
-        <span style="font-size:10px;color:#aaa">${new Date(n.signed_at).toLocaleString('th-TH')}</span>
-      </div>
-      <div style="font-size:13px;font-weight:700;color:#1e293b">ใบงาน: ${n.job_no}</div>
-      <div style="font-size:12px;color:#475569">ลูกค้า: ${n.company} | ช่าง: ${n.technician_name}</div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button onclick="openJobFromNotif(${n.job_id})" style="padding:6px 14px;background:#eff6ff;color:#1e40af;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer">เปิดใบงาน</button>
-        <button onclick="openDispatchForm(${n.job_id},'${n.job_no}')" style="padding:6px 14px;background:#fefce8;color:#854d0e;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer">ส่งงานช่าง</button>
-      </div>
-    </div>`).join('');
-}
-
-/* ── Dispatch Form ── */
-function openDispatchForm(jobId, jobNo) {
-  let overlay = document.getElementById('dispatch-overlay');
-  if (overlay) overlay.remove();
-  overlay = document.createElement('div');
-  overlay.id = 'dispatch-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100000;display:flex;align-items:flex-end;justify-content:center;';
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;padding-bottom:calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <span style="font-size:15px;font-weight:800;color:#1a3a6e">📋 ส่งงานให้ช่าง — ${jobNo||''}</span>
-        <button onclick="document.getElementById('dispatch-overlay').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#888">×</button>
-      </div>
-      <div style="margin-bottom:13px">
-        <label style="font-size:11px;font-weight:700;color:#1a3a6e;letter-spacing:.5px">วันที่ออกงาน</label>
-        <input type="date" id="dp-date" style="width:100%;padding:11px 12px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;margin-top:4px;outline:none">
-      </div>
-      <div style="margin-bottom:13px">
-        <label style="font-size:11px;font-weight:700;color:#1a3a6e;letter-spacing:.5px">เวลา (กี่โมง)</label>
-        <input type="time" id="dp-time" style="width:100%;padding:11px 12px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;margin-top:4px;outline:none">
-      </div>
-      <div style="margin-bottom:13px">
-        <label style="font-size:11px;font-weight:700;color:#1a3a6e;letter-spacing:.5px">สถานที่</label>
-        <input type="text" id="dp-location" placeholder="ชื่อสถานที่, ที่อยู่" style="width:100%;padding:11px 12px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;margin-top:4px;outline:none">
-      </div>
-      <div style="margin-bottom:13px">
-        <label style="font-size:11px;font-weight:700;color:#1a3a6e;letter-spacing:.5px">ลิงก์ Google Maps</label>
-        <input type="url" id="dp-maps" placeholder="https://maps.google.com/..." style="width:100%;padding:11px 12px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;margin-top:4px;outline:none">
-      </div>
-      <div style="margin-bottom:13px">
-        <label style="font-size:11px;font-weight:700;color:#1a3a6e;letter-spacing:.5px">หมายเหตุ (ถ้ามี)</label>
-        <textarea id="dp-note" rows="3" placeholder="รายละเอียดเพิ่มเติม..." style="width:100%;padding:11px 12px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;margin-top:4px;outline:none;resize:none"></textarea>
-      </div>
-      <div id="dp-err" style="color:#dc2626;font-size:12px;font-weight:600;margin-bottom:8px;display:none"></div>
-      <button onclick="submitDispatch(${jobId},'${jobNo||''}')" style="width:100%;padding:14px;background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer">📤 ส่งงานให้ช่าง</button>
-    </div>`;
-  document.body.appendChild(overlay);
-  document.getElementById('dp-date').value = new Date().toISOString().split('T')[0];
-}
-
-async function submitDispatch(jobId, jobNo) {
-  const date = document.getElementById('dp-date').value;
-  const time = document.getElementById('dp-time').value;
-  const location = document.getElementById('dp-location').value.trim();
-  const maps = document.getElementById('dp-maps').value.trim();
-  const note = document.getElementById('dp-note').value.trim();
-  const errEl = document.getElementById('dp-err');
-  if (!date || !time || !location) {
-    errEl.textContent = 'กรุณากรอก วันที่, เวลา และสถานที่'; errEl.style.display = '';
-    return;
-  }
-  errEl.style.display = 'none';
-  const dispatchObj = {
-    job_id: jobId, job_no: jobNo,
-    dispatch_date: date, dispatch_time: time,
-    location, maps_link: maps, note,
-    created_at: new Date().toISOString(),
-    created_by: CU?.id || ''
-  };
-  try {
-    if (sb) {
-      const { error } = await sb.from('job_dispatches').insert(dispatchObj);
-      if (error) throw error;
-    }
-    const stored = JSON.parse(localStorage.getItem('kimac_dispatches') || '[]');
-    stored.unshift(dispatchObj);
-    localStorage.setItem('kimac_dispatches', JSON.stringify(stored));
-    document.getElementById('dispatch-overlay').remove();
-    if (typeof toast === 'function') toast('📤 ส่งงานให้ช่างเรียบร้อย!', 'ok');
-  } catch (e) {
-    errEl.textContent = 'เกิดข้อผิดพลาด: ' + e.message;
-    errEl.style.display = '';
-  }
 }
 
 </script>

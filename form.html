@@ -11,7 +11,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <title>SERVICE SHEET - KIMAC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { width: 100%; overflow-x: hidden; }
@@ -50,30 +49,30 @@
   @page { size: 210mm 297mm portrait; margin: 0; }
   html, body { width: 210mm; height: 297mm; margin: 0 !important; padding: 0 !important; background: #fff !important; overflow: hidden; display: block; }
   .page-wrapper { width: 210mm !important; transform: none !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
-  .page { width: 210mm !important; min-height: unset !important; max-height: 297mm !important; overflow: hidden !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 8mm 10mm 6mm 10mm !important; font-size: 8.5pt !important; page-break-after: avoid !important; display: flex !important; flex-direction: column !important; }
-  .header { margin-bottom: 2px !important; padding-bottom: 2px !important; }
-  .header-logo { width: 70px !important; height: 50px !important; }
-  .header-spacer { width: 70px !important; }
-  .header-center h1 { font-size: 16px !important; }
-  .section-title { font-size: 7.5pt !important; padding: 2px 5px !important; margin-top: 3px !important; margin-bottom: 2px !important; }
-  .form-row { margin-bottom: 2px !important; gap: 3px !important; }
-  .field label { font-size: 7.5pt !important; }
-  .field input, .field select, .field textarea { font-size: 8pt !important; padding: 0 2px !important; }
-  .service-type-bar { padding: 2px 5px !important; margin-bottom: 2px !important; }
-  .status-row { gap: 5px !important; margin-bottom: 2px !important; }
-  .status-block { padding: 2px 5px !important; }
-  .radio-group { font-size: 7.5pt !important; gap: 6px !important; }
-  .parts-table { font-size: 7.5pt !important; margin-bottom: 2px !important; }
-  .parts-table th { font-size: 7pt !important; padding: 1px 2px !important; }
-  .parts-table td { padding: 1px 2px !important; }
-  .sig-section { margin-top: 3px !important; margin-bottom: 3px !important; gap: 6px !important; }
-  .sig-box { padding: 3px 6px 5px !important; }
-  .sig-box .sig-title { font-size: 9pt !important; margin-bottom: 2px !important; }
-  .sig-preview-wrap { height: 60px !important; }
+  .page { width: 210mm !important; min-height: unset !important; max-height: 297mm !important; overflow: hidden !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 5mm 7mm 4mm 7mm !important; font-size: 9.5pt !important; page-break-after: avoid !important; }
+  .header { margin-bottom: 3px !important; padding-bottom: 3px !important; }
+  .header-logo { width: 75px !important; height: 55px !important; }
+  .header-spacer { width: 75px !important; }
+  .header-center h1 { font-size: 18px !important; }
+  .section-title { font-size: 9pt !important; padding: 2px 6px !important; margin-top: 4px !important; margin-bottom: 2px !important; }
+  .form-row { margin-bottom: 2px !important; gap: 4px !important; }
+  .field label { font-size: 8.5pt !important; }
+  .field input, .field select, .field textarea { font-size: 9pt !important; }
+  .service-type-bar { padding: 2px 6px !important; margin-bottom: 3px !important; }
+  .status-row { gap: 6px !important; margin-bottom: 2px !important; }
+  .status-block { padding: 2px 6px !important; font-size: 8.5pt !important; }
+  .radio-group { font-size: 8.5pt !important; gap: 8px !important; }
+  .parts-table { font-size: 8.5pt !important; margin-bottom: 3px !important; }
+  .parts-table th { font-size: 8pt !important; padding: 2px 3px !important; }
+  .parts-table td { padding: 2px 3px !important; }
+  .sig-section { margin-top: 4px !important; margin-bottom: 4px !important; gap: 8px !important; }
+  .sig-box { padding: 4px 8px 6px !important; }
+  .sig-box .sig-title { font-size: 10pt !important; margin-bottom: 3px !important; }
+  .sig-preview-wrap { height: 68px !important; }
   .sig-preview-img { display: block !important; }
-  .sig-meta { font-size: 7pt !important; margin-top: 1px !important; }
-  .footer { font-size: 7.5pt !important; padding-top: 2px !important; margin-top: 2px !important; }
-  .footer .company-name { font-size: 9pt !important; }
+  .sig-meta { font-size: 8pt !important; margin-top: 2px !important; }
+  .footer { font-size: 8.5pt !important; padding-top: 3px !important; margin-top: 3px !important; }
+  .footer .company-name { font-size: 10pt !important; }
   .btn-add-row { display: none !important; }
   .btn-clear-sig { display: none !important; }
 }
@@ -82,11 +81,11 @@
 /* ── TOPBAR ── */
 .topbar-c {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  background: linear-gradient(135deg,#0f2347 0%,#1a3a6e 60%,#2a5298 100%);
+  background: linear-gradient(135deg,#1a3a6e 0%,#2a5298 100%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
-  box-shadow: 0 2px 16px rgba(0,0,0,.35);
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
 }
 .tc-l { display: flex; align-items: center; gap: 8px; }
 .tc-logo { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0; }
@@ -102,11 +101,11 @@
   .btn-bk { font-size: 10px; padding: 4px 7px; }
   .status-select { font-size: 10px !important; padding: 3px 5px !important; }
 }
-.jno { background: rgba(249,201,0,.2); border: 1px solid rgba(249,201,0,.5);
+.jno { background: rgba(249,201,0,.2); border: 1px solid rgba(249,201,0,.4);
   color: #f9c900; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
-.btn-bk { background: rgba(249,201,0,.15); border: 1.5px solid rgba(249,201,0,.45);
-  color: #f9c900; padding: 5px 10px; border-radius: 8px; font-family: 'Sarabun',sans-serif;
-  font-size: 12px; font-weight: 700; cursor: pointer; -webkit-appearance: none; }
+.btn-bk { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+  color: #fff; padding: 5px 10px; border-radius: 8px; font-family: 'Sarabun',sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
 
 /* ── ACTION BAR ── */
 .actbar {
@@ -122,7 +121,7 @@
   cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
 }
 .ab:active { opacity: .8; }
-.ab-hist { background: #fefce8; color: #1a3a6e; border: 1.5px solid #f9c900; }
+.ab-hist { background: #eff6ff; color: #1e40af; }
 .ab-save { background: linear-gradient(135deg,#1a3a6e,#2a5298); color: #fff; box-shadow: 0 3px 10px rgba(26,58,110,.3); }
 .ab-save:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 .ab-pdf { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(21,128,61,.3); }
@@ -428,8 +427,6 @@ body {
   <button class="ab ab-hist" onclick="goBack()">📋 ประวัติใบงาน</button>
   <button class="ab ab-save" id="btnSave" onclick="saveCloud()">☁️ บันทึกในระบบ</button>
   <button class="ab ab-pdf" id="btnPDF" onclick="exportPDF()">📄 PDF/พิมพ์</button>
-  <button class="ab" id="btnHTML" onclick="downloadSingleHTML()" style="background:linear-gradient(135deg,#065f46,#16a34a);color:#fff;display:none">💾 HTML</button>
-  <button class="ab" id="btnZIP" onclick="exportZIP()" style="background:linear-gradient(135deg,#7e22ce,#9333ea);color:#fff;display:none">📦 ZIP</button>
   <button class="ab" id="btnLink" onclick="custLink()" style="display:none;background:linear-gradient(135deg,#0e7490,#06b6d4);color:#fff">🔗 ลิงก์ลูกค้าเซ็น</button>
 </div>
 
@@ -1035,7 +1032,7 @@ async function cloudInit(){
     CU=s.data.session.user;
     var pr=await sb.from('profiles').select('*').eq('id',CU.id).single();
     CP=pr.data;
-    if(CP&&CP.role==='admin'){var _bl=document.getElementById('btnLink');if(_bl)_bl.style.display='';var _bh=document.getElementById('btnHTML');if(_bh)_bh.style.display='';var _bz=document.getElementById('btnZIP');if(_bz)_bz.style.display='';}
+    if(CP&&CP.role==='admin'){var _bl=document.getElementById('btnLink');if(_bl)_bl.style.display='';}
     if(CP&&CP.full_name){
       var tn=document.getElementById('techName');
       if(tn&&!tn.value)tn.value=CP.full_name;
@@ -1230,207 +1227,6 @@ async function custLink(){
 }
 
 function goBack(){localStorage.removeItem('kjid');location.href='history.html';}
-
-/* ══════════════════════════════════════════
-   EXPORT HTML / ZIP
-══════════════════════════════════════════ */
-function exportHTML() {
-  const logo = document.getElementById('kimacLogo');
-  const logoSrc = logo ? logo.src : '';
-
-  function gv(id) { const e = document.getElementById(id); return e ? (e.value || '') : ''; }
-  function gChecked(name) { const e = document.querySelector(`input[name="${name}"]:checked`); return e ? e.value : ''; }
-
-  const dis = document.querySelectorAll('#page input[type="date"]');
-  const st = document.getElementById('serviceTypeSelect');
-  let serviceTypeLabel = '';
-  if (st) {
-    if (st.value === 'other') { serviceTypeLabel = document.getElementById('otherServiceInput')?.value || 'อื่นๆ'; }
-    else { const opt = st.options[st.selectedIndex]; serviceTypeLabel = opt ? opt.text : ''; }
-  }
-
-  let partsRows = ''; let partsTotal = 0;
-  document.querySelectorAll('#partsBody tr').forEach((tr, i) => {
-    const inp = tr.querySelectorAll('input');
-    const name = inp[0]?.value || ''; const code = inp[1]?.value || '';
-    const qty = parseFloat(inp[2]?.value) || 0; const unit = inp[3]?.value || '';
-    const price = parseFloat(inp[4]?.value) || 0; const lt = qty * price;
-    partsTotal += lt;
-    partsRows += `<tr><td>${i+1}</td><td style="text-align:left">${name}</td><td>${code}</td><td>${qty||''}</td><td>${unit}</td><td style="text-align:right">${price?price.toLocaleString('th-TH'):''}</td><td style="text-align:right">${lt?lt.toLocaleString('th-TH'):''}</td></tr>`;
-  });
-
-  const techSig = document.getElementById('techSigImg');
-  const custSig = document.getElementById('custSigImg');
-  const techSigSrc = (techSig && techSig.style.display !== 'none') ? techSig.src : '';
-  const custSigSrc = (custSig && custSig.style.display !== 'none') ? custSig.src : '';
-  const jnoBadge = document.getElementById('jnoBadge');
-  const jobNo = jnoBadge ? jnoBadge.textContent : '';
-  const warranty = gChecked('warranty');
-  const feeType = gChecked('feeType');
-  const ta = document.getElementById('detailTextarea');
-  const detail = ta ? ta.value : '';
-  const locEl = document.querySelector('.status-block select');
-  const location = locEl ? (locEl.options[locEl.selectedIndex]?.text || '') : '';
-  const fw = document.querySelectorAll('.full-width input');
-  const txt = document.querySelectorAll('#page input[type="text"]');
-
-  return `<!DOCTYPE html><html lang="th"><head>
-<meta charset="UTF-8"><title>ใบงาน ${jobNo}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sarabun',sans-serif;background:#fff}
-@page{size:A4 portrait;margin:8mm 10mm}
-html,body{width:210mm}
-.page{width:190mm;margin:0 auto;padding:4mm 0;display:flex;flex-direction:column;min-height:277mm}
-.header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1a3a6e;padding-bottom:3px;margin-bottom:4px}
-.header-logo{width:70px;height:50px;object-fit:contain}
-.header-center{text-align:center;flex:1}
-.header-center h1{font-size:16px;font-weight:700;color:#1a3a6e;letter-spacing:2px}
-.header-center p{font-size:10px;color:#555}
-.header-spacer{width:70px}
-.service-type-bar{background:#fff9c4;border:1px solid #f9c900;border-radius:4px;padding:2px 6px;margin-bottom:3px;font-size:8pt}
-.section-title{background:#1a3a6e;color:#fff;padding:2px 6px;font-weight:700;font-size:8pt;border-radius:3px;margin:3px 0 2px;border-left:4px solid #f9c900}
-.form-row{display:flex;gap:4px;margin-bottom:2px;align-items:center;flex-wrap:wrap}
-.field{display:flex;align-items:center;gap:3px;flex:1}
-.field label{white-space:nowrap;color:#1e3a5f;font-weight:600;font-size:7.5pt}
-.field-val{flex:1;border-bottom:1px solid #bfa000;font-size:8pt;padding:0 3px;color:#1e293b;min-width:50px;min-height:14px}
-.full-width{width:100%;flex:unset}
-.status-row{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:3px}
-.status-block{display:flex;align-items:center;gap:6px;background:#fff9c4;border:1.5px solid #f9c900;border-radius:4px;padding:2px 6px}
-.status-block label{font-weight:700;color:#1a3a6e;font-size:7.5pt}
-.radio-val{font-size:8pt;color:#1e293b}
-.parts-table{width:100%;border-collapse:collapse;margin-bottom:3px;font-size:7.5pt}
-.parts-table th{background:#1a3a6e;color:#fff;padding:2px 3px;text-align:center;font-size:7pt}
-.parts-table td{border:1px solid #d4c000;padding:1px 3px;background:#fff;text-align:center}
-.parts-table .total-label{text-align:right;font-weight:700;background:#fff9c4;color:#1a3a6e;padding-right:6px;border:1px solid #d4c000}
-.parts-table .total-val{text-align:right;background:#fffde0;font-weight:700;color:#c00;border:1px solid #d4c000;padding-right:4px}
-.sig-section{display:flex;gap:8px;margin-top:4px;margin-bottom:4px}
-.sig-box{flex:1;border:1.5px solid #1a3a6e;border-radius:6px;padding:4px 8px 6px;background:#fff;text-align:center}
-.sig-box .sig-title{font-size:10pt;font-weight:700;color:#1a3a6e;margin-bottom:3px}
-.sig-img-wrap{width:100%;height:60px;border:1px dashed #bfa000;border-radius:4px;background:#f8f8f8;overflow:hidden}
-.sig-img-wrap img{width:100%;height:100%;object-fit:contain}
-.sig-meta{font-size:7pt;color:#475569;margin-top:2px}
-.footer{text-align:center;border-top:2px solid #1a3a6e;padding-top:3px;margin-top:auto;color:#1a3a6e}
-.footer .company-name{font-size:10pt;font-weight:700}
-.footer .contact{font-size:8pt;color:#444}
-.detail-box{width:100%;border:1px solid #bfa000;border-radius:3px;padding:2px 4px;white-space:pre-wrap;min-height:30px;font-size:8pt;color:#1e293b;line-height:1.5}
-</style></head><body>
-<div class="page">
-  <div class="header">
-    <img class="header-logo" src="${logoSrc}" alt="KIMAC Logo">
-    <div class="header-center"><h1>SERVICE SHEET</h1><p>ใบบันทึกงานบริการ</p></div>
-    <div class="header-spacer"></div>
-  </div>
-  <div class="service-type-bar"><span style="font-weight:700;color:#1a3a6e">งานบริการ : </span>${serviceTypeLabel}</div>
-  <div class="section-title">ส่วนที่ 1 ข้อมูลลูกค้า</div>
-  <div class="form-row">
-    <div class="field"><label>เลขที่ใบงาน :</label><div class="field-val">${jobNo}</div></div>
-    <div class="field"><label>วันที่ :</label><div class="field-val">${dis[0]?.value||''}</div></div>
-    <div class="field"><label>เวลาเริ่ม :</label><div class="field-val">${gv('timeStart')}</div></div>
-    <div class="field"><label>เวลาสิ้นสุด :</label><div class="field-val">${gv('timeEnd')}</div></div>
-  </div>
-  <div class="form-row">
-    <div class="field"><label>บริษัท/ชื่อลูกค้า :</label><div class="field-val">${gv('companyName')}</div></div>
-    <div class="field"><label>ผู้ติดต่อ :</label><div class="field-val">${gv('contactName')}</div></div>
-    <div class="field"><label>ตำแหน่ง :</label><div class="field-val">${gv('positionInput')}</div></div>
-  </div>
-  <div class="form-row">
-    <div class="field"><label>โทร :</label><div class="field-val">${gv('contactPhone')}</div></div>
-    <div class="field"><label>สถานที่ :</label><div class="field-val">${location}</div></div>
-  </div>
-  <div class="form-row full-width">
-    <div class="field full-width"><label>ที่อยู่ :</label><div class="field-val">${fw[1]?.value||''}</div></div>
-  </div>
-  <div class="status-row">
-    <div class="status-block">
-      <label>การรับประกัน :</label>
-      <span class="radio-val">${warranty==='in'?'✓ อยู่ในประกัน':warranty==='out'?'✗ หมดประกัน':'-'}</span>
-      ${gv('warrantyNo')?`<span style="font-size:7.5pt">เลขที่: ${gv('warrantyNo')}</span>`:''}
-    </div>
-    <div class="status-block">
-      <label>ค่าบริการ :</label>
-      <span class="radio-val">${feeType==='free'?'ฟรี':feeType==='bkk'?'กรุงเทพฯ/ปริมณฑล':feeType==='province'?`ต่างจังหวัด ${gv('provinceInput')}`:'-'}</span>
-    </div>
-  </div>
-  <div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>
-  <div class="form-row">
-    <div class="field"><label>เครื่อง :</label><div class="field-val">${txt[6]?.value||''}</div></div>
-    <div class="field"><label>รุ่น :</label><div class="field-val">${txt[7]?.value||''}</div></div>
-    <div class="field"><label>S/N :</label><div class="field-val">${txt[8]?.value||''}</div></div>
-    <div class="field"><label>วันซื้อ :</label><div class="field-val">${dis[1]?.value||''}</div></div>
-  </div>
-  <div class="form-row full-width">
-    <div class="field full-width"><label>รายละเอียดงาน :</label></div>
-  </div>
-  <div class="detail-box">${detail.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-  <div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>
-  <table class="parts-table">
-    <thead><tr><th style="width:20px">#</th><th>รายการ</th><th>รหัสอะไหล่</th><th style="width:30px">จำนวน</th><th style="width:30px">หน่วย</th><th style="width:50px">ราคา/หน่วย</th><th style="width:55px">รวม</th></tr></thead>
-    <tbody>${partsRows}</tbody>
-    <tfoot><tr><td colspan="5" class="total-label">รวมทั้งสิ้น</td><td colspan="2" class="total-val">${partsTotal.toLocaleString('th-TH',{minimumFractionDigits:2})} บาท</td></tr></tfoot>
-  </table>
-  <div class="sig-section">
-    <div class="sig-box">
-      <div class="sig-title">✍ ลายเซ็นช่างผู้ให้บริการ</div>
-      <div class="sig-img-wrap">${techSigSrc?`<img src="${techSigSrc}">`:''}</div>
-      <div class="sig-meta">ชื่อ: ${gv('techName')} &nbsp; วันที่: ${gv('techDate')}</div>
-    </div>
-    <div class="sig-box">
-      <div class="sig-title">✍ ลายเซ็นลูกค้าผู้รับบริการ</div>
-      <div class="sig-img-wrap">${custSigSrc?`<img src="${custSigSrc}">`:''}</div>
-      <div class="sig-meta">ชื่อ: ${gv('custName')} &nbsp; แผนก: ${gv('custDept')} &nbsp; วันที่: ${gv('custDate')}</div>
-    </div>
-  </div>
-  <div class="footer">
-    <div class="company-name">บริษัท คีแมค จำกัด</div>
-    <div class="contact">298 ถนนสามวา แขวงบางชัน เขตคลองสามวา กรุงเทพมหานคร 10510</div>
-    <div class="contact">โทร.02-956-8291-2 &nbsp; Line : @kimac &nbsp; www.kimacthailand.com</div>
-  </div>
-</div>
-</body></html>`;
-}
-
-function downloadSingleHTML() {
-  const html = exportHTML();
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const jno = document.getElementById('jnoBadge')?.textContent || 'job';
-  const a = document.createElement('a');
-  a.href = url; a.download = `ใบงาน_${jno}.html`; a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function exportZIP(jobsArray) {
-  if (typeof JSZip === 'undefined') {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-    document.head.appendChild(s);
-    await new Promise(r => s.onload = r);
-  }
-  if (!jobsArray || !jobsArray.length) {
-    const date = document.querySelectorAll('#page input[type="date"]')[0]?.value || new Date().toISOString().split('T')[0];
-    jobsArray = [{ _htmlContent: exportHTML(), service_date: date, job_no: document.getElementById('jnoBadge')?.textContent || 'job' }];
-  }
-  const zip = new JSZip();
-  const monthNamesTH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-  for (const job of jobsArray) {
-    const d = new Date(job.service_date || new Date().toISOString().split('T')[0]);
-    const year = d.getFullYear() || new Date().getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const folderPath = `${year}/${month}_${monthNamesTH[d.getMonth()]}/`;
-    const fileName = `${job.job_no || 'job'}.html`;
-    const html = job._htmlContent || exportHTML();
-    zip.file(folderPath + fileName, html);
-  }
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `KIMAC_ServiceSheets_${new Date().toISOString().slice(0,10)}.zip`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 // เรียก cloudInit เมื่อ load
 window.addEventListener('load',function(){cloudInit();});
