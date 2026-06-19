@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a3a6e">
+<meta name="theme-color" content="#0e1c36">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -16,7 +16,7 @@
   html, body { width: 100%; overflow-x: hidden; }
   body {
     font-family: 'Sarabun', sans-serif;
-    background: #f0f0f0;
+    background: #fffaff;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,7 +26,7 @@
   .btn-export {
     margin-bottom: 15px;
     padding: 10px 28px;
-    background: #1a3a6e;
+    background: #427aa1;
     color: white;
     border: none;
     border-radius: 6px;
@@ -35,7 +35,7 @@
     cursor: pointer;
     font-weight: 600;
   }
-  .btn-export:hover { background: #122d57; }
+  .btn-export:hover { background: #0e1c36; }
   @page {
     size: A4 portrait;
     margin: 0;
@@ -81,7 +81,7 @@
 /* ── TOPBAR ── */
 .topbar-c {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  background: linear-gradient(135deg,#1a3a6e 0%,#2a5298 100%);
+  background: linear-gradient(135deg,#0e1c36 0%,#427aa1 100%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
@@ -101,8 +101,8 @@
   .btn-bk { font-size: 10px; padding: 4px 7px; }
   .status-select { font-size: 10px !important; padding: 3px 5px !important; }
 }
-.jno { background: rgba(249,201,0,.2); border: 1px solid rgba(249,201,0,.4);
-  color: #f9c900; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.jno { background: rgba(255,209,81,.2); border: 1px solid rgba(255,209,81,.4);
+  color: #ffd151; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
 .btn-bk { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
   color: #fff; padding: 5px 10px; border-radius: 8px; font-family: 'Sarabun',sans-serif;
   font-size: 12px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
@@ -110,7 +110,7 @@
 /* ── ACTION BAR ── */
 .actbar {
   position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
-  border-top: 1px solid #e8eef8;
+  border-top: 1px solid #69747c22;
   display: flex; gap: 8px; padding: 9px 12px;
   padding-bottom: calc(9px + env(safe-area-inset-bottom));
   z-index: 300; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
@@ -121,8 +121,8 @@
   cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
 }
 .ab:active { opacity: .8; }
-.ab-hist { background: #eff6ff; color: #1e40af; }
-.ab-save { background: linear-gradient(135deg,#1a3a6e,#2a5298); color: #fff; box-shadow: 0 3px 10px rgba(26,58,110,.3); }
+.ab-hist { background: #e8f4fb; color: #427aa1; }
+.ab-save { background: linear-gradient(135deg,#0e1c36,#427aa1); color: #fff; box-shadow: 0 3px 10px rgba(14,28,54,.3); }
 .ab-save:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 .ab-pdf { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(21,128,61,.3); }
 .ab-pdf:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
@@ -147,7 +147,7 @@
 .sig-modal-overlay.open { display: flex; }
 .sig-modal-header {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 16px; background: #1a3a6e; color: white;
+  padding: 10px 16px; background: #0e1c36; color: white;
 }
 .sig-modal-title { font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 700; color: white; }
 .sig-modal-body {
@@ -157,22 +157,22 @@
 .sig-modal-hint { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #888; margin-bottom: 10px; }
 .sig-modal-canvas-wrap {
   width: 100%; max-width: 560px;
-  border: 2px dashed #bfa000; border-radius: 8px; background: #fafafa; overflow: hidden;
+  border: 2px dashed #c4960a; border-radius: 8px; background: #fafafa; overflow: hidden;
 }
 #sigModalCanvas { display: block; width: 100%; touch-action: none; cursor: crosshair; background: #fafafa; }
 .sig-modal-footer { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
 .sig-modal-btn { padding: 10px 28px; font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; }
-.sig-modal-btn.confirm { background: #1a3a6e; color: white; }
+.sig-modal-btn.confirm { background: #427aa1; color: white; }
 .sig-modal-btn.clear { background: #eee; color: #333; border: 1px solid #bbb; }
 .sig-modal-btn.cancel { background: #c00; color: white; }
 .sig-modal-btn.upload { background: #16a34a; color: white; }
 
 /* header layout */
-.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1a3a6e; padding-bottom: 3px; margin-bottom: 4px; }
+.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #427aa1; padding-bottom: 3px; margin-bottom: 4px; }
 .header-logo-wrap { display: flex; flex-direction: column; align-items: center; }
 .header-logo { width: 110px; height: 80px; object-fit: contain; }
 .header-center { text-align: center; flex: 1; }
-.header-center h1 { font-size: 22px; font-weight: 700; color: #1a3a6e; letter-spacing: 2px; }
+.header-center h1 { font-size: 22px; font-weight: 700; color: #427aa1; letter-spacing: 2px; }
 .header-center p { font-size: 12px; color: #555; }
 .header-spacer { width: 110px; }
 
@@ -187,50 +187,50 @@
 .page-inner { flex: 1; }
 
 /* service type bar */
-.service-type-bar { background: #fff9c4; border: 1px solid #f9c900; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.service-type-bar span { font-weight: 600; color: #1a3a6e; white-space: nowrap; }
-.service-type-bar select { border: 1px solid #bfa000; border-radius: 4px; background: white; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
+.service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; }
+.service-type-bar select { border: 1px solid #c4960a; border-radius: 4px; background: white; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
 .other-input { border: none; border-bottom: 1px solid #aaa; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 200px; outline: none; display: none; }
 .other-input.show { display: inline-block; }
 
 /* section titles */
-.section-title { background: #1a3a6e; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
+.section-title { background: #427aa1; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
 
 /* form rows & fields */
 .form-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; flex-wrap: wrap; }
 .field { display: flex; align-items: center; gap: 4px; flex: 1; }
 .field label { white-space: nowrap; color: #444; font-weight: 600; font-size: 12px; }
-.field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
-.field select { border: 1px solid #bfa000; border-radius: 4px; background: white; padding: 2px 4px; cursor: pointer; }
-.field textarea { resize: none; border: 1px solid #bfa000; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.6; }
+.field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
+.field select { border: 1px solid #c4960a; border-radius: 4px; background: white; padding: 2px 4px; cursor: pointer; }
+.field textarea { resize: none; border: 1px solid #c4960a; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.6; }
 .full-width { width: 100%; flex: unset; }
 
 /* status row */
 .status-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 4px; }
-.status-block { display: flex; align-items: center; gap: 8px; background: #fff9c4; border: 1px solid #f9c900; border-radius: 4px; padding: 3px 8px; flex-wrap: wrap; }
-.status-block label { font-weight: 600; color: #1a3a6e; font-size: 12px; white-space: nowrap; }
+.status-block { display: flex; align-items: center; gap: 8px; background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; flex-wrap: wrap; }
+.status-block label { font-weight: 600; color: #427aa1; font-size: 12px; white-space: nowrap; }
 .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; font-weight: 400; color: #333; }
-.radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #1a3a6e; cursor: pointer; }
-.warranty-input { border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
+.radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #427aa1; cursor: pointer; }
+.warranty-input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
 .warranty-input.show { display: inline-block; }
-.province-input { border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
+.province-input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
 .province-input.show { display: inline-block; }
 
 /* parts table */
 .parts-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 12px; }
-.parts-table th { background: #1a3a6e; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; }
-.parts-table td { border: 1px solid #d4c000; padding: 2px 4px; background: white; }
+.parts-table th { background: #427aa1; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; }
+.parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; }
 .parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: center; }
-.parts-table td:first-child { text-align: center; width: 24px; background: #fff9c4; font-weight: 600; color: #1a3a6e; }
+.parts-table td:first-child { text-align: center; width: 24px; background: #fff7d6; font-weight: 600; color: #427aa1; }
 .parts-table .price-cell input { text-align: right; }
-.parts-table .total-label { text-align: right; font-weight: 700; background: #fff9c4; color: #1a3a6e; padding-right: 8px; border: 1px solid #d4c000; }
-.parts-table .total-val { text-align: right; background: #fffde0; font-weight: 700; color: #c00; border: 1px solid #d4c000; padding-right: 6px; min-width: 80px; }
+.parts-table .total-label { text-align: right; font-weight: 700; background: #fff7d6; color: #427aa1; padding-right: 8px; border: 1px solid #c4960a; }
+.parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
 .sig-section { clear: both; display: flex; gap: 10px; margin-top: 6px; margin-bottom: 6px; }
-.sig-box { flex: 1; border: 1.5px solid #1a3a6e; border-radius: 6px; padding: 6px 10px 8px; background: white; text-align: center; }
-.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #1a3a6e; margin-bottom: 6px; }
+.sig-box { flex: 1; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 10px 8px; background: white; text-align: center; }
+.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
 .sig-preview-wrap { position: relative; width: 100%; height: 110px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sig-preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; }
 .sig-trigger-btn { font-size: 12px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; padding: 4px 8px; display: flex; align-items: center; gap: 4px; z-index: 1; }
@@ -239,16 +239,16 @@
 .sig-clear-wrap { text-align: right; min-height: 22px; }
 .sig-meta { display: flex; gap: 6px; margin-top: 4px; font-size: 11px; align-items: center; flex-wrap: wrap; }
 .sig-meta label { color: #555; font-size: 11px; white-space: nowrap; }
-.sig-meta input { border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
+.sig-meta input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
 
 /* footer */
-.footer { text-align: center; border-top: 2px solid #1a3a6e; padding-top: 4px; margin-top: auto; color: #1a3a6e; font-size: 11px; line-height: 1.5; }
-.footer .company-name { font-size: 13px; font-weight: 700; color: #1a3a6e; }
+.footer { text-align: center; border-top: 2px solid #427aa1; padding-top: 4px; margin-top: auto; color: #427aa1; font-size: 11px; line-height: 1.5; }
+.footer .company-name { font-size: 13px; font-weight: 700; color: #427aa1; }
 .footer .contact { color: #444; font-size: 11px; }
 
 /* add row button */
-.btn-add-row { display: inline-block; margin-bottom: 4px; padding: 4px 14px; background: #1a3a6e; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
-.btn-add-row:hover { background: #122d57; }
+.btn-add-row { display: inline-block; margin-bottom: 4px; padding: 4px 14px; background: #427aa1; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
+.btn-add-row:hover { background: #0e1c36; }
 
 /* body padding สำหรับ topbar + actbar */
 body {
@@ -371,8 +371,8 @@ body {
         <td class="total-val"><input type="text" id="s_vat" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#f0f4ff;">รวมยอดสุทธิ</td>
-        <td style="text-align:right;background:#f0f4ff;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
+        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
+        <td style="text-align:right;background:#e8f4fb;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
       </tr>
     </tfoot>
   </table>
