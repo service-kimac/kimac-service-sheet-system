@@ -333,23 +333,14 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
     <span class="tb-title">ระบบบันทึกงานบริการ</span>
   </div>
   <div class="tb-r">
-    <!-- notification bell (admin-only, hidden until role confirmed) -->
-    <div id="notifBellWrap" style="display:none;position:relative">
-      <button id="notifBell" onclick="toggleNotifPanel()" style="
-        width:36px;height:36px;border-radius:50%;
-        background:rgba(249,201,0,.15);border:1.5px solid rgba(249,201,0,.5);
-        color:#f9c900;font-size:18px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;
-        -webkit-appearance:none;transition:background .15s;flex-shrink:0;"
-        title="การแจ้งเตือน">🔔</button>
-      <span id="notifBellBadge" style="display:none;position:absolute;top:-3px;right:-3px;
-        min-width:16px;height:16px;background:#dc2626;color:#fff;border-radius:8px;
-        font-size:9px;font-weight:800;text-align:center;line-height:16px;padding:0 3px;
-        box-shadow:0 0 0 2px #1a3a6e;pointer-events:none">0</span>
-    </div>
     <div class="uinfo" onclick="swPg('settings')" style="cursor:pointer">
-      <div class="uname" id="uname">กำลังโหลด...</div>
+      <div class="uname" id="uname"></div>
       <div class="urole" id="urole"></div>
+    </div>
+    <!-- notification bell (admin-only, hidden until role confirmed) -->
+    <div id="notifBellWrap" style="display:none;position:relative;flex-shrink:0">
+      <button id="notifBell" onclick="toggleNotifPanel()" style="width:36px;height:36px;border-radius:50%;background:rgba(249,201,0,.18);border:1.5px solid rgba(249,201,0,.55);color:#f9c900;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;transition:background .15s;flex-shrink:0;" title="การแจ้งเตือน">🔔</button>
+      <span id="notifBellBadge" style="display:none;position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;background:#dc2626;color:#fff;border-radius:8px;font-size:9px;font-weight:800;text-align:center;line-height:16px;padding:0 3px;box-shadow:0 0 0 2px #1a3a6e;pointer-events:none">0</span>
     </div>
   </div>
 </div>
@@ -867,11 +858,14 @@ async function init(){
     const nm=p?.full_name||CU.email;
     const pos=p?.position||'พนักงาน';
     const role=p?.role||'technician';
-    document.getElementById('av').textContent=nm[0].toUpperCase();
-    document.getElementById('uname').textContent=nm+(role==='admin'?' 👑':'');
-    document.getElementById('urole').textContent=pos;
+    var _un=document.getElementById('uname'); if(_un) _un.textContent=nm+(role==='admin'?' 👑':'');
+    var _ur=document.getElementById('urole'); if(_ur) _ur.textContent=pos;
     if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; var ads=document.getElementById('adminDispatchSection'); if(ads)ads.style.display='block'; var bw=document.getElementById('notifBellWrap'); if(bw)bw.style.display='block'; var nd=document.getElementById('nav-dispatch'); if(nd)nd.style.display=''; updateBellBadge(); }
-  }catch(e){console.error('Profile catch:',e);}
+  }catch(e){
+    console.error('Profile catch:',e);
+    // Fallback: show email so topbar is never blank
+    var _un2=document.getElementById('uname'); if(_un2&&!_un2.textContent) _un2.textContent=CU.email||'ผู้ใช้';
+  }
 
   if(_session && typeof saveAccountToSwitcher==='function') saveAccountToSwitcher(_session, CP);
   if(typeof rebindPushToCurrentUser==='function') rebindPushToCurrentUser();
@@ -1205,8 +1199,7 @@ async function saveProf(){
     if(error)throw error;
     CP.full_name=name;CP.position=pos;CP.phone=phone;
     document.getElementById('editProfMo').classList.remove('open');
-    document.getElementById('av').textContent=name[0].toUpperCase();
-    document.getElementById('uname').textContent=name+(CP.role==='admin'?' 👑':'');
+    var _avun=document.getElementById('uname'); if(_avun) _avun.textContent=name+(CP.role==='admin'?' 👑':'');
     document.getElementById('urole').textContent=pos;
     loadSettingsProf();
     toast('✅ บันทึกโปรไฟล์สำเร็จ','ok');
