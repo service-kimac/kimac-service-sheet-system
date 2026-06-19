@@ -414,6 +414,56 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   </div>
   <div id="teamList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
 </div>
+<!-- DISPATCH PAGE (Admin only) -->
+<div id="pg-dispatch" class="pg">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="font-size:15px;font-weight:800;color:#1a3a6e">📤 ส่งงานให้ช่าง</div>
+  </div>
+  <!-- Form card -->
+  <div style="background:#fff;border-radius:14px;padding:18px;margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #dce5ff">
+    <div class="ff"><label>ช่างที่รับงาน</label>
+      <select id="dp-tech" style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
+        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
+        outline:none;-webkit-appearance:none"></select>
+    </div>
+    <div class="ff"><label>วันที่ออกงาน</label>
+      <input type="date" id="dp-date" style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
+        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
+        outline:none;-webkit-appearance:none">
+    </div>
+    <div class="ff"><label>เวลา</label>
+      <input type="time" id="dp-time" style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
+        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
+        outline:none;-webkit-appearance:none">
+    </div>
+    <div class="ff"><label>สถานที่</label>
+      <input type="text" id="dp-place" placeholder="ชื่อบริษัท / ที่อยู่..." style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
+        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
+        outline:none;-webkit-appearance:none">
+    </div>
+    <div class="ff"><label>ลิงก์ Google Maps</label>
+      <input type="url" id="dp-maps" placeholder="https://maps.google.com/..." style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
+        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
+        outline:none;-webkit-appearance:none">
+    </div>
+    <div class="ff"><label>หมายเหตุ / รายละเอียดงาน</label>
+      <textarea id="dp-note" rows="3" placeholder="รายละเอียดเพิ่มเติม..." style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
+        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
+        outline:none;resize:none;"></textarea>
+    </div>
+    <button onclick="saveDispatch()" style="width:100%;padding:13px;
+      background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#f9c900;
+      border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
+      font-size:15px;font-weight:700;cursor:pointer;-webkit-appearance:none;margin-top:4px">
+      📤 ส่งงานให้ช่าง
+    </button>
+  </div>
+  <!-- Dispatch history -->
+  <div style="font-size:13px;font-weight:800;color:#1a3a6e;margin-bottom:8px">📋 ประวัติการส่งงาน</div>
+  <div id="dispatchHistory"></div>
+</div>
+
 <!-- SETTINGS PAGE -->
 <div id="pg-settings" class="pg">
   <div class="ph" id="profHeader">
@@ -471,7 +521,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4ff;color:#1a1a2e;
   <!-- Admin-only: dispatch + notif log -->
   <div class="ss" id="adminDispatchSection" style="display:none">
     <div class="sh">📤 จัดการงาน (Admin)</div>
-    <div class="sr" onclick="openDispatch()">
+    <div class="sr" onclick="swPg('dispatch')">
       <div><div class="sl">ส่งงานให้ช่าง</div><div class="ssub">สร้างใบงานภาคสนามและแจ้งช่าง</div></div>
       <span class="sa">›</span>
     </div>
@@ -544,7 +594,9 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="bnav">
   <button class="bni on" id="nav-jobs" onclick="swPg('jobs')"><span class="bni-ic">📋</span>ประวัติใบงาน</button>
   <button class="bni" id="nav-mine" onclick="swPg('mine')"><span class="bni-ic">🧰</span>งานของฉัน<span id="mineBadge" class="nbadge" style="display:none">0</span></button>
-  <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใบงานใหม่</button>
+  <button class="bni" id="nav-new" onclick="newJob()"><span class="bni-ic">➕</span>สร้างใหม่</button>
+  <!-- Admin-only dispatch nav -->
+  <button class="bni" id="nav-dispatch" onclick="swPg('dispatch')" style="display:none"><span class="bni-ic">📤</span>ส่งงาน</button>
   <button class="bni" id="nav-team" onclick="swPg('team')"><span class="bni-ic">👥</span>ทีมงาน</button>
   <button class="bni" id="nav-settings" onclick="swPg('settings')"><span class="bni-ic">⚙️</span>ตั้งค่า</button>
 </div>
@@ -559,32 +611,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 <!-- click-outside overlay to close panel -->
 <div id="notifOverlay" onclick="closeNotifPanel()" style="display:none;position:fixed;inset:0;z-index:5999;"></div>
-
-<!-- ===== ADMIN: Dispatch Job Modal ===== --><div class="mo" id="dispatchMo">
-  <div class="mb">
-    <div class="mt">📤 ส่งงานให้ช่าง <button class="mclose" onclick="closeDispatch()">✕</button></div>
-    <div style="font-size:12px;color:#555;margin-bottom:12px">ข้อมูลงานจะถูกบันทึกเป็น JSON และส่งแจ้งเตือนให้ช่างที่เลือก</div>
-    <div class="ff"><label>ช่างที่รับงาน</label>
-      <select id="dp-tech"></select>
-    </div>
-    <div class="ff"><label>วันที่ออกงาน</label>
-      <input type="date" id="dp-date">
-    </div>
-    <div class="ff"><label>เวลา (เช่น 09:00)</label>
-      <input type="time" id="dp-time">
-    </div>
-    <div class="ff"><label>สถานที่</label>
-      <input type="text" id="dp-place" placeholder="ชื่อบริษัท / ที่อยู่...">
-    </div>
-    <div class="ff"><label>ลิงก์ Google Maps</label>
-      <input type="url" id="dp-maps" placeholder="https://maps.google.com/...">
-    </div>
-    <div class="ff"><label>หมายเหตุ / รายละเอียด</label>
-      <input type="text" id="dp-note" placeholder="รายละเอียดงานเพิ่มเติม...">
-    </div>
-    <button class="bsp" onclick="saveDispatch()">📤 ส่งงานให้ช่าง</button>
-  </div>
-</div>
 
 <!-- DELETE MODAL -->
 <div class="mo" id="delMo">
@@ -844,7 +870,7 @@ async function init(){
     document.getElementById('av').textContent=nm[0].toUpperCase();
     document.getElementById('uname').textContent=nm+(role==='admin'?' 👑':'');
     document.getElementById('urole').textContent=pos;
-    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; var ads=document.getElementById('adminDispatchSection'); if(ads)ads.style.display='block'; var bw=document.getElementById('notifBellWrap'); if(bw)bw.style.display='block'; updateBellBadge(); }
+    if(role==='admin'){ document.getElementById('filterBar').classList.add('show'); var ts=document.getElementById('trashSetting'); if(ts)ts.style.display='block'; var ads=document.getElementById('adminDispatchSection'); if(ads)ads.style.display='block'; var bw=document.getElementById('notifBellWrap'); if(bw)bw.style.display='block'; var nd=document.getElementById('nav-dispatch'); if(nd)nd.style.display=''; updateBellBadge(); }
   }catch(e){console.error('Profile catch:',e);}
 
   if(_session && typeof saveAccountToSwitcher==='function') saveAccountToSwitcher(_session, CP);
@@ -1143,6 +1169,7 @@ function swPg(name){
   if(name==='report')renderReport();
   if(name==='team')renderTeam();
   if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
+  if(name==='dispatch'){loadDispatchPage();}
   if(name==='trash')loadTrash();
 }
 
@@ -2181,21 +2208,54 @@ function clearNotifLog() {
 const DISPATCH_KEY = 'kimac_dispatches';
 
 function openDispatch() {
-  // Populate tech selector
+  // Navigate to the dispatch page instead of modal
+  swPg('dispatch');
+}
+
+function closeDispatch() {
+  // Dispatch is now a full page — navigate back to settings
+  swPg('settings');
+}
+
+function loadDispatchPage() {
+  // Populate tech selector on the dispatch page
   const sel = document.getElementById('dp-tech');
-  if (sel) {
-    sel.innerHTML = profiles.filter(p => p.role !== 'admin' || true).map(p =>
-      `<option value="${p.id}">${p.full_name || p.id} (${p.position || 'ช่าง'})</option>`
+  if (sel && profiles.length) {
+    sel.innerHTML = profiles.map(p =>
+      `<option value="${p.id}">${p.full_name || p.id}${p.position ? ' · ' + p.position : ''}</option>`
     ).join('');
   }
   // Default date = today
   const dateEl = document.getElementById('dp-date');
   if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
-  document.getElementById('dispatchMo').classList.add('open');
+  renderDispatchHistory();
 }
 
-function closeDispatch() {
-  document.getElementById('dispatchMo').classList.remove('open');
+function renderDispatchHistory() {
+  const el = document.getElementById('dispatchHistory');
+  if (!el) return;
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(DISPATCH_KEY) || '[]'); } catch(e) {}
+  if (!list.length) {
+    el.innerHTML = '<div class="empty" style="padding:24px 0"><div class="empty-ic">📭</div><b>ยังไม่มีประวัติการส่งงาน</b></div>';
+    return;
+  }
+  el.innerHTML = list.map(function(d) {
+    const dt = new Date(d.created_at).toLocaleString('th-TH',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<div class="card" style="margin-bottom:10px">
+      <div class="ch">
+        <div>
+          <div class="cjno">👷 ${d.technician_name}</div>
+          <div class="cdate">📅 ${d.date_of_work || '-'}${d.time_of_work ? ' เวลา ' + d.time_of_work : ''}</div>
+        </div>
+        <span class="badge approved">ส่งแล้ว</span>
+      </div>
+      <div style="font-size:12px;color:#334155;margin-bottom:4px">📍 ${d.location}</div>
+      ${d.note ? `<div style="font-size:11px;color:#64748b;margin-bottom:4px">📝 ${d.note}</div>` : ''}
+      ${d.maps_url ? `<a href="${d.maps_url}" target="_blank" style="font-size:11px;color:#2a5298;text-decoration:none">🗺️ Google Maps</a>` : ''}
+      <div style="font-size:10px;color:#94a3b8;margin-top:6px">ส่งโดย ${d.created_by} · ${dt}</div>
+    </div>`;
+  }).join('');
 }
 
 async function saveDispatch() {
@@ -2255,8 +2315,10 @@ async function saveDispatch() {
 
   toast('✅ ส่งงานให้ ' + dispatch.technician_name + ' แล้ว', 'ok');
   closeDispatch();
-  // Clear form
+  // Clear form fields
   ['dp-time','dp-place','dp-maps','dp-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  // Refresh dispatch history on the page
+  renderDispatchHistory();
 }
 
 
