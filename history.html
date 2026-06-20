@@ -2159,12 +2159,10 @@ function showAdminSigPopup(notif) {
 async function sendSigCompletePushToAdmin(job) {
   try {
     // ส่ง Web Push แจ้งเตือนไปทุก admin device ผ่าน Edge Function notify-push
+    // (notify_admins:true = โหมดแจ้งเตือนแอดมินทั้งหมด, ใช้ job_id ดึงรายละเอียดงานฝั่ง server)
     await sb.functions.invoke('notify-push', { body: {
-      role: 'admin',
-      title: '✅ เซ็นใบงานครบแล้ว',
-      body: '📄 ' + (job.job_no || '-') + ' · ' + (job.company || '-') + '\n🔧 ช่าง: ' + (job.technician_name || '-'),
-      data: { type: 'sig_complete', job_id: job.id, url: '/history.html' },
-      tag: 'sig_complete_' + job.id
+      job_id: job.id,
+      notify_admins: true
     }});
   } catch(e) { console.warn('sendSigCompletePushToAdmin (optional):', e); }
   // Fallback: แสดง Web Push ในอุปกรณ์ admin ที่กำลังเปิดอยู่ (ถ้ามีสิทธิ์)
