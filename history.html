@@ -315,8 +315,15 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .rl{color:#94a3b8}
 [data-theme="dark"] .rs h3{color:#e2e8f0}
 [data-theme="dark"] .rc{background:#172033;box-shadow:none}
-/* หัวข้อ "งานของฉัน" (inline style) */
-[data-theme="dark"] div[style*="font-weight:800;color:#1a3a6e"]{color:#e2e8f0!important}
+/* แก้ปัญหาตัวหนังสือมองไม่เห็นในโหมดมืด: องค์ประกอบจำนวนมากที่สร้างผ่าน JS (inline style="color:#1a3a6e"
+   หรือ color:#0e1c36 ซึ่งเป็นสีกรมท่าเข้ม อ่านได้บนพื้นขาวเท่านั้น) ไม่ได้ถูกครอบคลุมโดย CSS class แบบเดิม
+   เพราะ selector เก่าจับได้แค่สตริงที่ตรงเป๊ะ ("font-weight:800;color:#1a3a6e") ทำให้จุดอื่นที่ใช้สีเดียวกัน
+   แต่เรียงลำดับ style ต่างกัน ยังคงมองไม่เห็นอยู่ ใช้ attribute selector แบบกว้างแทนเพื่อจับให้ครบทุกจุด */
+[data-theme="dark"] [style*="color:#1a3a6e"],
+[data-theme="dark"] [style*="color: #1a3a6e"],
+[data-theme="dark"] [style*="color:#0e1c36"],
+[data-theme="dark"] [style*="color: #0e1c36"]
+{ color:#e2e8f0 !important; }
 [data-theme="dark"] #mineCount{color:#94a3b8!important}
 /* การ์ดโปรไฟล์บนสุดของหน้าตั้งค่า */
 [data-theme="dark"] .ph{background:#172033;border-color:#2a3650;box-shadow:none}
@@ -885,6 +892,18 @@ async function init(){
   await loadProfiles();
 }
 
+// ===== ล้างแจ้งเตือนระบบ (lock screen / notification center) เมื่อเปิดแอปกลับเข้ามา =====
+// ป้องกันความรู้สึกว่า "แจ้งเตือนเด้งซ้ำ" เพราะของเก่าที่ยังไม่ได้กดปัดทิ้งค้างอยู่
+async function clearOSNotifications(){
+  try{
+    if(!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(!reg || !reg.getNotifications) return;
+    const list = await reg.getNotifications();
+    list.forEach(n => n.close());
+  }catch(e){ /* เงียบไว้ ไม่กระทบการทำงานหลัก */ }
+}
+
 // ===== รีเฟรชอัตโนมัติเมื่อกลับเข้าแอป (จากพื้นหลัง/เปิดจากไอคอนหน้าจอโฮม) =====
 let _lastResumeRefresh = 0;
 async function resumeRefresh(){
@@ -892,6 +911,7 @@ async function resumeRefresh(){
   const now = Date.now();
   if(now - _lastResumeRefresh < 4000) return; // กันยิงซ้ำถ้า event มาพร้อมกันหลายตัว
   _lastResumeRefresh = now;
+  clearOSNotifications();
   try{
     await loadJobs();
     await loadProfiles();
@@ -904,6 +924,7 @@ document.addEventListener('visibilitychange', function(){
 });
 window.addEventListener('focus', resumeRefresh);
 window.addEventListener('pageshow', function(e){ if(e.persisted) resumeRefresh(); });
+window.addEventListener('load', clearOSNotifications);
 
 // ===== Poll งานที่แอดมินมอบหมายใหม่เป็นระยะ (เฉพาะช่าง) =====
 // กันกรณีช่างเปิดแอปค้างไว้แล้วแอดมินกดส่งงานตอนนั้นพอดี (ไม่ใช่แค่ตอนเปิด/กลับเข้าแอป)
@@ -2383,6 +2404,13 @@ function pushDispatchToTech(dispatch) {
   if (CU && CU.id === dispatch.technician_id) {
     showTechDispatchPopup(notif);
     updateTechBellBadge();
+    // กันไม่ให้ checkTechDispatchNotifs (polling) เด้ง popup ซ้ำให้ dispatch ตัวเดียวกันนี้อีกครั้ง
+    try {
+      const SHOWN = 'kimac_tech_popup_shown_' + CU.id;
+      const shown = new Set(JSON.parse(localStorage.getItem(SHOWN) || '[]'));
+      shown.add(notif.id);
+      localStorage.setItem(SHOWN, JSON.stringify([...shown].slice(-300)));
+    } catch(e) {}
   }
 }
 
@@ -2408,14 +2436,24 @@ async function checkTechDispatchNotifs() {
     const TCLR = 'kimac_tech_cleared_' + (CU ? CU.id : 'tech');
     let tcleared;
     try { tcleared = new Set(JSON.parse(localStorage.getItem(TCLR) || '[]')); } catch(e) { tcleared = new Set(); }
+    // ชุดแยกต่างหากสำหรับ "เคยเด้ง popup ให้ดูแล้ว" — กันป็อปอัปซ้ำแบบเด็ดขาด
+    // ไม่อิงกับ existing/tcleared เพื่อกันบั๊กกรณี list ถูกตัด (slice 100) หรือ logic อื่นเปลี่ยนในอนาคต
+    const SHOWN = 'kimac_tech_popup_shown_' + (CU ? CU.id : 'tech');
+    let shown;
+    try { shown = new Set(JSON.parse(localStorage.getItem(SHOWN) || '[]')); } catch(e) { shown = new Set(); }
     const existing = new Set(getTechNotifs().map(n => n.id));
-    const { data } = await sb.from('job_dispatches')
+    const { data, error } = await sb.from('job_dispatches')
       .select('*')
       .eq('technician_id', CU.id)
       .order('created_at', { ascending: false })
       .limit(20);
+    if (error) {
+      console.error('checkTechDispatchNotifs query error (อาจเป็นปัญหา RLS policy ของตาราง job_dispatches):', error);
+      return;
+    }
     if (!data || !data.length) return;
     let added = false;
+    let shownChanged = false;
     data.forEach(function(d) {
       const notifId = 'dispatch_' + d.id;
       // Skip if already in panel OR already cleared by user
@@ -2430,11 +2468,27 @@ async function checkTechDispatchNotifs() {
         const list = getTechNotifs();
         list.unshift(notif);
         saveTechNotifs(list.slice(0, 100));
-        showTechDispatchPopup(notif);
+        existing.add(notifId); // กันไม่ให้ item เดียวกันถูกเพิ่มซ้ำถ้ามีหลายแถวใน data รอบเดียวกัน
         added = true;
+      }
+      // แสดง popup แค่ครั้งแรกที่เจอ dispatch นี้เท่านั้น ไม่ว่าจะอยู่ใน panel อยู่แล้วหรือไม่ก็ตาม
+      if (!shown.has(notifId)) {
+        const notif2 = {
+          id: notifId, dispatch_id: d.id, type: 'dispatch',
+          tech_id: d.technician_id, tech_name: d.technician_name,
+          date_of_work: d.date_of_work, time_of_work: d.time_of_work,
+          location: d.location, maps_url: d.maps_url, note: d.note,
+          sent_by: d.created_by, timestamp: d.created_at, read: false
+        };
+        showTechDispatchPopup(notif2);
+        shown.add(notifId);
+        shownChanged = true;
       }
     });
     if (added) updateTechBellBadge();
+    if (shownChanged) {
+      try { localStorage.setItem(SHOWN, JSON.stringify([...shown].slice(-300))); } catch(e) {}
+    }
   } catch(e) { console.warn('checkTechDispatchNotifs:', e); }
 }
 
@@ -2475,7 +2529,7 @@ function showTechDispatchPopup(notif) {
     + (notif.note ? '<div style="font-size:12px;color:#69747c;margin-bottom:4px">📝 ' + notif.note + '</div>' : '')
     + maps
     + '<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">ส่งโดย ' + (notif.sent_by || 'แอดมิน') + '</div>'
-    + '<button onclick="_closeDispatchPopup();swPg(\'mine\');" style="width:100%;padding:10px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#ffd151;border:none;border-radius:10px;font-family:\'Sarabun\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">✅ รับทราบ — ดูงานของฉัน</button>';
+    + '<button onclick="_closeDispatchPopup();toggleNotifPanel();" style="width:100%;padding:10px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#ffd151;border:none;border-radius:10px;font-family:\'Sarabun\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">✅ รับทราบ</button>';
   document.body.appendChild(overlay);
   document.body.appendChild(container);
   setTimeout(_closeDispatchPopup, 30000);

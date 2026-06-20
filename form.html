@@ -6,12 +6,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e1c36">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <title>SERVICE SHEET - KIMAC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* บังคับให้หน้านี้เป็นโหมดสว่างเสมอ ไม่ว่าเครื่องจะตั้งเป็น Dark Mode หรือไม่
+     ป้องกัน iOS Safari ปรับสีพื้นหลัง/ตัวอักษรของ input ให้มืดเอง (มืดเฉพาะช่องกรอกแต่พื้นหลังหน้ายังขาว
+     ทำให้ตัวหนังสือในบางช่องมองไม่เห็น) เพราะหน้านี้ถูกออกแบบให้เป็นเอกสารโทนสว่างคงที่เสมอ */
+  :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { width: 100%; overflow-x: hidden; }
   body {
@@ -89,12 +94,12 @@
 }
 .tc-l { display: flex; align-items: center; gap: 8px; }
 .tc-logo { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0; }
-.tc-title { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; }
+.tc-title { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; white-space: nowrap; }
 .tc-r { display: flex; align-items: center; gap: 6px; }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .topbar-c { padding: 7px 10px; padding-top: calc(7px + env(safe-area-inset-top)); }
   .tc-logo { width: 28px; height: 28px; }
-  .tc-title { font-size: 11px; letter-spacing: 0; }
+  .tc-title { font-size: 10px; letter-spacing: 0; }
   .tc-r { gap: 4px; }
   .tc-l { gap: 5px; }
   .jno { font-size: 9px; padding: 3px 6px; }
@@ -116,9 +121,13 @@
   z-index: 300; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
 }
 .ab {
-  flex: 1; padding: 11px; border: none; border-radius: 10px;
-  font-family: 'Sarabun',sans-serif; font-size: 13px; font-weight: 700;
+  flex: 1; padding: 10px 4px; border: none; border-radius: 10px;
+  font-family: 'Sarabun',sans-serif; font-size: 12px; font-weight: 700;
   cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 360px) {
+  .ab { font-size: 10.5px; padding: 9px 2px; }
 }
 .ab:active { opacity: .8; }
 .ab-hist { background: #e8f4fb; color: #427aa1; }
@@ -313,7 +322,7 @@ body {
     <div class="field"><label>เบอร์โทร :</label><input type="tel" id="contactPhone"></div>
   </div>
   <div class="form-row">
-    <div class="field full-width"><label>ที่อยู่ :</label><input type="text" style="min-width:350px;"></div>
+    <div class="field full-width"><label>ที่อยู่ :</label><input type="text" id="addressInput" style="min-width:350px;"></div>
   </div>
   <div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>
   <div class="status-row">
@@ -459,7 +468,9 @@ document.getElementById('kimacLogo').src = 'data:image/jpeg;base64,' + document.
 // On smaller screens we visually scale down the wrapper so it fits the viewport.
 function scalePage() {
   const wrapper = document.getElementById('pageWrapper');
-  const viewportW = window.innerWidth - 20; // account for body padding
+  // ลดขนาดลงอีก ~12% บนมือถือ ตามที่ขอ (ใช้ตัวคูณ MOBILE_SHRINK กับความกว้าง viewport ที่ใช้คำนวณ scale)
+  const MOBILE_SHRINK = 0.88;
+  const viewportW = (window.innerWidth - 20) * MOBILE_SHRINK; // account for body padding + shrink factor
   // รีเซ็ตทั้ง transform และ height ก่อนวัดใหม่ทุกครั้ง
   // (ถ้าไม่รีเซ็ต height ก่อน ตอนเรียกซ้ำรอบสองขึ้นไป offsetHeight จะอ่านค่าความสูงเก่าที่ถูกล็อกไว้รอบก่อนหน้า
   //  ทำให้คำนวณ scale ผิดเพี้ยนสะสมไปเรื่อยๆ จนหน้าตัดครึ่ง/มีพื้นที่ว่างด้านล่าง)
@@ -927,7 +938,7 @@ function fillForm(j,pts){
         var txt=document.querySelectorAll('#page input[type="text"]');
         var ci=document.getElementById('contactName');if(ci)ci.value=j.contact_name||'';
         var pin=document.getElementById('positionInput');if(pin)pin.value=j.position||'';
-        var fw=document.querySelectorAll('.full-width input');if(fw[1])fw[1].value=j.address||'';
+        var addrEl=document.getElementById('addressInput');if(addrEl)addrEl.value=j.address||'';
         if(txt[6])txt[6].value=j.machine_name||'';if(txt[7])txt[7].value=j.machine_model||'';
         if(txt[8])txt[8].value=j.machine_sn||'';
         if(dis[1]&&j.purchase_date)dis[1].value=j.purchase_date;
@@ -1109,7 +1120,6 @@ function getFormData(){
     parts.push({seq:i+1,part_name:nm,part_code:inp[1]&&inp[1].value||'',
       qty:qty,unit:inp[3]&&inp[3].value||'',price:price,line_total:qty*price});
   });
-  var fw=document.querySelectorAll('.full-width input');
   var txt=document.querySelectorAll('#page input[type="text"]');
   var tel=document.getElementById('contactPhone');
   var tsi=document.getElementById('techSigImg');
@@ -1122,7 +1132,7 @@ function getFormData(){
     company:document.getElementById('companyName')&&document.getElementById('companyName').value||'',
     contact_name:document.getElementById('contactName')&&document.getElementById('contactName').value||'',
     position:document.getElementById('positionInput')&&document.getElementById('positionInput').value||'',phone:tel&&tel.value||'',
-    address:fw[1]&&fw[1].value||'',
+    address:(document.getElementById('addressInput')&&document.getElementById('addressInput').value)||'',
     service_location:document.querySelector('.status-block select')&&document.querySelector('.status-block select').value||'',
     warranty_status:warr&&warr.value||'',
     warranty_no:document.getElementById('warrantyNo')&&document.getElementById('warrantyNo').value||'',
