@@ -2148,7 +2148,7 @@ function showAdminSigPopup(notif) {
     + '<div style="font-size:13px;color:#334155;margin-bottom:3px">📄 ' + (notif.job_no || '-') + ' · ' + (notif.company || '-') + '</div>'
     + '<div style="font-size:12px;color:#334155;margin-bottom:2px">🔧 ช่าง: ' + (notif.tech_name || '-') + '</div>'
     + '<div style="font-size:12px;color:#334155;margin-bottom:10px">👤 ลูกค้า: ' + (notif.cust_name || '-') + '</div>'
-    + '<button onclick="_closeAdminSigPopup();editJob(' + notif.job_id + ');" style="width:100%;padding:10px;background:linear-gradient(135deg,#065f46,#16a34a);color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">📄 ดูใบงาน</button>';
+    + '<button onclick="_closeAdminSigPopup();editJob(' + notif.job_id + ');" style="width:100%;padding:10px;background:linear-gradient(135deg,#065f46,#16a34a);color:#fff;border:none;border-radius:10px;font-family:\'Sarabun\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">📄 ดูใบงาน</button>';
   document.body.appendChild(overlay);
   document.body.appendChild(container);
   setTimeout(_closeAdminSigPopup, 30000);
@@ -2467,7 +2467,7 @@ function showTechDispatchPopup(notif) {
     + (notif.note ? '<div style="font-size:12px;color:#69747c;margin-bottom:4px">📝 ' + notif.note + '</div>' : '')
     + maps
     + '<div style="font-size:11px;color:#94a3b8;margin-bottom:10px">ส่งโดย ' + (notif.sent_by || 'แอดมิน') + '</div>'
-    + '<button onclick="_closeDispatchPopup();swPg('mine');" style="width:100%;padding:10px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#ffd151;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">✅ รับทราบ — ดูงานของฉัน</button>';
+    + '<button onclick="_closeDispatchPopup();swPg(\'mine\');" style="width:100%;padding:10px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#ffd151;border:none;border-radius:10px;font-family:\'Sarabun\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-appearance:none">✅ รับทราบ — ดูงานของฉัน</button>';
   document.body.appendChild(overlay);
   document.body.appendChild(container);
   setTimeout(_closeDispatchPopup, 30000);
