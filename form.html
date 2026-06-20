@@ -705,6 +705,9 @@ function clearSigPreview(target) {
   const clearBtn = document.getElementById(target + 'ClearBtn');
   img.src = ''; img.style.display = 'none'; btn.style.display = 'flex';
   clearBtn.classList.remove('show');
+  // ล้างลายเซ็นแปลว่าตอนนี้ไม่ครบทั้งสองฝ่ายแล้ว → รีเซ็ตสถานะกันแจ้งเตือนซ้ำ
+  // เพื่อให้ถ้าเซ็นครบใหม่อีกครั้งในภายหลัง แอดมินจะได้รับแจ้งเตือนอีกครั้ง (ถือเป็นการเซ็นครบรอบใหม่จริงๆ)
+  if (CJ) { try { localStorage.removeItem('kimac_sig_notified_' + CJ); } catch(e) {} }
   if(window.scheduleDraftSave)scheduleDraftSave();
 }
 window.addEventListener('orientationchange', () => {
@@ -863,7 +866,16 @@ async function exportPDF(){
         // วัด actual height หลัง render (กัน gap ใต้ลายเซ็น)
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         const actualH = clone.scrollHeight || clone.offsetHeight || A4_H_PX;
-        const renderH = Math.max(actualH, 400);
+        // กันการวัดความสูงพลาดไปไม่กี่พิกเซลจนตัด footer (ที่อยู่บริษัท) ออกจากภาพ:
+        // เช็คตำแหน่งขอบล่างสุดของ footer จริงๆ เทียบกับ clone แล้วใช้ค่าที่มากกว่า พร้อมเผื่อ margin เพิ่ม
+        let footerBottom = 0;
+        const cloneFooter = clone.querySelector('.footer');
+        if (cloneFooter) {
+          const cloneRect = clone.getBoundingClientRect();
+          const footerRect = cloneFooter.getBoundingClientRect();
+          footerBottom = (footerRect.bottom - cloneRect.top);
+        }
+        const renderH = Math.max(actualH, footerBottom, 400) + 24; // +24px กันเหลื่อมขอบล่าง
         const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: renderH, windowWidth: A4_W_PX, windowHeight: renderH, scrollX: 0, scrollY: 0 });
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
@@ -1227,14 +1239,22 @@ async function saveCloud(){
     var _jno = _jnoBadge ? _jnoBadge.textContent : '-';
     var _comp = document.getElementById('companyName') ? document.getElementById('companyName').value : '-';
     if (_hasTech && _hasCust) {
-      // ส่งผ่าน Edge Function (fan-out ไปทุก admin device)
-      // notify_admins:true = โหมดแจ้งเตือนแอดมินทั้งหมด, ใช้ job_id ดึงรายละเอียดงานฝั่ง server
-      try {
-        await sb.functions.invoke('notify-push', { body: {
-          job_id: jid,
-          notify_admins: true
-        }});
-      } catch(e) { console.warn('sig push to admin (optional):', e); }
+      // กันแจ้งเตือนซ้ำ: ส่งแค่ครั้งแรกที่ลายเซ็นครบทั้งสองฝ่ายเท่านั้น
+      // ถ้าบันทึกซ้ำอีกหลังจากนั้น (เช่น แก้รายละเอียดเล็กน้อย) จะไม่เด้งแจ้งเตือนซ้ำอีก
+      var _sigNotifKey = 'kimac_sig_notified_' + jid;
+      var _alreadyNotified = false;
+      try { _alreadyNotified = localStorage.getItem(_sigNotifKey) === '1'; } catch(e) {}
+      if (!_alreadyNotified) {
+        // ส่งผ่าน Edge Function (fan-out ไปทุก admin device)
+        // notify_admins:true = โหมดแจ้งเตือนแอดมินทั้งหมด, ใช้ job_id ดึงรายละเอียดงานฝั่ง server
+        try {
+          await sb.functions.invoke('notify-push', { body: {
+            job_id: jid,
+            notify_admins: true
+          }});
+          try { localStorage.setItem(_sigNotifKey, '1'); } catch(e) {}
+        } catch(e) { console.warn('sig push to admin (optional):', e); }
+      }
     }
     return true;
   }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
