@@ -560,6 +560,7 @@ function toggleFee(el) {
 // --- Signature ---
 let currentSigTarget = null;
 let modalDrawing = false;
+let modalHasDrawn = false;
 let modalLastX = 0, modalLastY = 0;
 
 const modalCanvas = document.getElementById('sigModalCanvas');
@@ -599,6 +600,7 @@ function modalDraw(e) {
   modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(x, y);
   modalCtx.strokeStyle = '#1a3a6e'; modalCtx.lineWidth = 2.5; modalCtx.lineCap = 'round'; modalCtx.lineJoin = 'round'; modalCtx.stroke();
   [modalLastX, modalLastY] = [x, y];
+  modalHasDrawn = true;
 }
 function modalStopDraw() { modalDrawing = false; }
 modalCanvas.addEventListener('mousedown', modalStartDraw);
@@ -611,6 +613,7 @@ modalCanvas.addEventListener('touchend', modalStopDraw);
 
 function openSigModal(target) {
   currentSigTarget = target;
+  modalHasDrawn = false;
   const overlay = document.getElementById('sigModalOverlay');
   document.getElementById('sigModalTitle').textContent = target === 'tech' ? 'ลายเซ็นช่างผู้ให้บริการ' : 'ลายเซ็นลูกค้า / ผู้ตรวจรับงาน';
   overlay.classList.add('open');
@@ -625,6 +628,7 @@ function closeSigModal() {
   currentSigTarget = null;
 }
 function clearModalCanvas() {
+  modalHasDrawn = false;
   modalCtx.setTransform(1, 0, 0, 1, 0, 0);
   modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
   const dpr = window.devicePixelRatio || 1;
@@ -646,6 +650,10 @@ function applySig(target, dataUrl) {
 }
 function confirmSig() {
   if (!currentSigTarget) return;
+  if (!modalHasDrawn) {
+    if(typeof toastF==='function') toastF('กรุณาวาดลายเซ็นก่อนยืนยัน','err');
+    return;
+  }
   applySig(currentSigTarget, modalCanvas.toDataURL('image/png'));
 }
 function uploadSigImage() {
