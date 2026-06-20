@@ -905,6 +905,14 @@ document.addEventListener('visibilitychange', function(){
 window.addEventListener('focus', resumeRefresh);
 window.addEventListener('pageshow', function(e){ if(e.persisted) resumeRefresh(); });
 
+// ===== Poll งานที่แอดมินมอบหมายใหม่เป็นระยะ (เฉพาะช่าง) =====
+// กันกรณีช่างเปิดแอปค้างไว้แล้วแอดมินกดส่งงานตอนนั้นพอดี (ไม่ใช่แค่ตอนเปิด/กลับเข้าแอป)
+setInterval(function(){
+  if(!CU || !CP || CP.role === 'admin') return;
+  if(document.visibilityState !== 'visible') return; // ไม่ poll ตอนแอปอยู่เบื้องหลัง ประหยัด battery/data
+  if(typeof checkTechDispatchNotifs === 'function') checkTechDispatchNotifs();
+}, 20000); // ทุก 20 วินาที
+
 async function loadJobs(){
   // Auto-show retry button if loading hangs for 10s
   const _ltimer = setTimeout(function(){
@@ -2612,9 +2620,11 @@ async function saveDispatch() {
     localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.slice(0, 200)));
   } catch(e) {}
 
-  // Also try to store in Supabase if table exists (graceful fail)
+  // เก็บลง Supabase — สำคัญมาก: หน้าต่างแจ้งเตือนในแอปของช่าง (popup) อ่านจากตารางนี้โดยตรง
+  // ถ้า insert ตรงนี้ล้มเหลว ช่างจะไม่เห็นการแจ้งเตือนเลยไม่ว่าจะในแอปหรือ push
+  var _dispatchSaved = false;
   try {
-    await sb.from('job_dispatches').insert({
+    const insRes = await sb.from('job_dispatches').insert({
       technician_id: dispatch.technician_id,
       technician_name: dispatch.technician_name,
       date_of_work: dispatch.date_of_work,
@@ -2624,7 +2634,9 @@ async function saveDispatch() {
       note: dispatch.note,
       created_by: dispatch.created_by
     });
-  } catch(e) { console.warn('saveDispatch Supabase (optional):', e); }
+    if (insRes.error) throw insRes.error;
+    _dispatchSaved = true;
+  } catch(e) { console.warn('saveDispatch Supabase:', e); }
 
   // Try to send push notification to technician
   try {
@@ -2636,7 +2648,11 @@ async function saveDispatch() {
     }});
   } catch(e) { console.warn('dispatch push (optional):', e); }
 
-  toast('✅ ส่งงานให้ ' + dispatch.technician_name + ' แล้ว', 'ok');
+  if (_dispatchSaved) {
+    toast('✅ ส่งงานให้ ' + dispatch.technician_name + ' แล้ว', 'ok');
+  } else {
+    toast('⚠️ บันทึกในเครื่องแล้ว แต่ส่งขึ้นระบบไม่สำเร็จ ช่างอาจไม่เห็นแจ้งเตือน', 'err');
+  }
 
   // Inject into tech's local notif store and show popup (same-device or same-user)
   pushDispatchToTech(dispatch);

@@ -479,6 +479,7 @@ function scalePage() {
 }
 var _lastVW = window.innerWidth;
 window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); });
+try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); }); } } catch(e){}
 // ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
 // คีย์บอร์ดเด้งบน Android จะยิง resize (สูงลด) ถ้าย่อใหม่ตอนนั้นหน้าจะเด้ง/ว่างโล่งตอนพิมพ์
 window.addEventListener('resize', function(){
@@ -785,9 +786,16 @@ async function exportPDF(){
 
     const exportHost = document.createElement('div');
     exportHost.id = 'pdfExportHost';
-    exportHost.style.cssText = 'position:fixed;left:-10000px;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:-1;';
+    // หมายเหตุสำคัญ: ห้ามใช้ position:fixed ร่วมกับ left ติดลบมากๆ และ z-index:-1
+    // เพราะมือถือ (โดยเฉพาะ Safari/iOS) จะมองว่า element นี้ไม่ต้อง paint แล้วทำให้ html2canvas ได้ canvas ว่างเปล่า
+    // ใช้ position:absolute ในเอกสารปกติแทน แล้วซ่อนด้วย overflow:hidden ของ wrapper ที่มีความสูง/กว้างเป็น 0
+    exportHost.style.cssText = 'position:absolute;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:0;overflow:visible;opacity:0.01;pointer-events:none;';
+    const exportClip = document.createElement('div');
+    exportClip.id = 'pdfExportClip';
+    exportClip.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;';
+    exportClip.appendChild(exportHost);
     exportHost.appendChild(clone);
-    document.body.appendChild(exportHost);
+    document.body.appendChild(exportClip);
 
     const srcEls = original.querySelectorAll('input, textarea, select');
     const dstEls = clone.querySelectorAll('input, textarea, select');
@@ -820,7 +828,7 @@ async function exportPDF(){
 
     function cleanup2(){
       if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
-      if (exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
+      if (exportClip.parentNode) exportClip.parentNode.removeChild(exportClip);
       document.querySelectorAll('.sig-trigger-btn').forEach(b => { const t=b.id.replace('SigBtn',''); const img=document.getElementById(t+'SigImg'); if(!img.src||img.style.display==='none')b.style.display='flex'; });
       document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'inline-block');
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
@@ -1238,6 +1246,7 @@ async function loadJob(id){
       toastF('โหลดใบงาน ✅','ok');
       maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
       bindAutosave();
+      if(typeof scalePage==='function') scalePage();
     },400);
   }catch(e){console.error('loadJob:',e);}
 }
