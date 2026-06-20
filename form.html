@@ -460,16 +460,19 @@ document.getElementById('kimacLogo').src = 'data:image/jpeg;base64,' + document.
 function scalePage() {
   const wrapper = document.getElementById('pageWrapper');
   const viewportW = window.innerWidth - 20; // account for body padding
-  const pageW = wrapper.getBoundingClientRect().width / (wrapper.dataset.scale || 1);
-  // measure unscaled width
+  // รีเซ็ตทั้ง transform และ height ก่อนวัดใหม่ทุกครั้ง
+  // (ถ้าไม่รีเซ็ต height ก่อน ตอนเรียกซ้ำรอบสองขึ้นไป offsetHeight จะอ่านค่าความสูงเก่าที่ถูกล็อกไว้รอบก่อนหน้า
+  //  ทำให้คำนวณ scale ผิดเพี้ยนสะสมไปเรื่อยๆ จนหน้าตัดครึ่ง/มีพื้นที่ว่างด้านล่าง)
   wrapper.style.transform = 'none';
+  wrapper.style.height = '';
   const actualW = wrapper.offsetWidth;
+  const actualH = wrapper.offsetHeight;
   if (actualW > viewportW) {
     const scale = viewportW / actualW;
     wrapper.style.transform = 'scale(' + scale + ')';
     wrapper.dataset.scale = scale;
     // adjust body height so document doesn't have huge whitespace below scaled page
-    wrapper.style.height = (wrapper.offsetHeight * scale) + 'px';
+    wrapper.style.height = (actualH * scale) + 'px';
     wrapper.style.marginBottom = '0';
   } else {
     wrapper.style.transform = 'none';
@@ -1247,6 +1250,8 @@ async function loadJob(id){
       maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
       bindAutosave();
       if(typeof scalePage==='function') scalePage();
+      // เผื่อรูปลายเซ็น/ฟอนต์ reflow ช้ากว่านี้อีกนิด ให้ย่อขนาดซ้ำอีกครั้งหลัง paint ถัดไป
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(typeof scalePage==='function') scalePage(); }); });
     },400);
   }catch(e){console.error('loadJob:',e);}
 }
