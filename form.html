@@ -468,9 +468,7 @@ document.getElementById('kimacLogo').src = 'data:image/jpeg;base64,' + document.
 // On smaller screens we visually scale down the wrapper so it fits the viewport.
 function scalePage() {
   const wrapper = document.getElementById('pageWrapper');
-  // ลดขนาดลงอีก ~12% บนมือถือ ตามที่ขอ (ใช้ตัวคูณ MOBILE_SHRINK กับความกว้าง viewport ที่ใช้คำนวณ scale)
-  const MOBILE_SHRINK = 0.88;
-  const viewportW = (window.innerWidth - 20) * MOBILE_SHRINK; // account for body padding + shrink factor
+  const viewportW = window.innerWidth - 20; // account for body padding
   // รีเซ็ตทั้ง transform และ height ก่อนวัดใหม่ทุกครั้ง
   // (ถ้าไม่รีเซ็ต height ก่อน ตอนเรียกซ้ำรอบสองขึ้นไป offsetHeight จะอ่านค่าความสูงเก่าที่ถูกล็อกไว้รอบก่อนหน้า
   //  ทำให้คำนวณ scale ผิดเพี้ยนสะสมไปเรื่อยๆ จนหน้าตัดครึ่ง/มีพื้นที่ว่างด้านล่าง)
@@ -871,12 +869,27 @@ async function exportPDF(){
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
-        // fit width → scale by A4 width
+        // วาดเต็มความกว้างหน้าเสมอ (เหมือนเดิม) แล้วคำนวณความสูงทั้งหมดตามสัดส่วนจริง
+        // ไม่บีบอัดให้พอดีหน้าเดียวอีกต่อไป เพราะถ้าเนื้อหายาวเกิน 1 หน้า A4 (ที่อยู่ลูกค้ายาว/รายการอะไหล่เยอะ/รายละเอียดเครื่องยาว)
+        // การบีบทั้งภาพให้พอดีหน้าเดียวจะทำให้ส่วนท้ายสุด (เช่น ที่อยู่บริษัทใน footer) เสี่ยงโดนตัดหรือเนื้อหาเล็กจนอ่านไม่ออก
+        // แก้โดยตัดภาพเป็นหลายหน้า A4 แทน ถ้าเนื้อหายาวกว่า 1 หน้า
         const scaleRatio = pw / (A4_W_PX * 2);
-        let iw = pw;
-        let ih = canvas.height * scaleRatio;
-        if(ih > ph){ const sr2 = ph/(renderH*2); iw = canvas.width*sr2; ih = ph; }
-        pdf.addImage(imgData, 'JPEG', 0, 0, iw, ih);
+        const totalImgH = canvas.height * scaleRatio; // ความสูงทั้งหมดของภาพ ถ้าวาดเต็มความกว้างหน้า
+        if (totalImgH <= ph + 0.5) {
+          // เนื้อหาพอดีหน้าเดียว (กรณีปกติส่วนใหญ่)
+          pdf.addImage(imgData, 'JPEG', 0, 0, pw, totalImgH);
+        } else {
+          // เนื้อหายาวเกิน 1 หน้า → ตัดเป็นหลายหน้า โดยแต่ละหน้าขยับภาพขึ้นทีละความสูงหนึ่งหน้า (เหมือนเลื่อนหน้าต่างมองภาพยาว)
+          let renderedH = 0;
+          let pageNum = 0;
+          while (renderedH < totalImgH - 0.5) {
+            if (pageNum > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, -renderedH, pw, totalImgH);
+            renderedH += ph;
+            pageNum++;
+            if (pageNum > 10) break; // กันลูปไม่รู้จบในกรณีผิดปกติ
+          }
+        }
         pdf.save(pdfName);
       } else {
         await html2pdf().set({

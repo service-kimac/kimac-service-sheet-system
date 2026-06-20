@@ -1132,9 +1132,8 @@ function myJobs(){
 function jobTime(j){return new Date(j.updated_at||j.created_at||j.service_date||0).getTime();}
 function updateMineBadge(){
   const b=document.getElementById('mineBadge');if(!b)return;
-  const seen=getMineSeen();
-  const n=myJobs().filter(j=>jobTime(j)>seen).length;
-  if(n>0){b.textContent=n>99?'99+':String(n);b.style.display='';}else{b.style.display='none';}
+  // ตามที่ขอ: เอา badge แดงออกจากปุ่ม "งานของฉัน" — ให้ตัวเลขแจ้งเตือนไปขึ้นที่กระดิ่งอย่างเดียว
+  b.style.display='none';
 }
 function renderMine(){
   const el=document.getElementById('mineList');if(!el)return;
