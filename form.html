@@ -1120,8 +1120,8 @@ function getFormData(){
     machine_detail:ta&&ta.value||'',fee_type:fee&&fee.value||'',
     province:document.getElementById('provinceInput')&&document.getElementById('provinceInput').value||'',
     subtotal:gv('s_sub'),vat:gv('s_vat'),total:gv('s_total'),
-    tech_sig_data:tsi&&tsi.style.display!=='none'?tsi.src:null,
-    cust_sig_data:csi&&csi.style.display!=='none'?csi.src:null,
+    tech_sig_data:(tsi&&tsi.style.display!=='none'&&tsi.src&&tsi.src.indexOf('data:image')===0)?tsi.src:null,
+    cust_sig_data:(csi&&csi.style.display!=='none'&&csi.src&&csi.src.indexOf('data:image')===0)?csi.src:null,
     tech_name_sign:document.getElementById('techName')&&document.getElementById('techName').value||'',
     tech_sign_date:document.getElementById('techDate')&&document.getElementById('techDate').value||null,
     cust_name_sign:document.getElementById('custName')&&document.getElementById('custName').value||'',
@@ -1183,8 +1183,12 @@ async function saveCloud(){
     clearDraft();
     toastF('✅ บันทึกสำเร็จ!','ok');
     // ถ้าบันทึกครั้งนี้มีทั้งลายเซ็นช่างและลูกค้าครบ → แจ้งเตือนแอดมินทันที
-    var _hasTech = !!(document.getElementById('techSigImg') && document.getElementById('techSigImg').style.display !== 'none' && document.getElementById('techSigImg').src);
-    var _hasCust = !!(document.getElementById('custSigImg') && document.getElementById('custSigImg').style.display !== 'none' && document.getElementById('custSigImg').src);
+    // หมายเหตุ: ห้ามเช็คแค่ img.src เฉยๆ เพราะ <img src=""> เบราว์เซอร์จะ resolve เป็น URL หน้าเว็บปัจจุบัน (truthy เสมอ)
+    // ต้องเช็คว่า src เป็นรูปภาพจริง (data:image...) เท่านั้น
+    var techSigImgEl = document.getElementById('techSigImg');
+    var custSigImgEl = document.getElementById('custSigImg');
+    var _hasTech = !!(techSigImgEl && techSigImgEl.style.display !== 'none' && techSigImgEl.src && techSigImgEl.src.indexOf('data:image') === 0);
+    var _hasCust = !!(custSigImgEl && custSigImgEl.style.display !== 'none' && custSigImgEl.src && custSigImgEl.src.indexOf('data:image') === 0);
     var _jnoBadge = document.getElementById('jnoBadge');
     var _jno = _jnoBadge ? _jnoBadge.textContent : '-';
     var _comp = document.getElementById('companyName') ? document.getElementById('companyName').value : '-';

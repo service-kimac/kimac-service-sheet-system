@@ -1,4 +1,4 @@
-const VER = 'kimac-v35';
+const VER = 'kimac-v36';
 const BASE = '/kimac-service-sheet-system';
 const CORE = [
   BASE+'/',
