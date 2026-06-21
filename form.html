@@ -751,7 +751,14 @@ async function exportPDF(){
       const s = document.createElement('script');
       s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
       document.head.appendChild(s);
-      await new Promise(r => s.onload = r);
+      // สำคัญมาก: ต้องมีทั้ง onerror และ timeout กันกรณีโหลดสคริปต์จาก CDN ไม่สำเร็จ/ช้าเกินไป
+      // เพราะถ้าไม่มี Promise นี้จะค้างรอตลอดไปแบบไม่มี error เกิดขึ้นเลย ทำให้แท็บที่เปิดไว้ล่วงหน้า (กัน popup blocker)
+      // ค้างที่ about:blank ตลอดไป โดยที่ผู้ใช้เห็นปุ่มหมุนค้างอยู่ ไม่รู้ว่าเกิดอะไรขึ้น
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('โหลดไลบรารีสร้าง PDF ไม่สำเร็จ (หมดเวลา) กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')), 15000);
+        s.onload = () => { clearTimeout(timer); resolve(); };
+        s.onerror = () => { clearTimeout(timer); reject(new Error('โหลดไลบรารีสร้าง PDF ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')); };
+      });
     }
 
     const A4_W_PX = 794;
@@ -877,18 +884,11 @@ async function exportPDF(){
       if (window.html2canvas && J) {
         // วัด actual height หลัง render (กัน gap ใต้ลายเซ็น)
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-        const actualH = clone.scrollHeight || clone.offsetHeight || A4_H_PX;
-        // กันการวัดความสูงพลาดไปไม่กี่พิกเซลจนตัด footer (ที่อยู่บริษัท) ออกจากภาพ:
-        // เช็คตำแหน่งขอบล่างสุดของ footer จริงๆ เทียบกับ clone แล้วใช้ค่าที่มากกว่า พร้อมเผื่อ margin เพิ่ม
-        let footerBottom = 0;
-        const cloneFooter = clone.querySelector('.footer');
-        if (cloneFooter) {
-          const cloneRect = clone.getBoundingClientRect();
-          const footerRect = cloneFooter.getBoundingClientRect();
-          footerBottom = (footerRect.bottom - cloneRect.top);
-        }
-        const renderH = Math.max(actualH, footerBottom, 400) + 24; // +24px กันเหลื่อมขอบล่าง
-        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: renderH, windowWidth: A4_W_PX, windowHeight: renderH, scrollX: 0, scrollY: 0 });
+        // หมายเหตุสำคัญ (แก้รอบนี้จริง): เลิกคำนวณ height/windowHeight เองแล้ว เพราะการคำนวณเองหลายรอบที่ผ่านมา
+        // ทำให้พลาดทั้งสองทาง (ตัด footer ออกบ้าง / เผื่อ margin เกินจนเกิดหน้าเปล่าที่ 2 บ้าง)
+        // ปล่อยให้ html2canvas ตรวจจับความสูงเนื้อหาเองจากธรรมชาติของ DOM โดยไม่ระบุ height/windowHeight เลย
+        // ซึ่งเป็นวิธีที่น่าเชื่อถือที่สุดและเป็นค่ามาตรฐานของไลบรารี
+        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, windowWidth: A4_W_PX, scrollX: 0, scrollY: 0 });
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
