@@ -2053,42 +2053,64 @@ async function renderJobPDF(job){
   if(footerEl){ footerEl.style.marginTop='8px'; footerEl.style.marginBottom='0'; }
 
   // ── 5. รอ fonts + วัด actual height ──
-  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
-  try{await document.fonts.load('400 13px Sarabun');}catch(e){}
-  try{await document.fonts.load('700 13px Sarabun');}catch(e){}
-  await new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});});
+  // สำคัญ: ใช้ setTimeout แทน requestAnimationFrame เพราะถ้าผู้ใช้สลับแอป/สลับแท็บระหว่างที่กำลัง
+  // export PDF แบบหลายใบงาน (ใช้เวลานาน) rAF จะหยุดยิงตอนแท็บนี้เป็น background ทำให้ฟังก์ชันค้าง
+  // และเป็นสาเหตุที่ทำให้ footer/ที่อยู่บริษัทหายไป เพราะ canvas ถูกตัดที่ความสูงซึ่งวัดไว้ไม่ครบ
+  function _jpdfWait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  function _jpdfWithTimeout(promise, ms, msg){
+    return Promise.race([
+      promise,
+      new Promise(function(_, rej){ setTimeout(function(){ rej(new Error(msg || 'หมดเวลาดำเนินการสร้าง PDF')); }, ms); })
+    ]);
+  }
+  try{ if(document.fonts&&document.fonts.ready) await _jpdfWithTimeout(document.fonts.ready, 4000, 'โหลดฟอนต์ไม่สำเร็จ'); }catch(e){}
+  try{ await _jpdfWithTimeout(document.fonts.load('400 13px Sarabun'), 4000, 'โหลดฟอนต์ไม่สำเร็จ'); }catch(e){}
+  try{ await _jpdfWithTimeout(document.fonts.load('700 13px Sarabun'), 4000, 'โหลดฟอนต์ไม่สำเร็จ'); }catch(e){}
+  await _jpdfWait(60);
 
-  // วัด actual scrollHeight หลังเนื้อหา render แล้ว
-  var actualH = clone.scrollHeight || clone.offsetHeight || A4H;
-  // ใช้ height จริง (ไม่บังคับ A4H) เพื่อกันที่ว่างด้านล่าง
-  // แต่ต้องอย่าน้อยกว่า min ที่สมเหตุสมผล
-  var renderH = Math.max(actualH, 400);
+  // วัด actual scrollHeight หลังเนื้อหา render แล้ว — วัดซ้ำอีกครั้งหลังหน่วงเวลาเล็กน้อยเพื่อให้ layout
+  // นิ่งจริง (โดยเฉพาะบนมือถือที่ reflow อาจช้ากว่าเดสก์ท็อป) แล้วเผื่อ buffer กันปัดเศษตัด footer ทิ้ง
+  var actualH = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4H;
+  await _jpdfWait(60);
+  actualH = Math.max(actualH, clone.scrollHeight || 0, clone.offsetHeight || 0);
+  // ใช้ height จริง (ไม่บังคับ A4H) เพื่อกันที่ว่างด้านล่าง แต่เผื่อ buffer 8px กัน footer โดนตัด
+  var renderH = Math.max(actualH + 8, 400);
 
-  // ── 6. html2canvas ด้วย height จริง ──
-  var canvas=await html2canvas(clone,{
+  // ── 6. html2canvas ด้วย height จริง (ครอบ timeout กันค้างถ้าแท็บถูกพักทำงาน) ──
+  var canvas = await _jpdfWithTimeout(html2canvas(clone,{
     scale:2,useCORS:true,letterRendering:true,
     backgroundColor:'#ffffff',
     width:A4W,height:renderH,
     windowWidth:A4W,windowHeight:renderH,
     scrollX:0,scrollY:0
-  });
+  }), 25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา)');
 
   // cleanup
   document.body.removeChild(exportHost);
   document.body.removeChild(host);
 
-  // ── 7. → jsPDF: scale canvas ให้พอดีกับ A4 (width-fit, ไม่ยืด) ──
+  // ── 7. → jsPDF: scale canvas ให้พอดีกับ A4 ──
   var pdf=new J({unit:'mm',format:'a4',orientation:'portrait',compress:true});
   var pw=pdf.internal.pageSize.getWidth();   // 210 mm
   var ph=pdf.internal.pageSize.getHeight();  // 297 mm
-  // canvas width = A4W*2 (scale:2), canvas height = renderH*2
-  // fit by width → iw=210mm, ih ตามสัดส่วน
+  var imgData = canvas.toDataURL('image/jpeg',0.95);
+  // canvas width = A4W*2 (scale:2), canvas height = renderH*2 → คำนวณความสูงทั้งหมดถ้าวาดเต็มความกว้างหน้า
   var scaleRatio = pw / (A4W * 2); // mm per pixel
-  var iw = pw;
-  var ih = canvas.height * scaleRatio;
-  // ถ้า ih > ph ให้ fit by height แทน (เนื้อหายาวกว่า A4)
-  if(ih > ph){ scaleRatio = ph / (renderH*2); iw = canvas.width*scaleRatio; ih = ph; }
-  pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,iw,ih);
+  var totalImgH = canvas.height * scaleRatio;
+  if (totalImgH <= ph + 0.5) {
+    // เนื้อหาพอดีหรือสั้นกว่า 1 หน้า → ดึงภาพให้เต็มความสูงหน้า A4 พอดี (ph) กันไม่ให้เหลือที่ว่างด้านล่าง
+    pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
+  } else {
+    // เนื้อหายาวเกิน 1 หน้า → ตัดเป็นหลายหน้าแบบเดียวกับ exportPDF ใน form.html (ไม่บีบให้เล็กจนอ่านไม่ออก)
+    var renderedH = 0, pageNum = 0;
+    while (renderedH < totalImgH - 0.5) {
+      if (pageNum > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, -renderedH, pw, totalImgH);
+      renderedH += ph;
+      pageNum++;
+      if (pageNum > 10) break; // กันลูปไม่รู้จบในกรณีผิดปกติ
+    }
+  }
   return pdf.output('arraybuffer');
 }
 

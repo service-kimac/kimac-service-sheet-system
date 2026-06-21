@@ -877,18 +877,41 @@ async function exportPDF(){
     var dateStr = dt ? dt.replace(/-/g,'') : '';
     var pdfName = 'SERVICE_SHEET' + (co?'_'+co:'') + (dateStr?'_'+dateStr:'') + '.pdf';
     // รอให้ฟอนต์ Sarabun โหลดเสร็จก่อนวาดภาพ ไม่งั้น html2canvas จะวาดด้วย metric ผิดทำให้ตัวอักษรไทยซ้อนกัน
-    try { if (document.fonts && document.fonts.ready) { await document.fonts.ready; await document.fonts.load('400 13px Sarabun'); await document.fonts.load('700 13px Sarabun'); } } catch(e){}
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    // สำคัญมาก (แก้บั๊กค้าง about:blank บน iPad): ใช้ setTimeout แทน requestAnimationFrame ในการหน่วงรอ
+    // เพราะ rAF จะ "หยุดยิง" ไปเลยถ้าแท็บนี้กลายเป็น background tab — ซึ่งเกิดขึ้นได้ง่ายมากบน iPadOS Safari
+    // เพราะโค้ดด้านบนเปิดแท็บเปล่าใหม่ (_preOpenedWin) ไว้รอ ทำให้ระบบสลับโฟกัสไปแท็บใหม่นั้นทันที
+    // แท็บเดิม (ที่กำลังรันฟังก์ชันนี้อยู่) จึงกลายเป็นพื้นหลัง ถ้ายังใช้ rAF อยู่ ฟังก์ชันจะค้างรอ frame
+    // ที่ไม่มีวันมาถึงตลอดไป ทำให้แท็บเปล่าที่เปิดไว้ค้างที่ about:blank ตลอดกาลแบบไม่มี error ใดๆ
+    // ส่วน setTimeout ยังคงทำงานต่อได้แม้แท็บจะเป็น background (อาจถูกหน่วงเพิ่มเล็กน้อยแต่ยังยิงแน่นอน)
+    function _pdfWait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+    function _pdfWithTimeout(promise, ms, msg){
+      return Promise.race([
+        promise,
+        new Promise(function(_, rej){ setTimeout(function(){ rej(new Error(msg || 'หมดเวลาดำเนินการสร้าง PDF กรุณาลองใหม่')); }, ms); })
+      ]);
+    }
+    try {
+      if (document.fonts && document.fonts.ready) {
+        await _pdfWithTimeout(document.fonts.ready, 4000, 'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
+        await _pdfWithTimeout(document.fonts.load('400 13px Sarabun'), 4000, 'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
+        await _pdfWithTimeout(document.fonts.load('700 13px Sarabun'), 4000, 'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
+      }
+    } catch(e){}
+    await _pdfWait(60);
     try {
       var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (window.html2canvas && J) {
         // วัด actual height หลัง render (กัน gap ใต้ลายเซ็น)
-        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        await _pdfWait(60);
         // หมายเหตุสำคัญ (แก้รอบนี้จริง): เลิกคำนวณ height/windowHeight เองแล้ว เพราะการคำนวณเองหลายรอบที่ผ่านมา
         // ทำให้พลาดทั้งสองทาง (ตัด footer ออกบ้าง / เผื่อ margin เกินจนเกิดหน้าเปล่าที่ 2 บ้าง)
         // ปล่อยให้ html2canvas ตรวจจับความสูงเนื้อหาเองจากธรรมชาติของ DOM โดยไม่ระบุ height/windowHeight เลย
         // ซึ่งเป็นวิธีที่น่าเชื่อถือที่สุดและเป็นค่ามาตรฐานของไลบรารี
-        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, windowWidth: A4_W_PX, scrollX: 0, scrollY: 0 });
+        // ครอบด้วย timeout กันกรณี html2canvas ค้าง (เช่นรูปภาพโหลดไม่เสร็จ) ไม่ให้แท็บเปล่าค้างตลอดไป
+        const canvas = await _pdfWithTimeout(
+          html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, windowWidth: A4_W_PX, scrollX: 0, scrollY: 0 }),
+          25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
+        );
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
@@ -900,8 +923,9 @@ async function exportPDF(){
         const scaleRatio = pw / (A4_W_PX * 2);
         const totalImgH = canvas.height * scaleRatio; // ความสูงทั้งหมดของภาพ ถ้าวาดเต็มความกว้างหน้า
         if (totalImgH <= ph + 0.5) {
-          // เนื้อหาพอดีหน้าเดียว (กรณีปกติส่วนใหญ่)
-          pdf.addImage(imgData, 'JPEG', 0, 0, pw, totalImgH);
+          // เนื้อหาพอดีหรือสั้นกว่า 1 หน้า → ดึงภาพให้เต็มความสูงหน้า A4 พอดี (ph) แทนที่จะปล่อยตามสัดส่วนจริง
+          // เพื่อไม่ให้เหลือพื้นที่ว่างด้านล่างหน้ากระดาษ
+          pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
         } else {
           // เนื้อหายาวเกิน 1 หน้า → ตัดเป็นหลายหน้า โดยแต่ละหน้าขยับภาพขึ้นทีละความสูงหนึ่งหน้า (เหมือนเลื่อนหน้าต่างมองภาพยาว)
           let renderedH = 0;
