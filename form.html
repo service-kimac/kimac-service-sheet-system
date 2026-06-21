@@ -86,7 +86,7 @@
 /* ── TOPBAR ── */
 .topbar-c {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  background: linear-gradient(135deg,#0e1c36 0%,#427aa1 100%);
+  background: #1a1a2e;
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
@@ -203,7 +203,7 @@
 .other-input.show { display: inline-block; }
 
 /* section titles */
-.section-title { background: #427aa1; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
+.section-title { background: #1a1a2e; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
 
 /* form rows & fields */
 .form-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; flex-wrap: wrap; }
@@ -817,6 +817,39 @@ async function exportPDF(){
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
 
+    // หมายเหตุ (พบสาเหตุจริงของปัญหาเนื้อหาล้นไปหน้า 2 แบบเกือบว่างเปล่า / ที่อยู่ท้ายฟอร์มหาย):
+    // html2canvas จับภาพ clone โดยใช้ขนาดตัวอักษร/padding แบบหน้าจอปกติ (เช่น input 13px, ตาราง 12px)
+    // ไม่ใช่ขนาดแบบ @media print ที่ออกแบบมาให้พอดี 1 หน้า A4 พอดี (input 9pt, ตาราง 8.5pt ฯลฯ)
+    // ผลต่างขนาดเล็กๆ นี้สะสมรวมกันหลายสิบจุดทั่วฟอร์ม ทำให้ความสูงรวมเกินหน้า A4 ไปเล็กน้อย ระบบเลย
+    // ตัดแบ่งเป็นหน้า 2 ทั้งที่จริงควรพอดีหน้าเดียว ส่วนที่ล้นไปหน้า 2 ก็มักจะเป็นแค่ footer ชิ้นเดียว
+    // ดูว่างเปล่า → แก้โดยใส่ขนาดแบบ print (กระชับ) ทับเฉพาะตอน capture เพื่อให้ความสูงตรงกับที่ออกแบบไว้จริง
+    var exportCompactStyle = document.createElement('style');
+    exportCompactStyle.id = 'pdfExportCompactStyle';
+    exportCompactStyle.textContent =
+      '#pdfExportHost .header{margin-bottom:3px!important;padding-bottom:3px!important}'+
+      '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
+      '#pdfExportHost .header-spacer{width:75px!important}'+
+      '#pdfExportHost .header-center h1{font-size:18px!important}'+
+      '#pdfExportHost .section-title{font-size:9pt!important;padding:2px 6px!important;margin-top:4px!important;margin-bottom:2px!important}'+
+      '#pdfExportHost .form-row{margin-bottom:2px!important;gap:4px!important}'+
+      '#pdfExportHost .field label{font-size:8.5pt!important}'+
+      '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:9pt!important}'+
+      '#pdfExportHost .service-type-bar{padding:2px 6px!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .status-row{gap:6px!important;margin-bottom:2px!important}'+
+      '#pdfExportHost .status-block{padding:2px 6px!important;font-size:8.5pt!important}'+
+      '#pdfExportHost .radio-group{font-size:8.5pt!important;gap:8px!important}'+
+      '#pdfExportHost .parts-table{font-size:8.5pt!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .parts-table th{font-size:8pt!important;padding:2px 3px!important}'+
+      '#pdfExportHost .parts-table td{padding:2px 3px!important}'+
+      '#pdfExportHost .sig-section{margin-top:4px!important;margin-bottom:4px!important;gap:8px!important}'+
+      '#pdfExportHost .sig-box{padding:4px 8px 6px!important}'+
+      '#pdfExportHost .sig-box .sig-title{font-size:10pt!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .sig-preview-wrap{height:68px!important}'+
+      '#pdfExportHost .sig-meta{font-size:8pt!important;margin-top:2px!important}'+
+      '#pdfExportHost .footer{font-size:8.5pt!important;padding-top:3px!important;margin-top:3px!important}'+
+      '#pdfExportHost .footer .company-name{font-size:10pt!important}';
+    document.head.appendChild(exportCompactStyle);
+
     const exportOverlay = document.createElement('div');
     exportOverlay.id = 'pdfExportOverlay';
     exportOverlay.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#0e1c36;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
@@ -858,6 +891,7 @@ async function exportPDF(){
       if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
       if (exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
       if (exportOverlay.parentNode) exportOverlay.parentNode.removeChild(exportOverlay);
+      if (exportCompactStyle.parentNode) exportCompactStyle.parentNode.removeChild(exportCompactStyle);
       document.querySelectorAll('.sig-trigger-btn').forEach(b => { const t=b.id.replace('SigBtn',''); const img=document.getElementById(t+'SigImg'); if(!img.src||img.style.display==='none')b.style.display='flex'; });
       document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'inline-block');
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
@@ -893,20 +927,49 @@ async function exportPDF(){
     try {
       var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (window.html2canvas && J) {
+        // ตรวจว่า canvas ที่ได้ "ว่างเปล่าจริงๆ" หรือไม่ (สุ่มอ่านค่าสีหลายจุดทั่วภาพ) ไม่ใช่แค่เช็คขนาด —
+        // เพราะปัญหาที่เจอบนไอแพดคือได้ canvas ขนาดถูกต้องแต่เนื้อหาในภาพเป็นพื้นขาวล้วน (วาดไม่ทันจริง)
+        function _canvasLooksBlank(cv){
+          try{
+            var ctx = cv.getContext('2d');
+            var cols = 12, rows = 16;
+            for (var r = 0; r < rows; r++){
+              for (var c = 0; c < cols; c++){
+                var x = Math.floor((c + 0.5) * cv.width / cols);
+                var y = Math.floor((r + 0.5) * cv.height / rows);
+                var d = ctx.getImageData(x, y, 1, 1).data;
+                if (d[0] < 250 || d[1] < 250 || d[2] < 250) return false; // เจอจุดที่ไม่ใช่สีขาวล้วน แปลว่ามีเนื้อหาจริง
+              }
+            }
+            return true; // ทุกจุดที่สุ่มมาเป็นสีขาวล้วนหมด ถือว่าว่างเปล่าผิดปกติ
+          } catch(e){ return false; } // อ่านค่าสีไม่ได้ (เช่น browser จำกัดสิทธิ์) ไม่ถือว่าว่างเปล่า กัน false positive
+        }
         // วัด actual height หลัง render ให้ชัดเจนด้วยตัวเอง (แทนที่จะปล่อยให้ html2canvas เดาเอง) แล้ววัดซ้ำ
         // อีกครั้งหลังหน่วงเวลาเล็กน้อยให้ layout นิ่งจริง พร้อมเผื่อ buffer กันปัดเศษตัด footer ทิ้ง —
         // วิธีนี้ตรงไปตรงมาและตรวจสอบได้ ดีกว่าปล่อยให้ library เดาความสูงเอง ซึ่งพลาดมาแล้วทั้งสองทาง
-        await _pdfWait(60);
-        var _measH1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
-        await _pdfWait(60);
-        var _measH = Math.max(_measH1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
-        const canvas = await _pdfWithTimeout(
-          html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _measH, windowWidth: A4_W_PX, windowHeight: _measH, scrollX: 0, scrollY: 0 }),
-          25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
-        );
+        async function _captureFormCanvas(){
+          await _pdfWait(60);
+          var _h1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
+          await _pdfWait(60);
+          var _h = Math.max(_h1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
+          return await _pdfWithTimeout(
+            html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0 }),
+            25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
+          );
+        }
+        var canvas = await _captureFormCanvas();
+        if (canvas && canvas.width >= 10 && canvas.height >= 10 && _canvasLooksBlank(canvas)) {
+          // เจอภาพว่างเปล่าผิดปกติรอบแรก (เช่น เบราว์เซอร์วาดเนื้อหาไม่ทันจริง) → รอนานขึ้นแล้วลองจับภาพซ้ำอีกครั้ง
+          // ก่อนยอมแพ้ แทนที่จะปล่อยให้ PDF ว่างเปล่าหลุดออกไปแบบเงียบๆ เหมือนที่ผ่านมา
+          await _pdfWait(500);
+          canvas = await _captureFormCanvas();
+        }
         // ตรวจสอบว่า canvas ที่ได้ไม่ใช่ภาพว่างเปล่าผิดปกติ (กันกรณี render ล้มเหลวแบบเงียบๆ แล้วได้ PDF ขาวเปล่า)
         if (!canvas || canvas.width < 10 || canvas.height < 10) {
           throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
+        }
+        if (_canvasLooksBlank(canvas)) {
+          throw new Error('สร้าง PDF ไม่สำเร็จ (เนื้อหาว่างเปล่าผิดปกติ) กรุณาลองใหม่อีกครั้ง หากเกิดซ้ำอีกแจ้งผมได้เลย');
         }
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         if (!imgData || imgData.length < 1000) {
