@@ -806,15 +806,22 @@ async function exportPDF(){
 
     const exportHost = document.createElement('div');
     exportHost.id = 'pdfExportHost';
-    // หมายเหตุสำคัญ: ห้ามใช้ position:fixed ร่วมกับ left ติดลบมากๆ, ห้ามใช้ z-index:-1, และห้ามใช้ opacity ต่ำมากๆ
-    // ร่วมกับ container ที่มีขนาด 0x0 เพราะ Safari/WebKit (มือถือและ iPad) อาจมองว่า element เหล่านี้ไม่ต้อง paint
-    // แล้วทำให้ html2canvas ได้ canvas ว่างเปล่า (เจอทั้งบน iPhone Safari และ iPad Safari)
-    // ใช้วิธีที่ปลอดภัยที่สุด: วาง element แบบทึบแสงเต็มที่ (opacity:1) ในเอกสารปกติ (ไม่ใช้ width/height:0)
-    // แต่ดันออกนอกจอด้านล่างไกลพอที่ผู้ใช้จะไม่เห็น โดยที่ตัว container ครอบยังมีขนาดจริง (ไม่ใช่ 0x0)
-    // แล้วใช้ overflow:hidden ที่ตัว body เป็นตัวกันไม่ให้ scroll ลงไปเห็น (body มี overflow-x:hidden อยู่แล้ว แต่แนวตั้งปล่อยให้ scroll ได้ตามปกติ ไม่กระทบ)
-    exportHost.style.cssText = 'position:absolute;left:0;top:100000px;width:'+A4_W_PX+'px;background:#ffffff;z-index:1;opacity:1;visibility:visible;pointer-events:none;';
+    // วิธีนี้แก้ปัญหา PDF ว่างเปล่าบน iPad ที่ยังไม่หายแม้ลองซ่อนด้วยวิธีต่างๆ มาแล้วหลายรอบ
+    // (position:fixed นอกจอ, opacity ต่ำ, ดันลงไปไกลด้านล่าง) สุดท้ายใช้วิธีตรงไปตรงมาที่สุด:
+    // วาง element ไว้ในตำแหน่งจริงที่มองเห็นได้ปกติ (top:0;left:0) ซึ่งรับประกันว่าทุกเบราว์เซอร์
+    // จะ paint ตามปกติแน่นอน แล้วใช้ overlay ทึบปิดทับไว้ระหว่างสร้างภาพแทน ผู้ใช้จะเห็นแค่หน้าจอ
+    // "กำลังสร้าง PDF" ไม่เห็นฟอร์มกระพริบ
+    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
+
+    const exportOverlay = document.createElement('div');
+    exportOverlay.id = 'pdfExportOverlay';
+    exportOverlay.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#0e1c36;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
+    exportOverlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.25);border-top-color:#ffd151;border-radius:50%;animation:pdfSpin .8s linear infinite"></div>'
+      + '<div style="color:#fff;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div>'
+      + '<style>@keyframes pdfSpin{to{transform:rotate(360deg)}}</style>';
+    document.body.appendChild(exportOverlay);
 
     const srcEls = original.querySelectorAll('input, textarea, select');
     const dstEls = clone.querySelectorAll('input, textarea, select');
@@ -848,6 +855,7 @@ async function exportPDF(){
     function cleanup2(){
       if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
       if (exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
+      if (exportOverlay.parentNode) exportOverlay.parentNode.removeChild(exportOverlay);
       document.querySelectorAll('.sig-trigger-btn').forEach(b => { const t=b.id.replace('SigBtn',''); const img=document.getElementById(t+'SigImg'); if(!img.src||img.style.display==='none')b.style.display='flex'; });
       document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'inline-block');
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
