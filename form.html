@@ -735,14 +735,6 @@ function thaiBreakable(text){
 async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
-  // ตรวจสอบ iOS/iPadOS (iPadOS รายงาน UA แบบ Mac เป็นค่าเริ่มต้น จึงต้องเช็ค MacIntel + touch ด้วย)
-  var _isIOSEarly = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  // หมายเหตุ (แก้บั๊กค้างที่ about:blank จริงรอบนี้): ของเดิมเปิดแท็บเปล่าไว้ล่วงหน้าด้วย window.open()
-  // แล้วค่อยตั้งค่า location ของแท็บนั้นทีหลังตอนสร้าง PDF เสร็จ — วิธีนี้เปราะบาง เพราะ reference ไปยัง
-  // แท็บที่เปิดไว้อาจหลุด/ถูกปิด/ถูกบล็อกได้หลายทาง และถ้าเกิดปัญหาระหว่างทางจะไม่มีทางรู้เลย เหลือแท็บ
-  // เปล่าค้างอยู่แบบนั้น → ตัดวิธีเปิดแท็บใหม่ทิ้งไปเลย ใช้วิธี navigate แท็บปัจจุบันไปที่ไฟล์ PDF โดยตรง
-  // แทน (ดูจุดสร้าง PDF ด้านล่าง) ซึ่งไม่ต้องพึ่ง window reference ใดๆ และไม่มีโอกาสโดน popup blocker เลย
   try{
     if(!CJ_READONLY){
       var saved=await saveCloud();
@@ -901,18 +893,25 @@ async function exportPDF(){
     try {
       var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (window.html2canvas && J) {
-        // วัด actual height หลัง render (กัน gap ใต้ลายเซ็น)
+        // วัด actual height หลัง render ให้ชัดเจนด้วยตัวเอง (แทนที่จะปล่อยให้ html2canvas เดาเอง) แล้ววัดซ้ำ
+        // อีกครั้งหลังหน่วงเวลาเล็กน้อยให้ layout นิ่งจริง พร้อมเผื่อ buffer กันปัดเศษตัด footer ทิ้ง —
+        // วิธีนี้ตรงไปตรงมาและตรวจสอบได้ ดีกว่าปล่อยให้ library เดาความสูงเอง ซึ่งพลาดมาแล้วทั้งสองทาง
         await _pdfWait(60);
-        // หมายเหตุสำคัญ (แก้รอบนี้จริง): เลิกคำนวณ height/windowHeight เองแล้ว เพราะการคำนวณเองหลายรอบที่ผ่านมา
-        // ทำให้พลาดทั้งสองทาง (ตัด footer ออกบ้าง / เผื่อ margin เกินจนเกิดหน้าเปล่าที่ 2 บ้าง)
-        // ปล่อยให้ html2canvas ตรวจจับความสูงเนื้อหาเองจากธรรมชาติของ DOM โดยไม่ระบุ height/windowHeight เลย
-        // ซึ่งเป็นวิธีที่น่าเชื่อถือที่สุดและเป็นค่ามาตรฐานของไลบรารี
-        // ครอบด้วย timeout กันกรณี html2canvas ค้าง (เช่นรูปภาพโหลดไม่เสร็จ) ไม่ให้แท็บเปล่าค้างตลอดไป
+        var _measH1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
+        await _pdfWait(60);
+        var _measH = Math.max(_measH1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
         const canvas = await _pdfWithTimeout(
-          html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, windowWidth: A4_W_PX, scrollX: 0, scrollY: 0 }),
+          html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _measH, windowWidth: A4_W_PX, windowHeight: _measH, scrollX: 0, scrollY: 0 }),
           25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
         );
+        // ตรวจสอบว่า canvas ที่ได้ไม่ใช่ภาพว่างเปล่าผิดปกติ (กันกรณี render ล้มเหลวแบบเงียบๆ แล้วได้ PDF ขาวเปล่า)
+        if (!canvas || canvas.width < 10 || canvas.height < 10) {
+          throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
+        }
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        if (!imgData || imgData.length < 1000) {
+          throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ข้อมูลภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
+        }
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
@@ -938,19 +937,12 @@ async function exportPDF(){
             if (pageNum > 10) break; // กันลูปไม่รู้จบในกรณีผิดปกติ
           }
         }
-        // iOS Safari (รวม iPadOS ซึ่งรายงาน UA แบบ Mac แต่ใช้ WebKit เดียวกัน) มีปัญหารู้จักกันดีกับ
-        // pdf.save() ที่ใช้วิธีสร้าง blob URL แล้วจำลองคลิกลิงก์ดาวน์โหลด — บนเครื่อง iOS/iPadOS มักเปิดเป็น
-        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง แก้โดย navigate แท็บปัจจุบันไปที่ blob URL ตรงๆ แทน
-        // (ไม่เปิดแท็บใหม่อีกต่อไป) Safari จะรู้จัก mime type PDF แล้วเปิดตัวอ่าน PDF ในตัวให้ทันที
-        // ผู้ใช้กดปุ่มแชร์/บันทึกจากตรงนั้นได้เลย วิธีนี้ไม่มีทางโดน popup blocker เพราะไม่ได้เปิดหน้าต่างใหม่
-        var _isIOS = _isIOSEarly;
-        if (_isIOS) {
-          var _pdfBlob = pdf.output('blob');
-          var _pdfBlobUrl = URL.createObjectURL(_pdfBlob);
-          window.location.href = _pdfBlobUrl;
-        } else {
-          pdf.save(pdfName);
-        }
+        // หมายเหตุ (เปลี่ยนกลับรอบนี้): เลิกใช้วิธี navigate ไปที่ blob URL เองสำหรับ iOS แล้ว เพราะพิสูจน์
+        // ไม่ได้ว่าได้ผลจริงและกลับกลายเป็นได้หน้าขาวเปล่าแทน → ใช้ pdf.save() มาตรฐานของ jsPDF เหมือนกัน
+        // ทุกแพลตฟอร์ม เพราะเป็นโค้ดเส้นทางที่ผ่านการทดสอบจริงมาแล้วมากที่สุด ลดความเสี่ยงจากโค้ดเฉพาะกิจ
+        // ที่ยังไม่ได้พิสูจน์ผล คืนค่า UI ฟอร์มกลับมาก่อน (cleanup2) แล้วค่อยสั่งบันทึกไฟล์ทีหลังสุด
+        cleanup2();
+        pdf.save(pdfName);
       } else {
         await html2pdf().set({
           margin: 0,
@@ -960,12 +952,12 @@ async function exportPDF(){
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
           pagebreak: { mode: ['avoid-all'] }
         }).from(clone).save();
+        cleanup2();
       }
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
     } catch (err) {
       console.error('PDF export error:', err);
       toastF('❌ '+err.message,'err');
-    } finally {
       cleanup2();
     }
   } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); }
