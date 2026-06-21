@@ -916,14 +916,16 @@ async function exportPDF(){
         }
         // iOS Safari (รวม iPadOS ซึ่งรายงาน UA แบบ Mac แต่ใช้ WebKit เดียวกัน) มีปัญหารู้จักกันดีกับ
         // pdf.save() ที่ใช้วิธีสร้าง blob URL แล้วจำลองคลิกลิงก์ดาวน์โหลด — บนเครื่อง iOS/iPadOS มักเปิดเป็น
-        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง (ไม่เกี่ยวกับว่า canvas ที่ render มาว่างเปล่าหรือไม่)
-        // แก้โดยเช็ค platform แล้วใช้วิธีเปิด PDF เป็น data URI ในแท็บใหม่แทน ซึ่งเป็นวิธีมาตรฐานที่ใช้ได้กับ
-        // ตัวแสดงผล PDF ในตัวของ Safari บน iOS/iPadOS
+        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง
+        // หมายเหตุสำคัญ (รอบนี้แก้จริง): ห้ามใช้ data: URI แบบ string ยาวๆ กับ location.href บน iOS เพราะ
+        // ไฟล์ PDF หลายหน้าจะมีขนาด string เป็น MB และ Safari จะ navigate ไม่สำเร็จแบบเงียบๆ (ค้างที่ about:blank
+        // โดยไม่มี error ใดๆ เลย) ต้องใช้ Blob + URL.createObjectURL() แทน ซึ่งได้ URL สั้นๆ ไม่จำกัดด้วยขนาดไฟล์
         var _isIOS = _isIOSEarly;
         if (_isIOS) {
-          var _pdfDataUri = pdf.output('datauristring');
+          var _pdfBlob = pdf.output('blob');
+          var _pdfBlobUrl = URL.createObjectURL(_pdfBlob);
           if (_preOpenedWin) {
-            _preOpenedWin.location.href = _pdfDataUri;
+            _preOpenedWin.location.href = _pdfBlobUrl;
           } else {
             // popup ถูกบล็อก → fallback ไปวิธีเดิม
             pdf.save(pdfName);
