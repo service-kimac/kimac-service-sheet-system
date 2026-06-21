@@ -733,6 +733,7 @@ function thaiBreakable(text){
 }
 
 async function exportPDF(){
+  window.scrollTo(0, 0);
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
   try{
@@ -813,7 +814,12 @@ async function exportPDF(){
     // วาง element ไว้ในตำแหน่งจริงที่มองเห็นได้ปกติ (top:0;left:0) ซึ่งรับประกันว่าทุกเบราว์เซอร์
     // จะ paint ตามปกติแน่นอน แล้วใช้ overlay ทึบปิดทับไว้ระหว่างสร้างภาพแทน ผู้ใช้จะเห็นแค่หน้าจอ
     // "กำลังสร้าง PDF" ไม่เห็นฟอร์มกระพริบ
-    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
+    // หมายเหตุ: เปลี่ยนจาก position:fixed เป็น position:absolute เพื่อเลี่ยงพฤติกรรมแปลกๆ ของ WebKit
+    // กับ position:fixed ตอน html2canvas เดิน DOM (ทำ scrollTo(0,0) ไว้ด้านบนของฟังก์ชันแล้วเพื่อให้
+    // top:0;left:0 ตรงกับขอบบนจอจริง) — แต่ "ไม่" ย้ายออกนอกจอหรือใช้ z-index ติดลบเหมือนที่เคยลองมาก่อน
+    // เพราะจุดนั้นเป็นสาเหตุที่ยืนยันแล้วว่าทำให้ภาพว่างเปล่าบนไอแพด (ดูไฟล์เก่าที่เคยใช้ left:-10000px)
+    // ยังคงให้อยู่ในตำแหน่งจริงที่มองเห็นได้ปกติ แล้วซ่อนด้วย overlay ทึบที่ z-index สูงกว่าแทน
+    exportHost.style.cssText = 'position:absolute;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
 
@@ -952,8 +958,13 @@ async function exportPDF(){
           var _h1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
           await _pdfWait(60);
           var _h = Math.max(_h1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
+          // ใช้ scale ต่ำกว่าบน iOS/iPadOS เพื่อลดขนาด canvas ที่ต้องสร้าง (ลดภาระหน่วยความจำ/ขนาด texture)
+          // ซึ่งเป็นสาเหตุหนึ่งที่ทำให้ WebKit คืน canvas ว่างเปล่าแบบเงียบๆ เมื่อภาพที่ขอใหญ่เกินไป
+          var _isIOSNow = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          var _renderScale = _isIOSNow ? 1.5 : 2;
           return await _pdfWithTimeout(
-            html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0 }),
+            html2canvas(clone, { scale: _renderScale, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0 }),
             25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
           );
         }
@@ -982,7 +993,7 @@ async function exportPDF(){
         // ไม่บีบอัดให้พอดีหน้าเดียวอีกต่อไป เพราะถ้าเนื้อหายาวเกิน 1 หน้า A4 (ที่อยู่ลูกค้ายาว/รายการอะไหล่เยอะ/รายละเอียดเครื่องยาว)
         // การบีบทั้งภาพให้พอดีหน้าเดียวจะทำให้ส่วนท้ายสุด (เช่น ที่อยู่บริษัทใน footer) เสี่ยงโดนตัดหรือเนื้อหาเล็กจนอ่านไม่ออก
         // แก้โดยตัดภาพเป็นหลายหน้า A4 แทน ถ้าเนื้อหายาวกว่า 1 หน้า
-        const scaleRatio = pw / (A4_W_PX * 2);
+        const scaleRatio = pw / canvas.width; // คำนวณจาก canvas.width จริง ไม่ assume scale ตายตัว (เพราะตอนนี้ scale ต่างกันระหว่าง iOS/อื่นๆ)
         const totalImgH = canvas.height * scaleRatio; // ความสูงทั้งหมดของภาพ ถ้าวาดเต็มความกว้างหน้า
         if (totalImgH <= ph + 0.5) {
           // เนื้อหาพอดีหรือสั้นกว่า 1 หน้า → ดึงภาพให้เต็มความสูงหน้า A4 พอดี (ph) แทนที่จะปล่อยตามสัดส่วนจริง
