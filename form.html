@@ -735,15 +735,18 @@ function thaiBreakable(text){
 async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
-  // เปิดหน้าต่างเปล่าไว้ก่อนทันที (ขณะยังอยู่ใน user-gesture ของการคลิกปุ่ม) เพื่อกัน Safari บล็อก popup
-  // ถ้าเปิดหลังจากผ่าน await ไปแล้ว Safari จะมองว่าไม่ใช่การคลิกของผู้ใช้โดยตรงแล้วบล็อกทันที
+  // ตรวจสอบ iOS/iPadOS (iPadOS รายงาน UA แบบ Mac เป็นค่าเริ่มต้น จึงต้องเช็ค MacIntel + touch ด้วย)
   var _isIOSEarly = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  var _preOpenedWin = _isIOSEarly ? window.open('', '_blank') : null;
+  // หมายเหตุ (แก้บั๊กค้างที่ about:blank จริงรอบนี้): ของเดิมเปิดแท็บเปล่าไว้ล่วงหน้าด้วย window.open()
+  // แล้วค่อยตั้งค่า location ของแท็บนั้นทีหลังตอนสร้าง PDF เสร็จ — วิธีนี้เปราะบาง เพราะ reference ไปยัง
+  // แท็บที่เปิดไว้อาจหลุด/ถูกปิด/ถูกบล็อกได้หลายทาง และถ้าเกิดปัญหาระหว่างทางจะไม่มีทางรู้เลย เหลือแท็บ
+  // เปล่าค้างอยู่แบบนั้น → ตัดวิธีเปิดแท็บใหม่ทิ้งไปเลย ใช้วิธี navigate แท็บปัจจุบันไปที่ไฟล์ PDF โดยตรง
+  // แทน (ดูจุดสร้าง PDF ด้านล่าง) ซึ่งไม่ต้องพึ่ง window reference ใดๆ และไม่มีโอกาสโดน popup blocker เลย
   try{
     if(!CJ_READONLY){
       var saved=await saveCloud();
-      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}if(_preOpenedWin)_preOpenedWin.close();return;}
+      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}return;}
     }
     if(btn)btn.textContent='⏳ กำลังสร้าง PDF...';
 
@@ -877,12 +880,9 @@ async function exportPDF(){
     var dateStr = dt ? dt.replace(/-/g,'') : '';
     var pdfName = 'SERVICE_SHEET' + (co?'_'+co:'') + (dateStr?'_'+dateStr:'') + '.pdf';
     // รอให้ฟอนต์ Sarabun โหลดเสร็จก่อนวาดภาพ ไม่งั้น html2canvas จะวาดด้วย metric ผิดทำให้ตัวอักษรไทยซ้อนกัน
-    // สำคัญมาก (แก้บั๊กค้าง about:blank บน iPad): ใช้ setTimeout แทน requestAnimationFrame ในการหน่วงรอ
-    // เพราะ rAF จะ "หยุดยิง" ไปเลยถ้าแท็บนี้กลายเป็น background tab — ซึ่งเกิดขึ้นได้ง่ายมากบน iPadOS Safari
-    // เพราะโค้ดด้านบนเปิดแท็บเปล่าใหม่ (_preOpenedWin) ไว้รอ ทำให้ระบบสลับโฟกัสไปแท็บใหม่นั้นทันที
-    // แท็บเดิม (ที่กำลังรันฟังก์ชันนี้อยู่) จึงกลายเป็นพื้นหลัง ถ้ายังใช้ rAF อยู่ ฟังก์ชันจะค้างรอ frame
-    // ที่ไม่มีวันมาถึงตลอดไป ทำให้แท็บเปล่าที่เปิดไว้ค้างที่ about:blank ตลอดกาลแบบไม่มี error ใดๆ
-    // ส่วน setTimeout ยังคงทำงานต่อได้แม้แท็บจะเป็น background (อาจถูกหน่วงเพิ่มเล็กน้อยแต่ยังยิงแน่นอน)
+    // ใช้ setTimeout แทน requestAnimationFrame ในการหน่วงรอ เพราะ rAF จะหยุดยิงถ้าแท็บกลายเป็น background
+    // tab (เช่นผู้ใช้สลับแอประหว่างรอ) ทำให้ฟังก์ชันค้างรอ frame ที่ไม่มีวันมาถึง ส่วน setTimeout ยังทำงาน
+    // ต่อได้แม้แท็บจะเป็น background (อาจถูกหน่วงเพิ่มเล็กน้อยแต่ยังยิงแน่นอน)
     function _pdfWait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
     function _pdfWithTimeout(promise, ms, msg){
       return Promise.race([
@@ -940,20 +940,14 @@ async function exportPDF(){
         }
         // iOS Safari (รวม iPadOS ซึ่งรายงาน UA แบบ Mac แต่ใช้ WebKit เดียวกัน) มีปัญหารู้จักกันดีกับ
         // pdf.save() ที่ใช้วิธีสร้าง blob URL แล้วจำลองคลิกลิงก์ดาวน์โหลด — บนเครื่อง iOS/iPadOS มักเปิดเป็น
-        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง
-        // หมายเหตุสำคัญ (รอบนี้แก้จริง): ห้ามใช้ data: URI แบบ string ยาวๆ กับ location.href บน iOS เพราะ
-        // ไฟล์ PDF หลายหน้าจะมีขนาด string เป็น MB และ Safari จะ navigate ไม่สำเร็จแบบเงียบๆ (ค้างที่ about:blank
-        // โดยไม่มี error ใดๆ เลย) ต้องใช้ Blob + URL.createObjectURL() แทน ซึ่งได้ URL สั้นๆ ไม่จำกัดด้วยขนาดไฟล์
+        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง แก้โดย navigate แท็บปัจจุบันไปที่ blob URL ตรงๆ แทน
+        // (ไม่เปิดแท็บใหม่อีกต่อไป) Safari จะรู้จัก mime type PDF แล้วเปิดตัวอ่าน PDF ในตัวให้ทันที
+        // ผู้ใช้กดปุ่มแชร์/บันทึกจากตรงนั้นได้เลย วิธีนี้ไม่มีทางโดน popup blocker เพราะไม่ได้เปิดหน้าต่างใหม่
         var _isIOS = _isIOSEarly;
         if (_isIOS) {
           var _pdfBlob = pdf.output('blob');
           var _pdfBlobUrl = URL.createObjectURL(_pdfBlob);
-          if (_preOpenedWin) {
-            _preOpenedWin.location.href = _pdfBlobUrl;
-          } else {
-            // popup ถูกบล็อก → fallback ไปวิธีเดิม
-            pdf.save(pdfName);
-          }
+          window.location.href = _pdfBlobUrl;
         } else {
           pdf.save(pdfName);
         }
@@ -971,11 +965,10 @@ async function exportPDF(){
     } catch (err) {
       console.error('PDF export error:', err);
       toastF('❌ '+err.message,'err');
-      if (_preOpenedWin) { try { _preOpenedWin.close(); } catch(e2){} }
     } finally {
       cleanup2();
     }
-  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); if (_preOpenedWin) { try { _preOpenedWin.close(); } catch(e2){} } }
+  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); }
   if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
 }
 </script>

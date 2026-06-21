@@ -950,9 +950,19 @@ async function loadJobs(){
     if(lm && lm.parentNode.children.length <= 1 && rb) rb.style.display='block';
   }, 10000);
   try{
-    const{data,error}=await sb.from('service_jobs').select('*').is('deleted_at',null).order('service_date',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false});
+    // หมายเหตุ (แก้บั๊กจริง): เดิม order by service_date (nullsFirst:false) ทำให้ใบงานที่ยังไม่ได้กรอก
+    // "วันที่บริการ" (เช่นใบงานร่างที่เพิ่งสร้างใหม่) ถูกดันไปอยู่ล่างสุดของลิสต์เสมอ ไม่ว่าจะสร้างเมื่อไหร่
+    // เพราะ Postgres จะเรียง NULL ไว้ท้ายสุดเสมอเมื่อ sort แบบนี้ → ดึงข้อมูลมาเรียงตาม created_at จาก
+    // ฝั่งเซิร์ฟเวอร์ก่อน (ฟิลด์นี้มีค่าเสมอ ไม่มีทาง null) แล้วค่อยจัดเรียงจริงฝั่ง client โดยใช้
+    // service_date เป็นหลัก และ fallback เป็น created_at ถ้ายังไม่ได้กรอกวันที่บริการ
+    const{data,error}=await sb.from('service_jobs').select('*').is('deleted_at',null).order('created_at',{ascending:false});
     if(error){showErr('โหลดใบงานไม่ได้: '+error.message);return;}
-    jobs=data||[];
+    jobs=(data||[]).slice().sort(function(a,b){
+      const da=(a.service_date||(a.created_at||'').slice(0,10)||'');
+      const db=(b.service_date||(b.created_at||'').slice(0,10)||'');
+      if(da!==db)return db<da?-1:1; // เรียงวันที่ใหม่ → เก่า (รูปแบบ YYYY-MM-DD เทียบแบบ string ได้ตรงกับวันที่จริง)
+      return (b.created_at||'')<(a.created_at||'')?-1:1; // วันเดียวกัน → สร้างล่าสุดอยู่บนสุด
+    });
     // Update tech filter
     const sel=document.getElementById('filterTech');
     const existing=[...sel.options].map(o=>o.value).filter(Boolean);
