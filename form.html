@@ -735,10 +735,15 @@ function thaiBreakable(text){
 async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
+  // เปิดหน้าต่างเปล่าไว้ก่อนทันที (ขณะยังอยู่ใน user-gesture ของการคลิกปุ่ม) เพื่อกัน Safari บล็อก popup
+  // ถ้าเปิดหลังจากผ่าน await ไปแล้ว Safari จะมองว่าไม่ใช่การคลิกของผู้ใช้โดยตรงแล้วบล็อกทันที
+  var _isIOSEarly = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var _preOpenedWin = _isIOSEarly ? window.open('', '_blank') : null;
   try{
     if(!CJ_READONLY){
       var saved=await saveCloud();
-      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}return;}
+      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}if(_preOpenedWin)_preOpenedWin.close();return;}
     }
     if(btn)btn.textContent='⏳ กำลังสร้าง PDF...';
 
@@ -901,7 +906,23 @@ async function exportPDF(){
             if (pageNum > 10) break; // กันลูปไม่รู้จบในกรณีผิดปกติ
           }
         }
-        pdf.save(pdfName);
+        // iOS Safari (รวม iPadOS ซึ่งรายงาน UA แบบ Mac แต่ใช้ WebKit เดียวกัน) มีปัญหารู้จักกันดีกับ
+        // pdf.save() ที่ใช้วิธีสร้าง blob URL แล้วจำลองคลิกลิงก์ดาวน์โหลด — บนเครื่อง iOS/iPadOS มักเปิดเป็น
+        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง (ไม่เกี่ยวกับว่า canvas ที่ render มาว่างเปล่าหรือไม่)
+        // แก้โดยเช็ค platform แล้วใช้วิธีเปิด PDF เป็น data URI ในแท็บใหม่แทน ซึ่งเป็นวิธีมาตรฐานที่ใช้ได้กับ
+        // ตัวแสดงผล PDF ในตัวของ Safari บน iOS/iPadOS
+        var _isIOS = _isIOSEarly;
+        if (_isIOS) {
+          var _pdfDataUri = pdf.output('datauristring');
+          if (_preOpenedWin) {
+            _preOpenedWin.location.href = _pdfDataUri;
+          } else {
+            // popup ถูกบล็อก → fallback ไปวิธีเดิม
+            pdf.save(pdfName);
+          }
+        } else {
+          pdf.save(pdfName);
+        }
       } else {
         await html2pdf().set({
           margin: 0,
@@ -916,10 +937,11 @@ async function exportPDF(){
     } catch (err) {
       console.error('PDF export error:', err);
       toastF('❌ '+err.message,'err');
+      if (_preOpenedWin) { try { _preOpenedWin.close(); } catch(e2){} }
     } finally {
       cleanup2();
     }
-  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); }
+  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); if (_preOpenedWin) { try { _preOpenedWin.close(); } catch(e2){} } }
   if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
 }
 </script>
@@ -1183,6 +1205,18 @@ async function saveCloud(){
     var parts=fd.parts;delete fd.parts;
     var jid=CJ;
     var isAdminEdit=CP&&CP.role==='admin';
+    // ดึงสถานะลายเซ็น "ก่อนหน้า" จากฐานข้อมูล ก่อนจะ update ทับ เพื่อเช็คว่าการบันทึกครั้งนี้
+    // เป็นการเปลี่ยนจาก "ยังไม่ครบ" ไปเป็น "ครบทั้งสองฝ่าย" จริงๆ หรือไม่ (กันแจ้งเตือนซ้ำข้ามอุปกรณ์
+    // เพราะอิงจากฐานข้อมูลกลาง ไม่ใช่ localStorage ที่เก็บแยกเครื่อง)
+    var _prevBothSigned = false;
+    if (jid) {
+      try {
+        var _prevRow = await sb.from('service_jobs').select('tech_sig_data,cust_sig_data').eq('id', jid).single();
+        if (_prevRow.data) {
+          _prevBothSigned = !!(_prevRow.data.tech_sig_data && _prevRow.data.cust_sig_data);
+        }
+      } catch(e) { console.warn('fetch prev sig state (optional):', e); }
+    }
     if(jid&&CJTECH){
       fd.technician_id=CJTECH.id;fd.technician_name=CJTECH.name;
     }else{
@@ -1237,9 +1271,8 @@ async function saveCloud(){
     var _jnoBadge = document.getElementById('jnoBadge');
     var _jno = _jnoBadge ? _jnoBadge.textContent : '-';
     var _comp = document.getElementById('companyName') ? document.getElementById('companyName').value : '-';
-    if (_hasTech && _hasCust) {
-      // กันแจ้งเตือนซ้ำ: ส่งแค่ครั้งแรกที่ลายเซ็นครบทั้งสองฝ่ายเท่านั้น
-      // ถ้าบันทึกซ้ำอีกหลังจากนั้น (เช่น แก้รายละเอียดเล็กน้อย) จะไม่เด้งแจ้งเตือนซ้ำอีก
+    if (_hasTech && _hasCust && !_prevBothSigned) {
+      // กันแจ้งเตือนซ้ำชั้นที่ 2 (เผื่อกดบันทึกรัวๆ ในเครื่องเดียวกันจนเช็คสถานะก่อนหน้าไม่ทัน)
       var _sigNotifKey = 'kimac_sig_notified_' + jid;
       var _alreadyNotified = false;
       try { _alreadyNotified = localStorage.getItem(_sigNotifKey) === '1'; } catch(e) {}

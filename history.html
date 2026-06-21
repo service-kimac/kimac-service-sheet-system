@@ -325,10 +325,13 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] [style*="color: #0e1c36"]
 { color:#e2e8f0 !important; }
 /* ข้อยกเว้น: #notifPanel และ #_techDispatchContainer มีพื้นหลังสีขาวของตัวเอง (ไม่อิงกับธีมหน้า)
-   ตัวหนังสือสีกรมท่าเข้มในกล่องเหล่านี้จึงถูกต้องอยู่แล้ว ต้องคืนค่าสีเดิมกลับ (กฎนี้มาทีหลังจึงชนะ) */
+   ตัวหนังสือสีกรมท่าเข้มในกล่องเหล่านี้จึงถูกต้องอยู่แล้ว ต้องคืนค่าสีเดิมกลับ (กฎนี้มาทีหลังจึงชนะ)
+   ครอบคลุมทั้งสองสี #1a3a6e และ #0e1c36 ที่กฎด้านบนจางลงไป (รอบก่อนพลาด #0e1c36 ไป) */
 [data-theme="dark"] #notifPanel [style*="color:#1a3a6e"],
-[data-theme="dark"] #_techDispatchContainer [style*="color:#1a3a6e"]
-{ color:#1a3a6e !important; }
+[data-theme="dark"] #_techDispatchContainer [style*="color:#1a3a6e"],
+[data-theme="dark"] #notifPanel [style*="color:#0e1c36"],
+[data-theme="dark"] #_techDispatchContainer [style*="color:#0e1c36"]
+{ color:#0e1c36 !important; }
 [data-theme="dark"] #mineCount{color:#94a3b8!important}
 /* การ์ดโปรไฟล์บนสุดของหน้าตั้งค่า */
 [data-theme="dark"] .ph{background:#172033;border-color:#2a3650;box-shadow:none}
