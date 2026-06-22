@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=794, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=210mm, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e1c36">
@@ -14,26 +14,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   /* บังคับให้หน้านี้เป็นโหมดสว่างเสมอ ไม่ว่าเครื่องจะตั้งเป็น Dark Mode หรือไม่
-     ป้องกัน iOS Safari ปรับสีพื้นหลัง/ตัวอักษรของ input ให้มืดเอง */
+     ป้องกัน iOS Safari ปรับสีพื้นหลัง/ตัวอักษรของ input ให้มืดเอง (มืดเฉพาะช่องกรอกแต่พื้นหลังหน้ายังขาว
+     ทำให้ตัวหนังสือในบางช่องมองไม่เห็น) เพราะหน้านี้ถูกออกแบบให้เป็นเอกสารโทนสว่างคงที่เสมอ */
   :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  /* ✅ A4 FIXED LOCK: ล็อกฟอร์มเป็น A4 ตายตัวทุกอุปกรณ์ (PC/Notebook/Tablet/iPad/Android/iPhone)
-     - width:794px คงที่ (210mm@96dpi) — ห้าม responsive ปรับตามจอ
-     - overflow-x:auto ให้ scroll แนวนอนแทนการย่อขนาด
-     - -webkit-text-size-adjust:none + text-size-adjust:none กัน iOS/Android ขยาย font อัตโนมัติ
-     - touch-action:pan-x pan-y กัน pinch-zoom บนมือถือ */
+  /* ✅ FIX1: Layout lock — ล็อก A4 ตั้งแต่เปิดหน้าเว็บ
+     html overflow-x:auto + min-width:794px บังคับให้จอที่แคบกว่า 794px
+     ต้อง scroll ซ้าย/ขวาดูฟอร์ม แทนที่จะ reflow ตามจอ
+     -webkit-text-size-adjust:none กันมือถือขยายฟอนต์อัตโนมัติ */
   html {
-    width: 794px;
-    min-width: 794px;
-    max-width: 794px;
+    width: 100%;
+    min-width: 210mm;
     overflow-x: auto;
     -webkit-text-size-adjust: none;
     text-size-adjust: none;
-    -ms-text-size-adjust: none;
-    touch-action: pan-x pan-y;
   }
+  body { overflow-x: auto; }
   body {
+    width: 210mm;
+    min-width: 210mm;
+    max-width: 210mm;
+    margin: 0 auto;
     font-family: 'Sarabun', sans-serif;
     background: #fffaff;
     display: flex;
@@ -41,11 +42,10 @@
     align-items: center;
     padding: 10px 0;
     font-size: 13px;
-    width: 794px;
-    min-width: 794px;
-    max-width: 794px;
+    /* ✅ FIX4: ใช้ overflow:auto แทน overflow:hidden กัน iOS blank page
+       overflow:hidden + height คงที่ทำให้ WebKit ซ่อนเนื้อหาทั้งหมดตอนพิมพ์ */
     overflow-x: auto;
-    touch-action: pan-x pan-y;
+    /* ⚠️ iPad Safari: บังคับพิมพ์สีพื้นหลังและภาพออกมาด้วย (ไม่งั้น background จะหายตอนพิมพ์) */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -72,56 +72,48 @@
   .sig-trigger-btn, .sig-clear-wrap,
   .toast-f { display: none !important; }
 
-  @page {
-    size: 210mm 297mm portrait;
-    margin: 0;
-  }
+  @page { size: 210mm 297mm portrait; margin: 0; }
 
-  /* ✅ PRINT LOCK: ล็อก html/body/page สำหรับพิมพ์ PDF ทุก platform
-     - overflow:visible กัน WebKit iOS ซ่อนเนื้อหา
-     - -webkit-text-size-adjust:none กัน mobile ขยาย font เอง
-     - width คงที่ 210mm = A4 พอดี */
+  /* ✅ FIX2+4: ล็อก html/body สำหรับพิมพ์
+     - ใช้ overflow:visible แทน overflow:hidden กัน iOS Safari blank page
+     - width:210mm + -webkit-text-size-adjust:none กันมือถือขยาย font เอง
+     - ไม่ใช้ height:100vh เพราะคู่กับ overflow:hidden ทำให้ WebKit ซ่อนเนื้อหา */
   html {
     width: 210mm !important;
     min-width: 0 !important;
-    max-width: 210mm !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
     overflow: visible !important;
     -webkit-text-size-adjust: none !important;
     text-size-adjust: none !important;
-    -ms-text-size-adjust: none !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   body {
     width: 210mm !important;
     min-width: 0 !important;
-    max-width: 210mm !important;
     margin: 0 !important;
+    /* ✅ FIX2: reset padding ที่เพิ่มสำหรับ topbar/actbar ออกทั้งหมดตอนพิมพ์ */
     padding: 0 !important;
     background: #fff !important;
     display: block !important;
     overflow: visible !important;
+    /* ✅ FIX2: ล็อก base font-size เป็น px คงที่ กัน mobile browser คำนวณ font ขยาย */
     font-size: 12px !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   .page-wrapper {
     width: 210mm !important;
-    min-width: 0 !important;
     zoom: 1 !important;
     transform: none !important;
     margin: 0 !important;
     padding: 0 !important;
     min-height: 297mm !important;
-    overflow: visible !important;
   }
-  /* ✅ A4 PAGE FILL: เนื้อหาเต็ม 1 หน้า A4 พอดี — ใช้ flex เพื่อกระจายพื้นที่อัตโนมัติ
-     - min-height + max-height = 297mm บังคับ 1 หน้า
-     - display:flex + flex-direction:column ให้ page-inner ยืดเต็ม และ footer ชิดล่าง
-     - padding กระจายสมดุลระหว่างบนและล่าง */
+  /* ✅ FIX4: ลบ overflow:hidden ออกจาก .page เพื่อกัน WebKit iOS ซ่อนเนื้อหาตอนพิมพ์
+     ✅ FIX3: เพิ่ม padding ด้านบน/ล่าง และขยาย min-height ให้เนื้อหาเต็ม A4 พอดี */
   .page {
     width: 210mm !important;
     min-height: 297mm !important;
@@ -130,57 +122,61 @@
     box-shadow: none !important;
     margin: 0 !important;
     border-radius: 0 !important;
-    padding: 8mm 7mm 7mm 7mm !important;
+    /* ✅ FIX3: padding top/bottom เพิ่มขึ้นเพื่อเกลี่ยพื้นที่ให้เต็มหน้า A4 */
+    padding: 7mm 7mm 6mm 7mm !important;
     font-size: 12px !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
     display: flex !important;
     flex-direction: column !important;
   }
-  /* page-inner ยืดเต็มพื้นที่กลางหน้า footer ดันลงล่างสุดด้วย margin-top:auto */
-  .page-inner { flex: 1 !important; overflow: visible !important; }
+  .page-inner { flex: 1 !important; }
+  /* ✅ FIX3: footer ดันลงล่างสุดด้วย margin-top:auto */
   .footer { margin-top: auto !important; }
 
-  /* ── FONT & SPACING LOCK (ทุกค่าเป็น px ล้วน ไม่ใช้ pt กัน mobile คำนวณผิด) ── */
-  .header { margin-bottom: 5px !important; padding-bottom: 4px !important; }
+  /* ── ✅ FIX2: ล็อก font-size ทุกส่วน เป็น px ล้วน (ไม่ใช้ pt)
+     เพื่อกันมือถือ/iPad คำนวณ pt→px ผ่าน browser zoom แล้วได้ตัวใหญ่กว่า PC ── */
+  .header { margin-bottom: 4px !important; padding-bottom: 4px !important; }
   .header-logo { width: 75px !important; height: 55px !important; }
   .header-spacer { width: 75px !important; }
   .header-center h1 { font-size: 20px !important; letter-spacing: 1px !important; }
   .header-center p { font-size: 12px !important; }
 
-  .section-title { font-size: 12px !important; padding: 3px 6px !important; margin-top: 7px !important; margin-bottom: 4px !important; }
+  /* ✅ FIX3: section-title margin เพิ่มขึ้นเล็กน้อยเพื่อเกลี่ยพื้นที่ */
+  .section-title { font-size: 12px !important; padding: 3px 6px !important; margin-top: 6px !important; margin-bottom: 3px !important; }
 
-  .form-row { margin-bottom: 4px !important; gap: 4px !important; }
+  .form-row { margin-bottom: 3px !important; gap: 4px !important; }
   .field { gap: 3px !important; }
   .field label { font-size: 11px !important; }
   .field input, .field select, .field textarea { font-size: 12px !important; padding: 1px 3px !important; }
 
-  .service-type-bar { padding: 3px 6px !important; margin-bottom: 5px !important; font-size: 12px !important; }
+  .service-type-bar { padding: 3px 6px !important; margin-bottom: 4px !important; font-size: 12px !important; }
   .service-type-bar select { font-size: 12px !important; }
 
-  .status-row { gap: 6px !important; margin-bottom: 4px !important; }
+  .status-row { gap: 6px !important; margin-bottom: 3px !important; }
   .status-block { padding: 3px 6px !important; font-size: 11px !important; }
   .status-block label { font-size: 11px !important; }
   .radio-group { font-size: 11px !important; gap: 8px !important; }
   .radio-group label { font-size: 11px !important; }
 
-  .parts-table { font-size: 11px !important; margin-bottom: 5px !important; }
-  .parts-table th { font-size: 11px !important; padding: 3px !important; }
-  .parts-table td { padding: 3px !important; font-size: 11px !important; }
+  .parts-table { font-size: 11px !important; margin-bottom: 4px !important; }
+  .parts-table th { font-size: 11px !important; padding: 3px 3px !important; }
+  .parts-table td { padding: 3px 3px !important; font-size: 11px !important; }
   .parts-table td input { font-size: 11px !important; }
 
-  /* ✅ ส่วนลายเซ็น: เพิ่ม margin เพื่อกระจายพื้นที่ + sig-preview สูงขึ้น */
-  .sig-section { margin-top: 8px !important; margin-bottom: 8px !important; gap: 8px !important; }
+  /* ✅ FIX3: ส่วนลายเซ็นขยาย margin และ sig-preview-wrap สูงขึ้น เพื่อเติมพื้นที่ */
+  .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; }
   .sig-box { padding: 5px 8px 8px !important; }
-  .sig-box .sig-title { font-size: 13px !important; margin-bottom: 5px !important; }
-  .sig-preview-wrap { height: 85px !important; }
+  .sig-box .sig-title { font-size: 13px !important; margin-bottom: 4px !important; }
+  /* ✅ FIX3: เพิ่มความสูง sig-preview-wrap จาก 68px เป็น 80px เพื่อดันเนื้อหาลงมา */
+  .sig-preview-wrap { height: 80px !important; }
   .sig-preview-img { display: block !important; }
-  .sig-meta { font-size: 11px !important; margin-top: 4px !important; }
+  .sig-meta { font-size: 11px !important; margin-top: 3px !important; }
   .sig-meta label { font-size: 11px !important; }
   .sig-meta input { font-size: 11px !important; }
 
-  /* ✅ FOOTER: ดันชิดขอบล่าง A4 อย่างเหมาะสม */
-  .footer { font-size: 11px !important; padding-top: 6px !important; line-height: 1.6 !important; }
+  /* ✅ FIX3: footer padding/margin เพิ่มขึ้นเพื่อดันชิดขอบล่าง A4 */
+  .footer { font-size: 11px !important; padding-top: 5px !important; line-height: 1.6 !important; }
   .footer .company-name { font-size: 13px !important; }
   .footer .contact { font-size: 11px !important; }
 
@@ -202,8 +198,16 @@
 .tc-logo { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0; }
 .tc-title { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; white-space: nowrap; }
 .tc-r { display: flex; align-items: center; gap: 6px; }
-/* ✅ ลบ responsive breakpoint — layout ล็อก A4 ตายตัว ไม่มี responsive */
-/* (ตัด @media max-width:480px สำหรับ topbar ออก เพราะ html/body ล็อกที่ 794px แล้ว) */
+@media (max-width: 480px) {
+  .topbar-c { padding: 7px 10px; padding-top: calc(7px + env(safe-area-inset-top)); }
+  .tc-logo { width: 28px; height: 28px; }
+  .tc-title { font-size: 11px; letter-spacing: 0; }
+  .tc-r { gap: 4px; }
+  .tc-l { gap: 5px; }
+  .jno { font-size: 9px; padding: 3px 6px; }
+  .btn-bk { font-size: 10px; padding: 4px 7px; }
+  .status-select { font-size: 10px !important; padding: 3px 5px !important; }
+}
 .jno { background: rgba(255,209,81,.2); border: 1px solid rgba(255,209,81,.4);
   color: #ffd151; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
 .btn-bk { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
@@ -224,7 +228,9 @@
   cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* ✅ ลบ responsive breakpoint actbar — ล็อก A4 ตายตัว */
+@media (max-width: 360px) {
+  .ab { font-size: 10.5px; padding: 9px 2px; }
+}
 .ab:active { opacity: .8; }
 .ab-hist { background: #e8f4fb; color: #427aa1; }
 .ab-save { background: linear-gradient(135deg,#0e1c36,#427aa1); color: #fff; box-shadow: 0 3px 10px rgba(14,28,54,.3); }
@@ -282,28 +288,22 @@
 .header-spacer { width: 85px; }
 
 /* page wrapper & A4 page */
-/* ใช้ px แทน mm เพราะ Safari iPad อ่าน zoom + mm ได้ผิดพลาด; 210mm @ 96dpi = 794px */
-.page-wrapper {
-  width: 794px;
-  min-width: 794px;
-  max-width: 794px;
-  transform-origin: top center;
-  overflow: visible;
-}
+.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; }
 .page {
-  width: 794px;
-  /* min-height = A4 297mm@96dpi = 1123px (ปรับจาก 1056px เป็น 1123px เพื่อแสดงพื้นที่เต็ม A4 จริง)
-     ใช้ flex เพื่อให้ footer ดันลงล่างสุดเสมอ ไม่มีพื้นที่ว่างเหลือ */
-  min-height: 1123px;
+  width: 210mm;
+  height: 297mm;
+  min-height: 297mm;
+  max-height: 297mm;
   background: #ffffff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  padding: 26px 30px 22px 30px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
+  padding: 8mm 8mm 7mm 8mm; position: relative;
+  display: flex; flex-direction: column;
+  overflow: hidden;
 }
-.page-inner { flex: 1; overflow: visible; }
+.page-inner { flex: 1; display: flex; flex-direction: column; overflow: visible; }
+
+/* ✅ FIX1: ลบ media query ที่ย่อ height-heavy elements บนจอเล็ก
+   เพราะตอนนี้ฟอร์มล็อก A4 ตายตัว จอเล็กให้ scroll แทน ไม่ต้องย่อ */
 
 /* service type bar */
 .service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; margin-bottom: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -347,7 +347,7 @@
 .parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
-.sig-section { clear: both; display: flex; gap: 8px; margin-top: 4px; margin-bottom: 4px; }
+.sig-section { clear: both; display: flex; gap: 8px; margin-top: auto; margin-bottom: 4px; }
 .sig-box { flex: 1; border: 1.5px solid #427aa1; border-radius: 6px; padding: 4px 8px 6px; background: white; text-align: center; }
 .sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 4px; }
 .sig-preview-wrap { position: relative; width: 100%; height: 90px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -370,10 +370,11 @@
 .btn-add-row { display: inline-block; margin-bottom: 3px; padding: 3px 14px; background: #427aa1; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
 .btn-add-row:hover { background: #0e1c36; }
 
-/* ✅ body padding สำหรับ topbar + actbar
-   safe-area-inset กัน notch/home bar บังเนื้อหา */
+/* ✅ FIX1: body padding สำหรับ topbar + actbar — ใช้ !important ให้แน่ใจว่า
+   rule นี้ชนะทุก selector ป้องกันเนื้อหาถูก topbar/actbar บัง */
 body {
   padding-top: calc(58px + env(safe-area-inset-top)) !important;
+  /* ⚠️ มือถือ/iPad fix: เพิ่ม safe-area-inset-bottom กันเนื้อหาล่างถูก home bar/notch บัง */
   padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
 }
 </style>
@@ -577,27 +578,18 @@ var _logoEl = document.getElementById('kimacLogo');
 _logoEl.onload = function() { if(typeof _doScale==='function') _doScale(); };
 _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').textContent.trim();
 
-// ✅ FIXED A4 LAYOUT: ไม่มี responsive scaling ทุกอุปกรณ์เห็น layout เดียวกัน
-// scalePage() / _doScale() คงไว้เพื่อความเข้ากันได้กับโค้ด exportPDF()
-function scalePage() { /* A4 fixed — no scaling needed */ }
-function _doScale() { /* A4 fixed — CSS handles everything */ }
+// --- RESPONSIVE SCALING ---
+// การย่อขนาดบนมือถือทำด้วย CSS zoom ใน stylesheet แล้ว
+// scalePage() ยังคงไว้เพราะ exportPDF() เรียกใช้ (restore wrapper หลัง export)
+function scalePage() { /* CSS zoom handles display scaling */ }
 
-// ✅ กัน pinch-zoom บน iOS/Android (เพิ่มเติมจาก viewport meta)
-document.addEventListener('gesturestart', function(e){ e.preventDefault(); }, { passive: false });
-document.addEventListener('gesturechange', function(e){ e.preventDefault(); }, { passive: false });
-document.addEventListener('gestureend', function(e){ e.preventDefault(); }, { passive: false });
-// กัน double-tap zoom บน iOS
-var _lastTapTime = 0;
-document.addEventListener('touchend', function(e){
-  var now = Date.now();
-  if(now - _lastTapTime < 300){ e.preventDefault(); }
-  _lastTapTime = now;
-}, { passive: false });
-
-// ✅ beforeprint/afterprint: ซ่อน UI elements ที่ไม่ต้องการใน PDF
+// ⚠️ iPad Safari beforeprint/afterprint fix:
+// Safari iOS จะซ่อน element ที่มี position:fixed ตอนพิมพ์ ทำให้ topbar/actbar ที่ควร display:none
+// อาจยังค้างอยู่ใน paint tree แล้วบังเนื้อหา ใช้ event นี้บังคับ display:none ก่อนพิมพ์จริง
 window.addEventListener('beforeprint', function() {
   var els = document.querySelectorAll('.topbar-c, .actbar, .status-bar, .toast-f, .sig-trigger-btn, .btn-add-row, .btn-export, .btn-clear-sig, #pdfExportOverlay');
   els.forEach(function(el){ el.setAttribute('data-print-hidden', el.style.display || ''); el.style.display = 'none'; });
+  // บังคับให้ body ไม่มี padding ตอนพิมพ์ (Safari อาจไม่ apply @media print padding:0 ทันที)
   document.body.setAttribute('data-print-pad', document.body.style.padding || '');
   document.body.style.padding = '0';
 });
@@ -609,9 +601,14 @@ window.addEventListener('afterprint', function() {
 });
 
 var _lastVW = window.innerWidth;
+function _doScale() { /* no-op — CSS zoom handles it */ }
 window.addEventListener('load', function(){ _lastVW = window.innerWidth; });
 try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){}); } } catch(e){}
-window.addEventListener('resize', function(){ _lastVW = window.innerWidth; });
+// ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
+// CSS zoom handles display scaling — resize/orientation ไม่ต้องทำอะไร
+window.addEventListener('resize', function(){
+  _lastVW = window.innerWidth;
+});
 window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; }, 300); });
 
 const NUM_ROWS = 5;
@@ -870,8 +867,9 @@ async function exportPDF(){
       });
     }
 
-    const A4_W_PX = 794;
-    const A4_H_PX = 1123;
+    const original = document.getElementById('page');
+    const A4_W_PX = Math.round(original.getBoundingClientRect().width);
+    const A4_H_PX = Math.round(original.getBoundingClientRect().height);
 
     const wrapper = document.getElementById('pageWrapper');
     const prevTransform = wrapper.style.transform;
@@ -904,15 +902,14 @@ async function exportPDF(){
     detailDiv.textContent = thaiBreakable(textareaValue);
     textareaParent.replaceChild(detailDiv, textarea);
 
-    const original = document.getElementById('page');
     // จำสถานะติ๊กของ radio ต้นฉบับไว้ก่อน เพราะตอน append clone เข้า document ตัว copy จะแย่งสถานะในกลุ่มชื่อเดียวกัน ทำให้ el.checked ของต้นฉบับถูกปลด
     const radioCheckedSnapshot = {};
     original.querySelectorAll('input[type=radio]').forEach(function(r){ radioCheckedSnapshot[r.name + '|' + r.value] = r.checked; });
     const clone = original.cloneNode(true);
     clone.id = 'pageClone';
     clone.style.width = A4_W_PX + 'px';
-    clone.style.minHeight = 'auto';
-    clone.style.height = 'auto';
+    clone.style.height = A4_H_PX + 'px';
+    clone.style.minHeight = A4_H_PX + 'px';
     clone.style.boxShadow = 'none';
     clone.style.margin = '0';
     clone.style.transform = 'none';
@@ -923,8 +920,8 @@ async function exportPDF(){
     // แก้ footer margin-top:auto → กัน gap ใต้ลายเซ็น
     var _footer = clone.querySelector('.footer');
     if(_footer){
-      // ✅ reset margin-top:auto → px ที่เหมาะสมเพื่อให้ footer ดูสมดุล ไม่ชิดเกินไป
-      _footer.style.marginTop = '10px';
+      // reset margin-top:auto → px เพราะใน PDF clone ไม่มี min-height จึง auto=0
+      _footer.style.marginTop = '8px';
     }
     // reset min-height ของ clone page ให้เป็น auto สำหรับ PDF capture
     clone.style.minHeight = 'auto';
@@ -964,39 +961,38 @@ async function exportPDF(){
          ✅ FIX2+3: ค่าขยาย spacing ให้เต็มหน้า A4 และล็อก font เป็น px ทั้งหมด */
       '#pdfExportHost{font-size:12px!important}'+
       '#pdfExportHost *{box-sizing:border-box!important}'+
-      /* ⚠️ สำคัญ: override min-height:1056px จาก .page CSS class → ให้ clone สูงตามเนื้อหาจริง */
-      '#pdfExportHost .page{min-height:auto!important;height:auto!important;padding:26px 26px 22px 26px!important;display:flex!important;flex-direction:column!important}'+
+      /* ⚠️ สำคัญ: override min-height:1056px จาก .page CSS class */
+      '#pdfExportHost .page{min-height:auto!important}'+
       '#pdfExportHost .page-inner{overflow:visible!important;flex:1!important}'+
-      '#pdfExportHost .footer{margin-top:auto!important}'+
-      '#pdfExportHost .header{margin-bottom:5px!important;padding-bottom:4px!important}'+
+      '#pdfExportHost .header{margin-bottom:4px!important;padding-bottom:4px!important}'+
       '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
       '#pdfExportHost .header-spacer{width:75px!important}'+
       '#pdfExportHost .header-center h1{font-size:20px!important;letter-spacing:1px!important}'+
       '#pdfExportHost .header-center p{font-size:12px!important}'+
-      '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:7px!important;margin-bottom:4px!important}'+
-      '#pdfExportHost .form-row{margin-bottom:4px!important;gap:4px!important}'+
+      '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:6px!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .form-row{margin-bottom:3px!important;gap:4px!important}'+
       '#pdfExportHost .field{gap:3px!important}'+
       '#pdfExportHost .field label{font-size:11px!important}'+
       '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important;padding:1px 3px!important}'+
-      '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:5px!important;font-size:12px!important}'+
+      '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important}'+
       '#pdfExportHost .service-type-bar select{font-size:12px!important}'+
-      '#pdfExportHost .status-row{gap:6px!important;margin-bottom:4px!important}'+
+      '#pdfExportHost .status-row{gap:6px!important;margin-bottom:3px!important}'+
       '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important}'+
       '#pdfExportHost .status-block label{font-size:11px!important}'+
       '#pdfExportHost .radio-group{font-size:11px!important;gap:8px!important}'+
       '#pdfExportHost .radio-group label{font-size:11px!important}'+
-      '#pdfExportHost .parts-table{font-size:11px!important;margin-bottom:5px!important}'+
+      '#pdfExportHost .parts-table{font-size:11px!important;margin-bottom:4px!important}'+
       '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important}'+
       '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important}'+
       '#pdfExportHost .parts-table td input{font-size:11px!important}'+
-      '#pdfExportHost .sig-section{margin-top:8px!important;margin-bottom:8px!important;gap:8px!important}'+
+      '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important}'+
       '#pdfExportHost .sig-box{padding:5px 8px 8px!important}'+
-      '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:5px!important}'+
-      '#pdfExportHost .sig-preview-wrap{height:85px!important}'+
-      '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:4px!important}'+
+      '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:4px!important}'+
+      '#pdfExportHost .sig-preview-wrap{height:80px!important}'+
+      '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:3px!important}'+
       '#pdfExportHost .sig-meta label{font-size:11px!important}'+
       '#pdfExportHost .sig-meta input{font-size:11px!important}'+
-      '#pdfExportHost .footer{font-size:11px!important;padding-top:6px!important;margin-top:8px!important;line-height:1.6!important}'+
+      '#pdfExportHost .footer{font-size:11px!important;padding-top:5px!important;margin-top:3px!important;line-height:1.6!important}'+
       '#pdfExportHost .footer .company-name{font-size:13px!important}'+
       '#pdfExportHost .footer .contact{font-size:11px!important}';
     document.head.appendChild(exportCompactStyle);
@@ -1117,13 +1113,12 @@ async function exportPDF(){
           await _pdfWait(_isIOSNow ? 300 : 60);
           // ⚠️ force reflow ก่อนวัด เพื่อให้ exportCompactStyle (min-height:auto) มีผลแล้ว
           void clone.offsetHeight;
-          var _h1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
+          var _h = A4_H_PX;
           await _pdfWait(_isIOSNow ? 200 : 60);
           void clone.offsetHeight; // reflow อีกครั้ง
-          var _h = Math.max(_h1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
-          // ⚠️ cap _h ที่ A4_H_PX*1.05 กัน scrollHeight พอง (จาก margin collapse หรือ overflow)
-          // เกิน 5% → บีบลงมาใน A4 ตาม _imgH_final logic
-          _h = Math.min(_h, Math.round(A4_H_PX * 1.1));
+          // ⚠️ fixed A4 capture height เพื่อให้ PDF มีขนาด A4 แน่นอน 100%
+          // ไม่ปล่อยให้ความสูงวัดเองตามเนื้อหา เพราะหน้าเว็บต้องเป็นหน้าเดียวเต็ม A4
+          _h = A4_H_PX;
           // ⚠️ iPad/Mobile fix: ลด scale เป็น 1 เพื่อลดภาระ memory
           // scale:1=3.6MB, scale:1.5=8MB, scale:2=14MB — WebKit fail เงียบๆ เมื่อเกิน limit
           var _renderScale = _isMobileNow ? 1 : 2;
@@ -1161,30 +1156,7 @@ async function exportPDF(){
         // ⚠️ FIX blank page 2: คำนวณ content height จริงจาก canvas ratio
         // canvas.width = A4_W_PX * scale, canvas.height = actual_content * scale
         // imgH_mm = 210mm * (canvas.h / canvas.w) → height จริงของเนื้อหา
-        const _pw = 210; // A4 width mm
-        const _ph = 297; // A4 height mm
-        var _imgH_mm = _pw * (canvas.height / canvas.width);
-        var _pdfH_mm, _imgH_final;
-        // ✅ PDF PAGE FILL STRATEGY:
-        // - ถ้าเนื้อหาสั้นกว่า 90% ของ A4 → ยืดให้เต็ม A4 พอดี (ไม่มีพื้นขาวล่าง)
-        // - ถ้าเนื้อหายาวกว่า A4 → บีบให้พอดี 1 หน้า A4 (ไม่ให้ขึ้นหน้า 2)
-        // - เกณฑ์ 90% กัน edge case ที่ content สั้นแล้วยืดมากเกินไป
-        if (_imgH_mm <= _ph * 0.90) {
-          // เนื้อหาสั้นมาก (น้อยกว่า 90% A4) → ยังสร้าง PDF ขนาด A4 เต็ม แล้ว fit ภาพให้เต็ม
-          // เพื่อไม่ให้ PDF มีขอบขาวล่างดูไม่เป็นมืออาชีพ
-          _pdfH_mm = _ph;
-          _imgH_final = _ph;
-        } else if (_imgH_mm <= _ph) {
-          // เนื้อหาใกล้เคียง A4 (90%-100%) → สร้าง PDF ขนาด A4 พอดี
-          _pdfH_mm = _ph;
-          _imgH_final = _ph;
-        } else {
-          // เนื้อหายาวกว่า A4 → บีบให้พอดี 1 หน้า A4 (ไม่ให้มีหน้า 2)
-          _pdfH_mm = _ph;
-          _imgH_final = _ph;
-        }
-        // ✅ สร้าง PDF ขนาด A4 เต็มเสมอ เพื่อให้ดูเป็นมืออาชีพ
-        const pdf = new J({ unit: 'mm', format: [_pw, _pdfH_mm], orientation: 'portrait', compress: true });
+        const pdf = new J({ unit: 'mm', format: [210, 297], orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
         pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
