@@ -231,7 +231,8 @@
   .ab { font-size: 10.5px; padding: 9px 2px; }
 }
 .ab:active { opacity: .8; }
-.ab-hist { background: #e8f4fb; color: #427aa1; }
+.ab-hist { background: linear-gradient(135deg,#0b5f8a,#0e4b75); color: #fff; box-shadow: 0 2px 8px rgba(11,75,138,0.18); border: 1px solid rgba(255,255,255,0.06); }
+.ab-hist:disabled { background: linear-gradient(135deg,#3b5f81,#2d4f6f); color: #e6eef7; opacity: 0.95; cursor: not-allowed; }
 .ab-save { background: linear-gradient(135deg,#0e1c36,#427aa1); color: #fff; box-shadow: 0 3px 10px rgba(14,28,54,.3); }
 .ab-save:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 .ab-pdf { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(21,128,61,.3); }
@@ -687,40 +688,33 @@ function scalePage() {
   var wrapper = document.getElementById('pageWrapper');
   var page = document.getElementById('page');
   if (!wrapper || !page) return;
-  // measure page width without any transform
-  var prev = page.style.transform || '';
+  // measure natural page size without any transform
+  var prevPageTransform = page.style.transform || '';
+  var prevWrapperTransform = wrapper.style.transform || '';
+  // clear transforms for measurement
   page.style.transform = 'none';
-  var rect = page.getBoundingClientRect();
-  page.style.transform = prev;
-
-  var pageWidth = rect.width || 1;
+  wrapper.style.transform = 'none';
+  // measure natural page dimensions
+  var pageNaturalW = page.offsetWidth || 794;
+  var pageNaturalH = page.offsetHeight || 1123;
+  var pageWidth = pageNaturalW;
   var availableWidth = Math.max(80, window.innerWidth - 20);
-  // Mobile behavior: try to fit the entire A4 page vertically so users can see top-to-bottom.
-  // Still allow horizontal scrolling if needed (body {overflow-x:auto}).
+  // Mobile behavior: compute uniform scale so whole A4 is visible as one unit
   var mobileThreshold = 820; // px
   var scale;
   if (window.innerWidth <= mobileThreshold) {
-    // measure available vertical space excluding top/bottom chrome (topbar/actbar)
     var topbar = document.querySelector('.topbar-c');
     var actbar = document.querySelector('.actbar');
     var topH = topbar? topbar.offsetHeight : 0;
     var bottomH = actbar? actbar.offsetHeight : 0;
     var availableHeight = Math.max(120, window.innerHeight - topH - bottomH - 16);
-    // compute natural page height (untransformed)
-    var prev = page.style.transform || '';
-    page.style.transform = 'none';
-    var pageNaturalH = page.offsetHeight || (297 * 3.78); // fallback px estimate
-    var pageNaturalW = page.offsetWidth || (210 * 3.78);
-    page.style.transform = prev;
-    // compute available width/height for full-page visibility
-    var availW = Math.max(80, window.innerWidth - 24); // safe side padding
+    var availW = Math.max(80, window.innerWidth - 24);
     var availH = availableHeight;
     // scale uniformly to fit both width and height, never upscale
     scale = Math.min(1, availW / pageNaturalW, availH / pageNaturalH);
-    if (scale < 0.55) scale = 0.55;
-    // enable mobile-A4 class to apply paper visuals and signature flex growth
+    if (scale < 0.4) scale = 0.4;
     document.body.classList.add('mobile-a4');
-    // increase signature min by +80px over current to make canvases taller on mobile
+    // increase signature min by +80px on mobile
     try{
       var sigSection = page.querySelector('.sig-section');
       if(sigSection){
@@ -728,15 +722,29 @@ function scalePage() {
         page.style.setProperty('--sig-min', (curSigH + 80) + 'px');
       }
     }catch(e){}
+    // set wrapper width to natural page width so scaling targets the paper only
+    wrapper.style.width = pageNaturalW + 'px';
+    wrapper.style.display = wrapper.style.display || 'block';
+    wrapper.style.margin = '0 auto';
   } else {
-    // desktop/tablet: scale by width as before
+    // desktop/tablet: scale page by width as before
     scale = Math.min(1, availableWidth / pageWidth);
     if (scale < 0.55) scale = 0.55;
     document.body.classList.remove('mobile-a4');
+    // restore wrapper sizing
+    wrapper.style.width = '';
+    wrapper.style.transform = '';
   }
-  if (scale < 0.55) scale = 0.55;
-  page.style.transformOrigin = 'top center';
-  page.style.transform = 'scale(' + scale + ')';
+  // apply uniform transform: on mobile scale the wrapper so entire page is one unit; on desktop scale the page
+  if (window.innerWidth <= mobileThreshold) {
+    wrapper.style.transformOrigin = 'top center';
+    wrapper.style.transform = 'scale(' + scale + ')';
+    page.style.transform = 'none';
+  } else {
+    page.style.transformOrigin = 'top center';
+    page.style.transform = 'scale(' + scale + ')';
+    wrapper.style.transform = '';
+  }
   // wrapper (flex) keeps page centered; ensure minor margin reset
   page.style.margin = '0 auto';
   if (typeof adjustLayoutForSpace === 'function') adjustLayoutForSpace();
@@ -745,7 +753,7 @@ function _doScale() { scalePage(); }
 function adjustLayoutForSpace(){
   try{
     var page = document.getElementById('page'); if(!page) return;
-    var pageH = page.clientHeight;
+    var pageH = page.getBoundingClientRect().height || page.clientHeight;
     var sigSection = page.querySelector('.sig-section'); if(!sigSection) return;
     var footer = page.querySelector('.footer'); var footerH = footer?footer.offsetHeight:0;
     // compute offsetTop of sigSection relative to page
@@ -994,10 +1002,12 @@ async function exportPDF(){
     const original = document.getElementById('page');
     const wrapper = document.getElementById('pageWrapper');
     const prevTransform = original.style.transform;
+    const prevWrapperTransform = wrapper.style.transform;
     const prevHeight = wrapper.style.height;
     const prevMarginBottom = wrapper.style.marginBottom;
     const prevZoom = wrapper.style.zoom;
-    // ensure we measure the page at natural scale
+    // ensure we measure the page at natural scale (clear wrapper/page transforms)
+    wrapper.style.transform = 'none';
     original.style.transform = 'none';
     const A4_W_PX = original.offsetWidth;
     const A4_H_PX = original.offsetHeight;
@@ -1170,6 +1180,8 @@ async function exportPDF(){
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
       // restore page transform
       original.style.transform = prevTransform;
+      // restore wrapper transform (if any)
+      try{ wrapper.style.transform = prevWrapperTransform; }catch(e){}
       wrapper.style.height = prevHeight;
       wrapper.style.marginBottom = prevMarginBottom;
       wrapper.style.zoom = prevZoom;
