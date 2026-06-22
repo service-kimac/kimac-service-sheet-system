@@ -29,6 +29,9 @@
     font-size: 13px;
     overflow-x: hidden;
     min-width: 794px;
+    /* ⚠️ iPad Safari: บังคับพิมพ์สีพื้นหลังและภาพออกมาด้วย (ไม่งั้น background จะหายตอนพิมพ์) */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .btn-export {
     margin-bottom: 15px;
@@ -54,9 +57,15 @@
   .toast-f { display: none !important; }
 
   @page { size: 210mm 297mm portrait; margin: 0; }
-  html, body { width: 210mm; height: 297mm; margin: 0 !important; padding: 0 !important; background: #fff !important; overflow: hidden; display: block; }
-  .page-wrapper { width: 210mm !important; zoom: 1 !important; transform: none !important; margin: 0 !important; padding: 0 !important; height: 297mm !important; }
-  .page { width: 210mm !important; min-height: 297mm !important; height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 5mm 7mm 4mm 7mm !important; font-size: 9.5pt !important; page-break-after: avoid !important; display: flex !important; flex-direction: column !important; }
+  /* ⚠️ แก้ iPad Safari: ลบ overflow:hidden ออกจาก html,body เพราะ WebKit ตีความ
+     overflow:hidden + height:297mm ว่า "ตัดเนื้อหาออก" ทำให้หน้าพิมพ์กลายเป็นหน้าขาว
+     ใช้ min-height แทน height เพื่อให้ browser จัด layout ได้ถูกต้อง */
+  html { width: 210mm; margin: 0 !important; padding: 0 !important; background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { width: 210mm; margin: 0 !important; padding: 0 !important; background: #fff !important; display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page-wrapper { width: 210mm !important; zoom: 1 !important; transform: none !important; margin: 0 !important; padding: 0 !important; min-height: 297mm !important; }
+  /* ⚠️ แก้ iPad Safari: ลบ overflow:hidden และเปลี่ยน height → min-height บน .page
+     overflow:hidden บน element ที่มี height คงที่ทำให้ WebKit ซ่อนเนื้อหาทั้งหมดตอนพิมพ์ */
+  .page { width: 210mm !important; min-height: 297mm !important; overflow: visible !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 5mm 7mm 4mm 7mm !important; font-size: 9.5pt !important; page-break-after: avoid !important; display: flex !important; flex-direction: column !important; }
   .header { margin-bottom: 3px !important; padding-bottom: 3px !important; }
   .header-logo { width: 75px !important; height: 55px !important; }
   .header-spacer { width: 75px !important; }
@@ -179,13 +188,13 @@
 .sig-modal-btn.upload { background: #16a34a; color: white; }
 
 /* header layout */
-.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #427aa1; padding-bottom: 3px; margin-bottom: 4px; }
+.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #427aa1; padding-bottom: 2px; margin-bottom: 3px; }
 .header-logo-wrap { display: flex; flex-direction: column; align-items: center; }
-.header-logo { width: 110px; height: 80px; object-fit: contain; }
+.header-logo { width: 85px; height: 62px; object-fit: contain; }
 .header-center { text-align: center; flex: 1; }
 .header-center h1 { font-size: 22px; font-weight: 700; color: #427aa1; letter-spacing: 2px; }
 .header-center p { font-size: 12px; color: #555; }
-.header-spacer { width: 110px; }
+.header-spacer { width: 85px; }
 
 /* page wrapper & A4 page */
 /* ใช้ px แทน mm เพราะ Safari iPad อ่าน zoom + mm ได้ผิดพลาด; 210mm @ 96dpi = 794px */
@@ -193,35 +202,43 @@
 .page {
   width: 794px; min-height: auto; background: #ffffff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  padding: 19px 30px 15px 30px; position: relative;
+  padding: 14px 30px 12px 30px; position: relative;
   display: flex; flex-direction: column;
   overflow: visible;
 }
 .page-inner { flex: 1; overflow: visible; }
 
+/* ⚠️ มือถือ/iPad: ลด height-heavy elements เพิ่มเติมบนจอเล็กเพื่อให้ footer ไม่ตกขอบ
+   viewport width=794 ย่อหน้าอัตโนมัติแต่ไม่ย่อ absolute height → footer อาจตกขอบ */
+@media screen and (max-device-width: 1024px) {
+  .sig-preview-wrap { height: 80px; }
+  .header-logo { width: 78px; height: 56px; }
+  .header-spacer { width: 78px; }
+}
+
 /* viewport width=794 จัดการ scale ให้อัตโนมัติแล้ว ไม่ต้องใช้ CSS zoom */
 
 /* service type bar */
-.service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; margin-bottom: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; }
 .service-type-bar select { border: 1px solid #c4960a; border-radius: 4px; background: white; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
 .other-input { border: none; border-bottom: 1px solid #aaa; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 200px; outline: none; display: none; }
 .other-input.show { display: inline-block; }
 
 /* section titles */
-.section-title { background: #427aa1; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
+.section-title { background: #427aa1; color: white; padding: 2px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 3px; margin-top: 4px; }
 
 /* form rows & fields */
-.form-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; flex-wrap: wrap; }
+.form-row { display: flex; gap: 6px; margin-bottom: 3px; align-items: center; flex-wrap: wrap; }
 .field { display: flex; align-items: center; gap: 4px; flex: 1; }
 .field label { white-space: nowrap; color: #444; font-weight: 600; font-size: 12px; }
 .field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
 .field select { border: 1px solid #c4960a; border-radius: 4px; background: white; padding: 2px 4px; cursor: pointer; }
-.field textarea { resize: none; border: 1px solid #c4960a; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.6; }
+.field textarea { resize: none; border: 1px solid #c4960a; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.45; }
 .full-width { width: 100%; flex: unset; }
 
 /* status row */
-.status-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 4px; }
+.status-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 3px; }
 .status-block { display: flex; align-items: center; gap: 8px; background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; flex-wrap: wrap; }
 .status-block label { font-weight: 600; color: #427aa1; font-size: 12px; white-space: nowrap; }
 .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -233,7 +250,7 @@
 .province-input.show { display: inline-block; }
 
 /* parts table */
-.parts-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 12px; }
+.parts-table { width: 100%; border-collapse: collapse; margin-bottom: 3px; font-size: 12px; }
 .parts-table th { background: #427aa1; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; }
 .parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; }
 .parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: center; }
@@ -243,32 +260,33 @@
 .parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
-.sig-section { clear: both; display: flex; gap: 10px; margin-top: 6px; margin-bottom: 6px; }
-.sig-box { flex: 1; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 10px 8px; background: white; text-align: center; }
-.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
-.sig-preview-wrap { position: relative; width: 100%; height: 110px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sig-section { clear: both; display: flex; gap: 8px; margin-top: 4px; margin-bottom: 4px; }
+.sig-box { flex: 1; border: 1.5px solid #427aa1; border-radius: 6px; padding: 4px 8px 6px; background: white; text-align: center; }
+.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 4px; }
+.sig-preview-wrap { position: relative; width: 100%; height: 90px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sig-preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; }
 .sig-trigger-btn { font-size: 12px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; padding: 4px 8px; display: flex; align-items: center; gap: 4px; z-index: 1; }
 .btn-clear-sig { font-size: 11px; padding: 3px 10px; border: 1px solid #c00; border-radius: 3px; background: #fff; color: #c00; cursor: pointer; font-family: 'Sarabun', sans-serif; margin-top: 4px; font-weight: 600; display: none; }
 .btn-clear-sig.show { display: inline-block; }
 .sig-clear-wrap { text-align: right; min-height: 22px; }
-.sig-meta { display: flex; gap: 6px; margin-top: 4px; font-size: 11px; align-items: center; flex-wrap: wrap; }
+.sig-meta { display: flex; gap: 6px; margin-top: 3px; font-size: 11px; align-items: center; flex-wrap: wrap; }
 .sig-meta label { color: #555; font-size: 11px; white-space: nowrap; }
 .sig-meta input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
 
 /* footer */
-.footer { text-align: center; border-top: 2px solid #427aa1; padding-top: 4px; margin-top: 6px; color: #427aa1; font-size: 11px; line-height: 1.5; }
+.footer { text-align: center; border-top: 2px solid #427aa1; padding-top: 3px; margin-top: 4px; color: #427aa1; font-size: 11px; line-height: 1.4; }
 .footer .company-name { font-size: 13px; font-weight: 700; color: #427aa1; }
 .footer .contact { color: #444; font-size: 11px; }
 
 /* add row button */
-.btn-add-row { display: inline-block; margin-bottom: 4px; padding: 4px 14px; background: #427aa1; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
+.btn-add-row { display: inline-block; margin-bottom: 3px; padding: 3px 14px; background: #427aa1; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
 .btn-add-row:hover { background: #0e1c36; }
 
 /* body padding สำหรับ topbar + actbar */
 body {
   padding-top: calc(58px + env(safe-area-inset-top)) !important;
-  padding-bottom: 72px !important;
+  /* ⚠️ มือถือ/iPad fix: เพิ่ม safe-area-inset-bottom กันเนื้อหาล่างถูก home bar/notch บัง */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
 }
 </style>
 </head>
@@ -475,6 +493,23 @@ _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').te
 // การย่อขนาดบนมือถือทำด้วย CSS zoom ใน stylesheet แล้ว
 // scalePage() ยังคงไว้เพราะ exportPDF() เรียกใช้ (restore wrapper หลัง export)
 function scalePage() { /* CSS zoom handles display scaling */ }
+
+// ⚠️ iPad Safari beforeprint/afterprint fix:
+// Safari iOS จะซ่อน element ที่มี position:fixed ตอนพิมพ์ ทำให้ topbar/actbar ที่ควร display:none
+// อาจยังค้างอยู่ใน paint tree แล้วบังเนื้อหา ใช้ event นี้บังคับ display:none ก่อนพิมพ์จริง
+window.addEventListener('beforeprint', function() {
+  var els = document.querySelectorAll('.topbar-c, .actbar, .status-bar, .toast-f, .sig-trigger-btn, .btn-add-row, .btn-export, .btn-clear-sig, #pdfExportOverlay');
+  els.forEach(function(el){ el.setAttribute('data-print-hidden', el.style.display || ''); el.style.display = 'none'; });
+  // บังคับให้ body ไม่มี padding ตอนพิมพ์ (Safari อาจไม่ apply @media print padding:0 ทันที)
+  document.body.setAttribute('data-print-pad', document.body.style.padding || '');
+  document.body.style.padding = '0';
+});
+window.addEventListener('afterprint', function() {
+  var els = document.querySelectorAll('[data-print-hidden]');
+  els.forEach(function(el){ el.style.display = el.getAttribute('data-print-hidden'); el.removeAttribute('data-print-hidden'); });
+  document.body.style.padding = document.body.getAttribute('data-print-pad') || '';
+  document.body.removeAttribute('data-print-pad');
+});
 
 var _lastVW = window.innerWidth;
 function _doScale() { /* no-op — CSS zoom handles it */ }
@@ -807,7 +842,11 @@ async function exportPDF(){
     // top:0;left:0 ตรงกับขอบบนจอจริง) — แต่ "ไม่" ย้ายออกนอกจอหรือใช้ z-index ติดลบเหมือนที่เคยลองมาก่อน
     // เพราะจุดนั้นเป็นสาเหตุที่ยืนยันแล้วว่าทำให้ภาพว่างเปล่าบนไอแพด (ดูไฟล์เก่าที่เคยใช้ left:-10000px)
     // ยังคงให้อยู่ในตำแหน่งจริงที่มองเห็นได้ปกติ แล้วซ่อนด้วย overlay ทึบที่ z-index สูงกว่าแทน
-    exportHost.style.cssText = 'position:absolute;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
+    // ⚠️ iPad Safari fix: ใช้ position:fixed แทน position:absolute
+    // เพราะ body มี padding-top จาก topbar (calc(58px + safe-area)) ทำให้ top:0 ของ absolute
+    // ไม่ตรงกับ viewport top จริง → html2canvas วาดออกนอก viewport แล้วได้ภาพขาว
+    // position:fixed + top:0 รับประกันว่าอยู่ที่มุมบนซ้ายของหน้าจอเสมอ
+    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
 
@@ -943,25 +982,30 @@ async function exportPDF(){
         // อีกครั้งหลังหน่วงเวลาเล็กน้อยให้ layout นิ่งจริง พร้อมเผื่อ buffer กันปัดเศษตัด footer ทิ้ง —
         // วิธีนี้ตรงไปตรงมาและตรวจสอบได้ ดีกว่าปล่อยให้ library เดาความสูงเอง ซึ่งพลาดมาแล้วทั้งสองทาง
         async function _captureFormCanvas(){
-          await _pdfWait(60);
-          var _h1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
-          await _pdfWait(60);
-          var _h = Math.max(_h1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
-          // ใช้ scale ต่ำกว่าบน iOS/iPadOS เพื่อลดขนาด canvas ที่ต้องสร้าง (ลดภาระหน่วยความจำ/ขนาด texture)
-          // ซึ่งเป็นสาเหตุหนึ่งที่ทำให้ WebKit คืน canvas ว่างเปล่าแบบเงียบๆ เมื่อภาพที่ขอใหญ่เกินไป
+          // ⚠️ iPad Safari fix: ตรวจ iOS ก่อนเพื่อใช้ delay ที่นานพอให้ browser paint position:fixed element เสร็จ
           var _isIOSNow = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          var _renderScale = _isIOSNow ? 1.5 : 2;
+          // รอให้ browser composite layer ใหม่ — iOS ต้องการนานกว่า desktop มาก
+          await _pdfWait(_isIOSNow ? 300 : 60);
+          var _h1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
+          await _pdfWait(_isIOSNow ? 200 : 60);
+          var _h = Math.max(_h1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
+          // ⚠️ iPad Safari fix: ลด scale เป็น 1 บน iOS เพื่อให้ canvas อยู่ในขีดจำกัด WebKit
+          // 794*1131*4bytes*scale^2: scale:1=3.6MB, scale:1.5=8MB, scale:2=14MB
+          // WebKit บน iPad รุ่นเก่าอาจ fail แบบเงียบๆ เมื่อ canvas ใหญ่เกิน ~8-16MB → ได้ภาพขาว
+          var _renderScale = _isIOSNow ? 1 : 2;
           return await _pdfWithTimeout(
-            html2canvas(clone, { scale: _renderScale, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0 }),
-            25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
+            html2canvas(clone, { scale: _renderScale, useCORS: true, allowTaint: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0, x: 0, y: 0 }),
+            30000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
           );
         }
         var canvas = await _captureFormCanvas();
         if (canvas && canvas.width >= 10 && canvas.height >= 10 && _canvasLooksBlank(canvas)) {
-          // เจอภาพว่างเปล่าผิดปกติรอบแรก (เช่น เบราว์เซอร์วาดเนื้อหาไม่ทันจริง) → รอนานขึ้นแล้วลองจับภาพซ้ำอีกครั้ง
-          // ก่อนยอมแพ้ แทนที่จะปล่อยให้ PDF ว่างเปล่าหลุดออกไปแบบเงียบๆ เหมือนที่ผ่านมา
-          await _pdfWait(500);
+          // เจอภาพว่างเปล่าผิดปกติรอบแรก → รอนานขึ้นแล้วลองจับภาพซ้ำ
+          // ⚠️ iPad Safari: รอ 1.5 วินาที (แทน 500ms) เพราะ WebKit ต้องการเวลามากกว่าในการ paint
+          var _isIOSRetry = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          await _pdfWait(_isIOSRetry ? 1500 : 500);
           canvas = await _captureFormCanvas();
         }
         // ตรวจสอบว่า canvas ที่ได้ไม่ใช่ภาพว่างเปล่าผิดปกติ (กันกรณี render ล้มเหลวแบบเงียบๆ แล้วได้ PDF ขาวเปล่า)
