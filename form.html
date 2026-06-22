@@ -13,7 +13,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root { color-scheme: light; }
+  :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html { width: 100%; overflow-x: auto; }
   body { overflow-x: auto; }
@@ -484,6 +486,21 @@ window.addEventListener('afterprint', function() {
   document.body.style.padding = document.body.getAttribute('data-bph-pad')||'';
   document.body.removeAttribute('data-bph-pad');
 });
+// beforeprint/afterprint: บังคับซ่อน fixed elements ก่อน Safari พิมพ์
+window.addEventListener('beforeprint', function() {
+  document.querySelectorAll('.topbar-c,.actbar,.toast-f,.sig-trigger-btn,.btn-add-row,.btn-export').forEach(function(el){
+    el.setAttribute('data-bph', el.style.display||''); el.style.display='none';
+  });
+  document.body.setAttribute('data-bph-pad', document.body.style.padding||'');
+  document.body.style.padding = '0';
+});
+window.addEventListener('afterprint', function() {
+  document.querySelectorAll('[data-bph]').forEach(function(el){
+    el.style.display=el.getAttribute('data-bph'); el.removeAttribute('data-bph');
+  });
+  document.body.style.padding = document.body.getAttribute('data-bph-pad')||'';
+  document.body.removeAttribute('data-bph-pad');
+});
 var _lastVW = window.innerWidth;
 window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); });
 // ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
@@ -828,8 +845,45 @@ async function exportPDF(){
     exportOverlay.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#1a3a6e;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
     exportOverlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.25);border-top-color:#f9c900;border-radius:50%;animation:pdfSpin .8s linear infinite"></div><div style="color:#fff;font-family:Sarabun,sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div><style>@keyframes pdfSpin{to{transform:rotate(360deg)}}</style>';
     document.body.appendChild(exportOverlay);
+    // compact style: ล็อก font-size ทุก element เป็น px คงที่ทุก device
+    var _compStyle = document.createElement('style');
+    _compStyle.id = 'pdfCompactStyle';
+    _compStyle.textContent =
+      '#pdfExportHost .page{min-height:auto!important;height:auto!important;font-size:12px!important}'+
+      '#pdfExportHost .page-inner{overflow:visible!important;flex:1!important}'+
+      '#pdfExportHost .header{margin-bottom:3px!important;padding-bottom:3px!important}'+
+      '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
+      '#pdfExportHost .header-spacer{width:75px!important}'+
+      '#pdfExportHost .header-center h1{font-size:18px!important}'+
+      '#pdfExportHost .section-title{font-size:12px!important;padding:2px 6px!important;margin-top:4px!important;margin-bottom:2px!important}'+
+      '#pdfExportHost .form-row{margin-bottom:2px!important;gap:4px!important}'+
+      '#pdfExportHost .field label{font-size:11px!important}'+
+      '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important}'+
+      '#pdfExportHost .service-type-bar{padding:2px 6px!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .status-row{gap:6px!important;margin-bottom:2px!important}'+
+      '#pdfExportHost .status-block{padding:2px 6px!important;font-size:11px!important}'+
+      '#pdfExportHost .radio-group{font-size:11px!important;gap:8px!important}'+
+      '#pdfExportHost .parts-table{font-size:11px!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .parts-table th{font-size:11px!important;padding:2px 3px!important}'+
+      '#pdfExportHost .parts-table td{padding:2px 3px!important;font-size:11px!important}'+
+      '#pdfExportHost .sig-section{margin-top:4px!important;margin-bottom:4px!important;gap:8px!important}'+
+      '#pdfExportHost .sig-box{padding:4px 8px 6px!important}'+
+      '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .sig-preview-wrap{height:68px!important}'+
+      '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:2px!important}'+
+      '#pdfExportHost .footer{font-size:11px!important;padding-top:3px!important;margin-top:3px!important;line-height:1.4!important}'+
+      '#pdfExportHost .footer .company-name{font-size:13px!important}';
+    document.head.appendChild(_compStyle);
+
     exportHost.appendChild(clone);
     document.body.appendChild(exportHost);
+
+    // overlay ทึบระหว่าง capture
+    var _overlay = document.createElement('div');
+    _overlay.id = 'pdfOverlay';
+    _overlay.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#1a3a6e;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;';
+    _overlay.innerHTML = '<div style="width:38px;height:38px;border:4px solid rgba(255,255,255,.25);border-top-color:#f9c900;border-radius:50%;animation:pS .8s linear infinite"></div><div style="color:#fff;font-family:Sarabun,sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div><style>@keyframes pS{to{transform:rotate(360deg)}}</style>';
+    document.body.appendChild(_overlay);
 
     const srcEls = original.querySelectorAll('input, textarea, select');
     const dstEls = clone.querySelectorAll('input, textarea, select');
@@ -863,6 +917,9 @@ async function exportPDF(){
     function cleanup2(){
       if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
       if (exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
+      if (_overlay && _overlay.parentNode) _overlay.parentNode.removeChild(_overlay);
+      var _cs = document.getElementById('pdfCompactStyle');
+      if (_cs && _cs.parentNode) _cs.parentNode.removeChild(_cs);
       if (exportOverlay && exportOverlay.parentNode) exportOverlay.parentNode.removeChild(exportOverlay);
       var _cs = document.getElementById('pdfExportCompactStyle');
       if (_cs && _cs.parentNode) _cs.parentNode.removeChild(_cs);
