@@ -163,12 +163,10 @@
   .parts-table td { padding: 3px 3px !important; font-size: 11px !important; }
   .parts-table td input { font-size: 11px !important; }
 
-  /* ✅ FIX3: ส่วนลายเซ็นขยาย margin และ sig-preview-wrap สูงขึ้น เพื่อเติมพื้นที่ */
   .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; }
   .sig-box { padding: 5px 8px 8px !important; }
   .sig-box .sig-title { font-size: 13px !important; margin-bottom: 4px !important; }
-  /* ✅ FIX3: เพิ่มความสูง sig-preview-wrap จาก 68px เป็น 80px เพื่อดันเนื้อหาลงมา */
-  .sig-preview-wrap { height: 80px !important; }
+  .sig-preview-wrap { min-height: 68px !important; height: auto !important; }
   .sig-preview-img { display: block !important; }
   .sig-meta { font-size: 11px !important; margin-top: 3px !important; }
   .sig-meta label { font-size: 11px !important; }
@@ -314,8 +312,8 @@
   .ab-hist { background: linear-gradient(135deg,#05406a,#0b5f8a); color: #fff; border: 1px solid rgba(0,0,0,0.12); }
 }
 /* Mobile full-page A4 preview helper when body has .mobile-a4 */
-body.mobile-a4 { overflow-x: auto; background: #f0f2f5; }
-body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: auto; }
+body.mobile-a4 { overflow-x: hidden; background: #f0f2f5; }
+body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: hidden; }
 body.mobile-a4 .page {
   width: 210mm;
   max-width: none;
@@ -329,10 +327,6 @@ body.mobile-a4 .page {
   border-radius: 6px;
 }
 body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-/* increase signature min-height default and allow full flex growth */
-body.mobile-a4 .sig-section { min-height: var(--sig-min, 200px); flex-grow: 1; display: flex; gap: 12px; align-items: stretch; }
-body.mobile-a4 .sig-box { flex: 1 1 0; display: flex; flex-direction: column; height: 100%; }
-body.mobile-a4 .sig-preview-wrap { flex: 1 1 auto; height: 100% !important; min-height: 160px !important; }
 body.mobile-a4 .footer { margin-top: auto; }
 .page-inner { flex: 1; display: flex; flex-direction: column; overflow: visible; }
 
@@ -714,17 +708,11 @@ function scalePage() {
     scale = Math.min(1, availW / pageNaturalW, availH / pageNaturalH);
     if (scale < 0.4) scale = 0.4;
     document.body.classList.add('mobile-a4');
-    // increase signature min by +80px on mobile
-    try{
-      var sigSection = page.querySelector('.sig-section');
-      if(sigSection){
-        var curSigH = sigSection.offsetHeight || parseInt(window.getComputedStyle(sigSection).height) || 120;
-        page.style.setProperty('--sig-min', (curSigH + 80) + 'px');
-      }
-    }catch(e){}
-    // set wrapper width to natural page width so scaling targets the paper only
-    wrapper.style.width = pageNaturalW + 'px';
-    wrapper.style.display = wrapper.style.display || 'block';
+    // keep wrapper full width and center the page visually
+    wrapper.style.width = '100%';
+    wrapper.style.maxWidth = '100%';
+    wrapper.style.overflow = '';
+    wrapper.style.position = '';
     wrapper.style.margin = '0 auto';
   } else {
     // desktop/tablet: scale page by width as before
@@ -737,13 +725,15 @@ function scalePage() {
   }
   // apply uniform transform: on mobile scale the wrapper so entire page is one unit; on desktop scale the page
   if (window.innerWidth <= mobileThreshold) {
-    wrapper.style.transformOrigin = 'top center';
-    wrapper.style.transform = 'scale(' + scale + ')';
-    page.style.transform = 'none';
+    page.style.transformOrigin = 'top center';
+    page.style.transform = 'scale(' + scale + ')';
+    wrapper.style.transform = '';
   } else {
     page.style.transformOrigin = 'top center';
     page.style.transform = 'scale(' + scale + ')';
     wrapper.style.transform = '';
+    wrapper.style.overflow = '';
+    wrapper.style.maxWidth = '';
   }
   // wrapper (flex) keeps page centered; ensure minor margin reset
   page.style.margin = '0 auto';
@@ -752,6 +742,7 @@ function scalePage() {
 function _doScale() { scalePage(); }
 function adjustLayoutForSpace(){
   try{
+    if (document.body.classList.contains('mobile-a4')) return;
     var page = document.getElementById('page'); if(!page) return;
     var pageH = page.getBoundingClientRect().height || page.clientHeight;
     var sigSection = page.querySelector('.sig-section'); if(!sigSection) return;
@@ -784,12 +775,14 @@ function adjustCloneSignatureHeights(clone, a4h){
     var sigTop = sigSection.getBoundingClientRect().top - clone.getBoundingClientRect().top;
     var available = a4h - sigTop - footerH - 8;
     var boxes = sigSection.querySelectorAll('.sig-box'); var count = boxes.length || 2;
-    var each = Math.max(60, Math.floor(available / count) - 24);
+    var desiredEach = Math.max(60, Math.floor(available / count) - 24);
     boxes.forEach(function(b){
       var preview = b.querySelector('.sig-preview-wrap');
       if(preview){
-        var curH = preview.offsetHeight || parseInt(window.getComputedStyle(preview).height) || 0;
-        if (each > curH) { preview.style.height = each + 'px'; }
+        var curH = preview.offsetHeight || parseInt(window.getComputedStyle(preview).height) || 68;
+        var maxIncrease = Math.max(6, Math.floor(curH * 0.12));
+        var targetH = Math.min(curH + maxIncrease, desiredEach);
+        if (targetH > curH) { preview.style.height = targetH + 'px'; }
         preview.style.minHeight = '50px';
       }
     });
@@ -1124,7 +1117,7 @@ async function exportPDF(){
       '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important}'+
       '#pdfExportHost .sig-box{padding:5px 8px 8px!important}'+
       '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:4px!important}'+
-      '#pdfExportHost .sig-preview-wrap{height:80px!important}'+
+      '#pdfExportHost .sig-preview-wrap{height:75px!important}'+
       '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:3px!important}'+
       '#pdfExportHost .sig-meta label{font-size:11px!important}'+
       '#pdfExportHost .sig-meta input{font-size:11px!important}'+
