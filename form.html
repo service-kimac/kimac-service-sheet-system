@@ -5,18 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a3a6e">
+<meta name="theme-color" content="#0e1c36">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <title>SERVICE SHEET - KIMAC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* บังคับให้หน้านี้เป็นโหมดสว่างเสมอ ไม่ว่าเครื่องจะตั้งเป็น Dark Mode หรือไม่
+     ป้องกัน iOS Safari ปรับสีพื้นหลัง/ตัวอักษรของ input ให้มืดเอง (มืดเฉพาะช่องกรอกแต่พื้นหลังหน้ายังขาว
+     ทำให้ตัวหนังสือในบางช่องมองไม่เห็น) เพราะหน้านี้ถูกออกแบบให้เป็นเอกสารโทนสว่างคงที่เสมอ */
+  :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { width: 100%; overflow-x: hidden; }
   body {
     font-family: 'Sarabun', sans-serif;
-    background: #f0f0f0;
+    background: #fffaff;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,7 +31,7 @@
   .btn-export {
     margin-bottom: 15px;
     padding: 10px 28px;
-    background: #1a3a6e;
+    background: #427aa1;
     color: white;
     border: none;
     border-radius: 6px;
@@ -35,7 +40,7 @@
     cursor: pointer;
     font-weight: 600;
   }
-  .btn-export:hover { background: #122d57; }
+  .btn-export:hover { background: #0e1c36; }
   @page {
     size: A4 portrait;
     margin: 0;
@@ -48,8 +53,8 @@
 
   @page { size: 210mm 297mm portrait; margin: 0; }
   html, body { width: 210mm; height: 297mm; margin: 0 !important; padding: 0 !important; background: #fff !important; overflow: hidden; display: block; }
-  .page-wrapper { width: 210mm !important; transform: none !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
-  .page { width: 210mm !important; min-height: unset !important; max-height: 297mm !important; overflow: hidden !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 5mm 7mm 4mm 7mm !important; font-size: 9.5pt !important; page-break-after: avoid !important; }
+  .page-wrapper { width: 210mm !important; transform: none !important; margin: 0 !important; padding: 0 !important; height: 297mm !important; }
+  .page { width: 210mm !important; min-height: 297mm !important; height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 5mm 7mm 4mm 7mm !important; font-size: 9.5pt !important; page-break-after: avoid !important; display: flex !important; flex-direction: column !important; }
   .header { margin-bottom: 3px !important; padding-bottom: 3px !important; }
   .header-logo { width: 75px !important; height: 55px !important; }
   .header-spacer { width: 75px !important; }
@@ -81,7 +86,7 @@
 /* ── TOPBAR ── */
 .topbar-c {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  background: linear-gradient(135deg,#1a3a6e 0%,#2a5298 100%);
+  background: linear-gradient(135deg,#0e1c36 0%,#427aa1 100%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
@@ -89,20 +94,20 @@
 }
 .tc-l { display: flex; align-items: center; gap: 8px; }
 .tc-logo { width: 34px; height: 34px; object-fit: contain; border-radius: 50%; flex-shrink: 0; }
-.tc-title { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; }
+.tc-title { color: #fff; font-size: 15px; font-weight: 800; letter-spacing: 1.5px; white-space: nowrap; }
 .tc-r { display: flex; align-items: center; gap: 6px; }
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .topbar-c { padding: 7px 10px; padding-top: calc(7px + env(safe-area-inset-top)); }
   .tc-logo { width: 28px; height: 28px; }
-  .tc-title { font-size: 11px; letter-spacing: 0; }
+  .tc-title { font-size: 10px; letter-spacing: 0; }
   .tc-r { gap: 4px; }
   .tc-l { gap: 5px; }
   .jno { font-size: 9px; padding: 3px 6px; }
   .btn-bk { font-size: 10px; padding: 4px 7px; }
   .status-select { font-size: 10px !important; padding: 3px 5px !important; }
 }
-.jno { background: rgba(249,201,0,.2); border: 1px solid rgba(249,201,0,.4);
-  color: #f9c900; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.jno { background: rgba(255,209,81,.2); border: 1px solid rgba(255,209,81,.4);
+  color: #ffd151; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
 .btn-bk { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
   color: #fff; padding: 5px 10px; border-radius: 8px; font-family: 'Sarabun',sans-serif;
   font-size: 12px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
@@ -110,19 +115,23 @@
 /* ── ACTION BAR ── */
 .actbar {
   position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
-  border-top: 1px solid #e8eef8;
+  border-top: 1px solid #69747c22;
   display: flex; gap: 8px; padding: 9px 12px;
   padding-bottom: calc(9px + env(safe-area-inset-bottom));
   z-index: 300; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
 }
 .ab {
-  flex: 1; padding: 11px; border: none; border-radius: 10px;
-  font-family: 'Sarabun',sans-serif; font-size: 13px; font-weight: 700;
+  flex: 1; padding: 10px 4px; border: none; border-radius: 10px;
+  font-family: 'Sarabun',sans-serif; font-size: 12px; font-weight: 700;
   cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 360px) {
+  .ab { font-size: 10.5px; padding: 9px 2px; }
 }
 .ab:active { opacity: .8; }
-.ab-hist { background: #eff6ff; color: #1e40af; }
-.ab-save { background: linear-gradient(135deg,#1a3a6e,#2a5298); color: #fff; box-shadow: 0 3px 10px rgba(26,58,110,.3); }
+.ab-hist { background: #e8f4fb; color: #427aa1; }
+.ab-save { background: linear-gradient(135deg,#0e1c36,#427aa1); color: #fff; box-shadow: 0 3px 10px rgba(14,28,54,.3); }
 .ab-save:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 .ab-pdf { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(21,128,61,.3); }
 .ab-pdf:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
@@ -147,7 +156,7 @@
 .sig-modal-overlay.open { display: flex; }
 .sig-modal-header {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 16px; background: #1a3a6e; color: white;
+  padding: 10px 16px; background: #0e1c36; color: white;
 }
 .sig-modal-title { font-family: 'Sarabun', sans-serif; font-size: 15px; font-weight: 700; color: white; }
 .sig-modal-body {
@@ -157,22 +166,22 @@
 .sig-modal-hint { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #888; margin-bottom: 10px; }
 .sig-modal-canvas-wrap {
   width: 100%; max-width: 560px;
-  border: 2px dashed #bfa000; border-radius: 8px; background: #fafafa; overflow: hidden;
+  border: 2px dashed #c4960a; border-radius: 8px; background: #fafafa; overflow: hidden;
 }
 #sigModalCanvas { display: block; width: 100%; touch-action: none; cursor: crosshair; background: #fafafa; }
 .sig-modal-footer { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; justify-content: center; }
 .sig-modal-btn { padding: 10px 28px; font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; }
-.sig-modal-btn.confirm { background: #1a3a6e; color: white; }
+.sig-modal-btn.confirm { background: #427aa1; color: white; }
 .sig-modal-btn.clear { background: #eee; color: #333; border: 1px solid #bbb; }
 .sig-modal-btn.cancel { background: #c00; color: white; }
 .sig-modal-btn.upload { background: #16a34a; color: white; }
 
 /* header layout */
-.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #1a3a6e; padding-bottom: 3px; margin-bottom: 4px; }
+.header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #427aa1; padding-bottom: 3px; margin-bottom: 4px; }
 .header-logo-wrap { display: flex; flex-direction: column; align-items: center; }
 .header-logo { width: 110px; height: 80px; object-fit: contain; }
 .header-center { text-align: center; flex: 1; }
-.header-center h1 { font-size: 22px; font-weight: 700; color: #1a3a6e; letter-spacing: 2px; }
+.header-center h1 { font-size: 22px; font-weight: 700; color: #427aa1; letter-spacing: 2px; }
 .header-center p { font-size: 12px; color: #555; }
 .header-spacer { width: 110px; }
 
@@ -187,50 +196,50 @@
 .page-inner { flex: 1; }
 
 /* service type bar */
-.service-type-bar { background: #fff9c4; border: 1px solid #f9c900; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.service-type-bar span { font-weight: 600; color: #1a3a6e; white-space: nowrap; }
-.service-type-bar select { border: 1px solid #bfa000; border-radius: 4px; background: white; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
+.service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; }
+.service-type-bar select { border: 1px solid #c4960a; border-radius: 4px; background: white; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
 .other-input { border: none; border-bottom: 1px solid #aaa; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 200px; outline: none; display: none; }
 .other-input.show { display: inline-block; }
 
 /* section titles */
-.section-title { background: #1a3a6e; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
+.section-title { background: #427aa1; color: white; padding: 3px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 4px; margin-top: 5px; }
 
 /* form rows & fields */
 .form-row { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; flex-wrap: wrap; }
 .field { display: flex; align-items: center; gap: 4px; flex: 1; }
 .field label { white-space: nowrap; color: #444; font-weight: 600; font-size: 12px; }
-.field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
-.field select { border: 1px solid #bfa000; border-radius: 4px; background: white; padding: 2px 4px; cursor: pointer; }
-.field textarea { resize: none; border: 1px solid #bfa000; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.6; }
+.field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
+.field select { border: 1px solid #c4960a; border-radius: 4px; background: white; padding: 2px 4px; cursor: pointer; }
+.field textarea { resize: none; border: 1px solid #c4960a; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.6; }
 .full-width { width: 100%; flex: unset; }
 
 /* status row */
 .status-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 4px; }
-.status-block { display: flex; align-items: center; gap: 8px; background: #fff9c4; border: 1px solid #f9c900; border-radius: 4px; padding: 3px 8px; flex-wrap: wrap; }
-.status-block label { font-weight: 600; color: #1a3a6e; font-size: 12px; white-space: nowrap; }
+.status-block { display: flex; align-items: center; gap: 8px; background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; flex-wrap: wrap; }
+.status-block label { font-weight: 600; color: #427aa1; font-size: 12px; white-space: nowrap; }
 .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; font-weight: 400; color: #333; }
-.radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #1a3a6e; cursor: pointer; }
-.warranty-input { border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
+.radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #427aa1; cursor: pointer; }
+.warranty-input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
 .warranty-input.show { display: inline-block; }
-.province-input { border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
+.province-input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
 .province-input.show { display: inline-block; }
 
 /* parts table */
 .parts-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 12px; }
-.parts-table th { background: #1a3a6e; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; }
-.parts-table td { border: 1px solid #d4c000; padding: 2px 4px; background: white; }
+.parts-table th { background: #427aa1; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; }
+.parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; }
 .parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: center; }
-.parts-table td:first-child { text-align: center; width: 24px; background: #fff9c4; font-weight: 600; color: #1a3a6e; }
+.parts-table td:first-child { text-align: center; width: 24px; background: #fff7d6; font-weight: 600; color: #427aa1; }
 .parts-table .price-cell input { text-align: right; }
-.parts-table .total-label { text-align: right; font-weight: 700; background: #fff9c4; color: #1a3a6e; padding-right: 8px; border: 1px solid #d4c000; }
-.parts-table .total-val { text-align: right; background: #fffde0; font-weight: 700; color: #c00; border: 1px solid #d4c000; padding-right: 6px; min-width: 80px; }
+.parts-table .total-label { text-align: right; font-weight: 700; background: #fff7d6; color: #427aa1; padding-right: 8px; border: 1px solid #c4960a; }
+.parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
 .sig-section { clear: both; display: flex; gap: 10px; margin-top: 6px; margin-bottom: 6px; }
-.sig-box { flex: 1; border: 1.5px solid #1a3a6e; border-radius: 6px; padding: 6px 10px 8px; background: white; text-align: center; }
-.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #1a3a6e; margin-bottom: 6px; }
+.sig-box { flex: 1; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 10px 8px; background: white; text-align: center; }
+.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
 .sig-preview-wrap { position: relative; width: 100%; height: 110px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sig-preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; }
 .sig-trigger-btn { font-size: 12px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; padding: 4px 8px; display: flex; align-items: center; gap: 4px; z-index: 1; }
@@ -239,16 +248,16 @@
 .sig-clear-wrap { text-align: right; min-height: 22px; }
 .sig-meta { display: flex; gap: 6px; margin-top: 4px; font-size: 11px; align-items: center; flex-wrap: wrap; }
 .sig-meta label { color: #555; font-size: 11px; white-space: nowrap; }
-.sig-meta input { border: none; border-bottom: 1px solid #bfa000; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
+.sig-meta input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
 
 /* footer */
-.footer { text-align: center; border-top: 2px solid #1a3a6e; padding-top: 4px; margin-top: auto; color: #1a3a6e; font-size: 11px; line-height: 1.5; }
-.footer .company-name { font-size: 13px; font-weight: 700; color: #1a3a6e; }
+.footer { text-align: center; border-top: 2px solid #427aa1; padding-top: 4px; margin-top: auto; color: #427aa1; font-size: 11px; line-height: 1.5; }
+.footer .company-name { font-size: 13px; font-weight: 700; color: #427aa1; }
 .footer .contact { color: #444; font-size: 11px; }
 
 /* add row button */
-.btn-add-row { display: inline-block; margin-bottom: 4px; padding: 4px 14px; background: #1a3a6e; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
-.btn-add-row:hover { background: #122d57; }
+.btn-add-row { display: inline-block; margin-bottom: 4px; padding: 4px 14px; background: #427aa1; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
+.btn-add-row:hover { background: #0e1c36; }
 
 /* body padding สำหรับ topbar + actbar */
 body {
@@ -301,8 +310,8 @@ body {
   <div class="section-title">ส่วนที่ 1 ข้อมูลลูกค้า</div>
   <div class="form-row">
     <div class="field"><label>วันที่บริการ :</label><input id="serviceDate" type="date"></div>
-    <div class="field"><label>เวลาเริ่ม :</label><input type="time"></div>
-    <div class="field"><label>เวลาจบงาน :</label><input type="time"></div>
+    <div class="field"><label>เวลาเริ่ม :</label><input type="time" id="timeStart"></div>
+    <div class="field"><label>เวลาจบงาน :</label><input type="time" id="timeEnd"></div>
   </div>
   <div class="form-row">
     <div class="field full-width"><label>บริษัท / ห้างฯ / ร้าน ลูกค้า :</label><input id="companyName" type="text" style="min-width:300px;"></div>
@@ -310,10 +319,10 @@ body {
   <div class="form-row">
     <div class="field"><label>ติดต่อคุณ :</label><input type="text" id="contactName"></div>
     <div class="field"><label>ตำแหน่ง :</label><input type="text" id="positionInput"></div>
-    <div class="field"><label>เบอร์โทร :</label><input type="tel"></div>
+    <div class="field"><label>เบอร์โทร :</label><input type="tel" id="contactPhone"></div>
   </div>
   <div class="form-row">
-    <div class="field full-width"><label>ที่อยู่ :</label><input type="text" style="min-width:350px;"></div>
+    <div class="field full-width"><label>ที่อยู่ :</label><input type="text" id="addressInput" style="min-width:350px;"></div>
   </div>
   <div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>
   <div class="status-row">
@@ -371,8 +380,8 @@ body {
         <td class="total-val"><input type="text" id="s_vat" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#f0f4ff;">รวมยอดสุทธิ</td>
-        <td style="text-align:right;background:#f0f4ff;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
+        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
+        <td style="text-align:right;background:#e8f4fb;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
       </tr>
     </tfoot>
   </table>
@@ -460,16 +469,19 @@ document.getElementById('kimacLogo').src = 'data:image/jpeg;base64,' + document.
 function scalePage() {
   const wrapper = document.getElementById('pageWrapper');
   const viewportW = window.innerWidth - 20; // account for body padding
-  const pageW = wrapper.getBoundingClientRect().width / (wrapper.dataset.scale || 1);
-  // measure unscaled width
+  // รีเซ็ตทั้ง transform และ height ก่อนวัดใหม่ทุกครั้ง
+  // (ถ้าไม่รีเซ็ต height ก่อน ตอนเรียกซ้ำรอบสองขึ้นไป offsetHeight จะอ่านค่าความสูงเก่าที่ถูกล็อกไว้รอบก่อนหน้า
+  //  ทำให้คำนวณ scale ผิดเพี้ยนสะสมไปเรื่อยๆ จนหน้าตัดครึ่ง/มีพื้นที่ว่างด้านล่าง)
   wrapper.style.transform = 'none';
+  wrapper.style.height = '';
   const actualW = wrapper.offsetWidth;
+  const actualH = wrapper.offsetHeight;
   if (actualW > viewportW) {
     const scale = viewportW / actualW;
     wrapper.style.transform = 'scale(' + scale + ')';
     wrapper.dataset.scale = scale;
     // adjust body height so document doesn't have huge whitespace below scaled page
-    wrapper.style.height = (wrapper.offsetHeight * scale) + 'px';
+    wrapper.style.height = (actualH * scale) + 'px';
     wrapper.style.marginBottom = '0';
   } else {
     wrapper.style.transform = 'none';
@@ -479,6 +491,7 @@ function scalePage() {
 }
 var _lastVW = window.innerWidth;
 window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); });
+try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); }); } } catch(e){}
 // ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
 // คีย์บอร์ดเด้งบน Android จะยิง resize (สูงลด) ถ้าย่อใหม่ตอนนั้นหน้าจะเด้ง/ว่างโล่งตอนพิมพ์
 window.addEventListener('resize', function(){
@@ -560,6 +573,7 @@ function toggleFee(el) {
 // --- Signature ---
 let currentSigTarget = null;
 let modalDrawing = false;
+let modalHasDrawn = false;
 let modalLastX = 0, modalLastY = 0;
 
 const modalCanvas = document.getElementById('sigModalCanvas');
@@ -599,6 +613,7 @@ function modalDraw(e) {
   modalCtx.beginPath(); modalCtx.moveTo(modalLastX, modalLastY); modalCtx.lineTo(x, y);
   modalCtx.strokeStyle = '#1a3a6e'; modalCtx.lineWidth = 2.5; modalCtx.lineCap = 'round'; modalCtx.lineJoin = 'round'; modalCtx.stroke();
   [modalLastX, modalLastY] = [x, y];
+  modalHasDrawn = true;
 }
 function modalStopDraw() { modalDrawing = false; }
 modalCanvas.addEventListener('mousedown', modalStartDraw);
@@ -611,6 +626,7 @@ modalCanvas.addEventListener('touchend', modalStopDraw);
 
 function openSigModal(target) {
   currentSigTarget = target;
+  modalHasDrawn = false;
   const overlay = document.getElementById('sigModalOverlay');
   document.getElementById('sigModalTitle').textContent = target === 'tech' ? 'ลายเซ็นช่างผู้ให้บริการ' : 'ลายเซ็นลูกค้า / ผู้ตรวจรับงาน';
   overlay.classList.add('open');
@@ -625,6 +641,7 @@ function closeSigModal() {
   currentSigTarget = null;
 }
 function clearModalCanvas() {
+  modalHasDrawn = false;
   modalCtx.setTransform(1, 0, 0, 1, 0, 0);
   modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
   const dpr = window.devicePixelRatio || 1;
@@ -646,6 +663,10 @@ function applySig(target, dataUrl) {
 }
 function confirmSig() {
   if (!currentSigTarget) return;
+  if (!modalHasDrawn) {
+    if(typeof toastF==='function') toastF('กรุณาวาดลายเซ็นก่อนยืนยัน','err');
+    return;
+  }
   applySig(currentSigTarget, modalCanvas.toDataURL('image/png'));
 }
 function uploadSigImage() {
@@ -684,6 +705,9 @@ function clearSigPreview(target) {
   const clearBtn = document.getElementById(target + 'ClearBtn');
   img.src = ''; img.style.display = 'none'; btn.style.display = 'flex';
   clearBtn.classList.remove('show');
+  // ล้างลายเซ็นแปลว่าตอนนี้ไม่ครบทั้งสองฝ่ายแล้ว → รีเซ็ตสถานะกันแจ้งเตือนซ้ำ
+  // เพื่อให้ถ้าเซ็นครบใหม่อีกครั้งในภายหลัง แอดมินจะได้รับแจ้งเตือนอีกครั้ง (ถือเป็นการเซ็นครบรอบใหม่จริงๆ)
+  if (CJ) { try { localStorage.removeItem('kimac_sig_notified_' + CJ); } catch(e) {} }
   if(window.scheduleDraftSave)scheduleDraftSave();
 }
 window.addEventListener('orientationchange', () => {
@@ -711,10 +735,15 @@ function thaiBreakable(text){
 async function exportPDF(){
   var btn=document.getElementById('btnPDF');
   if(btn){btn.textContent='⏳ กำลังบันทึก...';btn.disabled=true;}
+  // เปิดหน้าต่างเปล่าไว้ก่อนทันที (ขณะยังอยู่ใน user-gesture ของการคลิกปุ่ม) เพื่อกัน Safari บล็อก popup
+  // ถ้าเปิดหลังจากผ่าน await ไปแล้ว Safari จะมองว่าไม่ใช่การคลิกของผู้ใช้โดยตรงแล้วบล็อกทันที
+  var _isIOSEarly = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var _preOpenedWin = _isIOSEarly ? window.open('', '_blank') : null;
   try{
     if(!CJ_READONLY){
       var saved=await saveCloud();
-      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}return;}
+      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}if(_preOpenedWin)_preOpenedWin.close();return;}
     }
     if(btn)btn.textContent='⏳ กำลังสร้าง PDF...';
 
@@ -722,7 +751,14 @@ async function exportPDF(){
       const s = document.createElement('script');
       s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
       document.head.appendChild(s);
-      await new Promise(r => s.onload = r);
+      // สำคัญมาก: ต้องมีทั้ง onerror และ timeout กันกรณีโหลดสคริปต์จาก CDN ไม่สำเร็จ/ช้าเกินไป
+      // เพราะถ้าไม่มี Promise นี้จะค้างรอตลอดไปแบบไม่มี error เกิดขึ้นเลย ทำให้แท็บที่เปิดไว้ล่วงหน้า (กัน popup blocker)
+      // ค้างที่ about:blank ตลอดไป โดยที่ผู้ใช้เห็นปุ่มหมุนค้างอยู่ ไม่รู้ว่าเกิดอะไรขึ้น
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('โหลดไลบรารีสร้าง PDF ไม่สำเร็จ (หมดเวลา) กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')), 15000);
+        s.onload = () => { clearTimeout(timer); resolve(); };
+        s.onerror = () => { clearTimeout(timer); reject(new Error('โหลดไลบรารีสร้าง PDF ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่')); };
+      });
     }
 
     const A4_W_PX = 794;
@@ -764,19 +800,35 @@ async function exportPDF(){
     const clone = original.cloneNode(true);
     clone.id = 'pageClone';
     clone.style.width = A4_W_PX + 'px';
-    clone.style.minHeight = A4_H_PX + 'px';
-    clone.style.height = A4_H_PX + 'px';
+    clone.style.minHeight = 'auto';
+    clone.style.height = 'auto';
     clone.style.boxShadow = 'none';
     clone.style.margin = '0';
     clone.style.transform = 'none';
     clone.style.display = 'flex';
     clone.style.flexDirection = 'column';
+    // แก้ footer margin-top:auto → กัน gap ใต้ลายเซ็น
+    var _footer = clone.querySelector('.footer');
+    if(_footer){ _footer.style.marginTop = '8px'; }
 
     const exportHost = document.createElement('div');
     exportHost.id = 'pdfExportHost';
-    exportHost.style.cssText = 'position:fixed;left:-10000px;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:-1;';
-    exportHost.appendChild(clone);
+    // วิธีนี้แก้ปัญหา PDF ว่างเปล่าบน iPad ที่ยังไม่หายแม้ลองซ่อนด้วยวิธีต่างๆ มาแล้วหลายรอบ
+    // (position:fixed นอกจอ, opacity ต่ำ, ดันลงไปไกลด้านล่าง) สุดท้ายใช้วิธีตรงไปตรงมาที่สุด:
+    // วาง element ไว้ในตำแหน่งจริงที่มองเห็นได้ปกติ (top:0;left:0) ซึ่งรับประกันว่าทุกเบราว์เซอร์
+    // จะ paint ตามปกติแน่นอน แล้วใช้ overlay ทึบปิดทับไว้ระหว่างสร้างภาพแทน ผู้ใช้จะเห็นแค่หน้าจอ
+    // "กำลังสร้าง PDF" ไม่เห็นฟอร์มกระพริบ
+    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
     document.body.appendChild(exportHost);
+    exportHost.appendChild(clone);
+
+    const exportOverlay = document.createElement('div');
+    exportOverlay.id = 'pdfExportOverlay';
+    exportOverlay.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#0e1c36;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
+    exportOverlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.25);border-top-color:#ffd151;border-radius:50%;animation:pdfSpin .8s linear infinite"></div>'
+      + '<div style="color:#fff;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div>'
+      + '<style>@keyframes pdfSpin{to{transform:rotate(360deg)}}</style>';
+    document.body.appendChild(exportOverlay);
 
     const srcEls = original.querySelectorAll('input, textarea, select');
     const dstEls = clone.querySelectorAll('input, textarea, select');
@@ -810,6 +862,7 @@ async function exportPDF(){
     function cleanup2(){
       if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
       if (exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
+      if (exportOverlay.parentNode) exportOverlay.parentNode.removeChild(exportOverlay);
       document.querySelectorAll('.sig-trigger-btn').forEach(b => { const t=b.id.replace('SigBtn',''); const img=document.getElementById(t+'SigImg'); if(!img.src||img.style.display==='none')b.style.display='flex'; });
       document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'inline-block');
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
@@ -829,16 +882,57 @@ async function exportPDF(){
     try {
       var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (window.html2canvas && J) {
-        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, scrollX: 0, scrollY: 0 });
+        // วัด actual height หลัง render (กัน gap ใต้ลายเซ็น)
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        // หมายเหตุสำคัญ (แก้รอบนี้จริง): เลิกคำนวณ height/windowHeight เองแล้ว เพราะการคำนวณเองหลายรอบที่ผ่านมา
+        // ทำให้พลาดทั้งสองทาง (ตัด footer ออกบ้าง / เผื่อ margin เกินจนเกิดหน้าเปล่าที่ 2 บ้าง)
+        // ปล่อยให้ html2canvas ตรวจจับความสูงเนื้อหาเองจากธรรมชาติของ DOM โดยไม่ระบุ height/windowHeight เลย
+        // ซึ่งเป็นวิธีที่น่าเชื่อถือที่สุดและเป็นค่ามาตรฐานของไลบรารี
+        const canvas = await html2canvas(clone, { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, windowWidth: A4_W_PX, scrollX: 0, scrollY: 0 });
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
-        const ratio = Math.min(pw / canvas.width, ph / canvas.height);
-        const iw = canvas.width * ratio, ih = canvas.height * ratio;
-        const x = (pw - iw) / 2, y = (ph - ih) / 2; // จัดให้อยู่กึ่งกลางกระดาษ A4
-        pdf.addImage(imgData, 'JPEG', x, y, iw, ih);
-        pdf.save(pdfName);
+        // วาดเต็มความกว้างหน้าเสมอ (เหมือนเดิม) แล้วคำนวณความสูงทั้งหมดตามสัดส่วนจริง
+        // ไม่บีบอัดให้พอดีหน้าเดียวอีกต่อไป เพราะถ้าเนื้อหายาวเกิน 1 หน้า A4 (ที่อยู่ลูกค้ายาว/รายการอะไหล่เยอะ/รายละเอียดเครื่องยาว)
+        // การบีบทั้งภาพให้พอดีหน้าเดียวจะทำให้ส่วนท้ายสุด (เช่น ที่อยู่บริษัทใน footer) เสี่ยงโดนตัดหรือเนื้อหาเล็กจนอ่านไม่ออก
+        // แก้โดยตัดภาพเป็นหลายหน้า A4 แทน ถ้าเนื้อหายาวกว่า 1 หน้า
+        const scaleRatio = pw / (A4_W_PX * 2);
+        const totalImgH = canvas.height * scaleRatio; // ความสูงทั้งหมดของภาพ ถ้าวาดเต็มความกว้างหน้า
+        if (totalImgH <= ph + 0.5) {
+          // เนื้อหาพอดีหน้าเดียว (กรณีปกติส่วนใหญ่)
+          pdf.addImage(imgData, 'JPEG', 0, 0, pw, totalImgH);
+        } else {
+          // เนื้อหายาวเกิน 1 หน้า → ตัดเป็นหลายหน้า โดยแต่ละหน้าขยับภาพขึ้นทีละความสูงหนึ่งหน้า (เหมือนเลื่อนหน้าต่างมองภาพยาว)
+          let renderedH = 0;
+          let pageNum = 0;
+          while (renderedH < totalImgH - 0.5) {
+            if (pageNum > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, -renderedH, pw, totalImgH);
+            renderedH += ph;
+            pageNum++;
+            if (pageNum > 10) break; // กันลูปไม่รู้จบในกรณีผิดปกติ
+          }
+        }
+        // iOS Safari (รวม iPadOS ซึ่งรายงาน UA แบบ Mac แต่ใช้ WebKit เดียวกัน) มีปัญหารู้จักกันดีกับ
+        // pdf.save() ที่ใช้วิธีสร้าง blob URL แล้วจำลองคลิกลิงก์ดาวน์โหลด — บนเครื่อง iOS/iPadOS มักเปิดเป็น
+        // แท็บ/หน้าขาวเปล่าแทนที่จะเซฟไฟล์ได้จริง
+        // หมายเหตุสำคัญ (รอบนี้แก้จริง): ห้ามใช้ data: URI แบบ string ยาวๆ กับ location.href บน iOS เพราะ
+        // ไฟล์ PDF หลายหน้าจะมีขนาด string เป็น MB และ Safari จะ navigate ไม่สำเร็จแบบเงียบๆ (ค้างที่ about:blank
+        // โดยไม่มี error ใดๆ เลย) ต้องใช้ Blob + URL.createObjectURL() แทน ซึ่งได้ URL สั้นๆ ไม่จำกัดด้วยขนาดไฟล์
+        var _isIOS = _isIOSEarly;
+        if (_isIOS) {
+          var _pdfBlob = pdf.output('blob');
+          var _pdfBlobUrl = URL.createObjectURL(_pdfBlob);
+          if (_preOpenedWin) {
+            _preOpenedWin.location.href = _pdfBlobUrl;
+          } else {
+            // popup ถูกบล็อก → fallback ไปวิธีเดิม
+            pdf.save(pdfName);
+          }
+        } else {
+          pdf.save(pdfName);
+        }
       } else {
         await html2pdf().set({
           margin: 0,
@@ -853,10 +947,11 @@ async function exportPDF(){
     } catch (err) {
       console.error('PDF export error:', err);
       toastF('❌ '+err.message,'err');
+      if (_preOpenedWin) { try { _preOpenedWin.close(); } catch(e2){} }
     } finally {
       cleanup2();
     }
-  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); }
+  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); if (_preOpenedWin) { try { _preOpenedWin.close(); } catch(e2){} } }
   if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
 }
 </script>
@@ -889,16 +984,17 @@ function fillForm(j,pts){
           else{st.value='other';var oi=document.getElementById('otherServiceInput');if(oi){oi.classList.add('show');oi.value=j.service_type;}}
         }
         var dis=document.querySelectorAll('#page input[type="date"]');
-        var tis=document.querySelectorAll('#page input[type="time"]');
+        var _tsEl=document.getElementById('timeStart');
+  var _teEl=document.getElementById('timeEnd');
         if(dis[0]&&j.service_date)dis[0].value=j.service_date;
-        if(tis[0]&&j.time_start)tis[0].value=j.time_start;
-        if(tis[1]&&j.time_end)tis[1].value=j.time_end;
+        if(_tsEl&&j.time_start)_tsEl.value=j.time_start;
+        if(_teEl&&j.time_end)_teEl.value=j.time_end;
         var cn=document.getElementById('companyName');if(cn)cn.value=j.company||'';
-        var tel=document.querySelector('#page input[type="tel"]');if(tel)tel.value=j.phone||'';
+        var tel=document.getElementById('contactPhone');if(tel)tel.value=j.phone||'';
         var txt=document.querySelectorAll('#page input[type="text"]');
         var ci=document.getElementById('contactName');if(ci)ci.value=j.contact_name||'';
         var pin=document.getElementById('positionInput');if(pin)pin.value=j.position||'';
-        var fw=document.querySelectorAll('.full-width input');if(fw[1])fw[1].value=j.address||'';
+        var addrEl=document.getElementById('addressInput');if(addrEl)addrEl.value=j.address||'';
         if(txt[6])txt[6].value=j.machine_name||'';if(txt[7])txt[7].value=j.machine_model||'';
         if(txt[8])txt[8].value=j.machine_sn||'';
         if(dis[1]&&j.purchase_date)dis[1].value=j.purchase_date;
@@ -1067,7 +1163,8 @@ function getFormData(){
   var warr=document.querySelector('input[name="warranty"]:checked');
   var fee=document.querySelector('input[name="feeType"]:checked');
   var dis=document.querySelectorAll('#page input[type="date"]');
-  var tis=document.querySelectorAll('#page input[type="time"]');
+  var _tsEl=document.getElementById('timeStart');
+  var _teEl=document.getElementById('timeEnd');
   var ta=document.getElementById('detailTextarea');
   var parts=[];
   document.querySelectorAll('#partsBody tr').forEach(function(r,i){
@@ -1079,20 +1176,19 @@ function getFormData(){
     parts.push({seq:i+1,part_name:nm,part_code:inp[1]&&inp[1].value||'',
       qty:qty,unit:inp[3]&&inp[3].value||'',price:price,line_total:qty*price});
   });
-  var fw=document.querySelectorAll('.full-width input');
   var txt=document.querySelectorAll('#page input[type="text"]');
-  var tel=document.querySelector('#page input[type="tel"]');
+  var tel=document.getElementById('contactPhone');
   var tsi=document.getElementById('techSigImg');
   var csi=document.getElementById('custSigImg');
   function gv(id){var e=document.getElementById(id);return parseFloat((e&&e.value||'0').replace(/,/g,''))||0;}
   var status=document.getElementById('jobStatus')&&document.getElementById('jobStatus').value||'draft';
   return{
     service_type:stype,service_date:dis[0]&&dis[0].value||null,
-    time_start:tis[0]&&tis[0].value||null,time_end:tis[1]&&tis[1].value||null,
+    time_start:_tsEl&&_tsEl.value||null,time_end:_teEl&&_teEl.value||null,
     company:document.getElementById('companyName')&&document.getElementById('companyName').value||'',
     contact_name:document.getElementById('contactName')&&document.getElementById('contactName').value||'',
     position:document.getElementById('positionInput')&&document.getElementById('positionInput').value||'',phone:tel&&tel.value||'',
-    address:fw[1]&&fw[1].value||'',
+    address:(document.getElementById('addressInput')&&document.getElementById('addressInput').value)||'',
     service_location:document.querySelector('.status-block select')&&document.querySelector('.status-block select').value||'',
     warranty_status:warr&&warr.value||'',
     warranty_no:document.getElementById('warrantyNo')&&document.getElementById('warrantyNo').value||'',
@@ -1101,8 +1197,8 @@ function getFormData(){
     machine_detail:ta&&ta.value||'',fee_type:fee&&fee.value||'',
     province:document.getElementById('provinceInput')&&document.getElementById('provinceInput').value||'',
     subtotal:gv('s_sub'),vat:gv('s_vat'),total:gv('s_total'),
-    tech_sig_data:tsi&&tsi.style.display!=='none'?tsi.src:null,
-    cust_sig_data:csi&&csi.style.display!=='none'?csi.src:null,
+    tech_sig_data:(tsi&&tsi.style.display!=='none'&&tsi.src&&tsi.src.indexOf('data:image')===0)?tsi.src:null,
+    cust_sig_data:(csi&&csi.style.display!=='none'&&csi.src&&csi.src.indexOf('data:image')===0)?csi.src:null,
     tech_name_sign:document.getElementById('techName')&&document.getElementById('techName').value||'',
     tech_sign_date:document.getElementById('techDate')&&document.getElementById('techDate').value||null,
     cust_name_sign:document.getElementById('custName')&&document.getElementById('custName').value||'',
@@ -1119,6 +1215,18 @@ async function saveCloud(){
     var parts=fd.parts;delete fd.parts;
     var jid=CJ;
     var isAdminEdit=CP&&CP.role==='admin';
+    // ดึงสถานะลายเซ็น "ก่อนหน้า" จากฐานข้อมูล ก่อนจะ update ทับ เพื่อเช็คว่าการบันทึกครั้งนี้
+    // เป็นการเปลี่ยนจาก "ยังไม่ครบ" ไปเป็น "ครบทั้งสองฝ่าย" จริงๆ หรือไม่ (กันแจ้งเตือนซ้ำข้ามอุปกรณ์
+    // เพราะอิงจากฐานข้อมูลกลาง ไม่ใช่ localStorage ที่เก็บแยกเครื่อง)
+    var _prevBothSigned = false;
+    if (jid) {
+      try {
+        var _prevRow = await sb.from('service_jobs').select('tech_sig_data,cust_sig_data').eq('id', jid).single();
+        if (_prevRow.data) {
+          _prevBothSigned = !!(_prevRow.data.tech_sig_data && _prevRow.data.cust_sig_data);
+        }
+      } catch(e) { console.warn('fetch prev sig state (optional):', e); }
+    }
     if(jid&&CJTECH){
       fd.technician_id=CJTECH.id;fd.technician_name=CJTECH.name;
     }else{
@@ -1163,6 +1271,33 @@ async function saveCloud(){
     }
     clearDraft();
     toastF('✅ บันทึกสำเร็จ!','ok');
+    // ถ้าบันทึกครั้งนี้มีทั้งลายเซ็นช่างและลูกค้าครบ → แจ้งเตือนแอดมินทันที
+    // หมายเหตุ: ห้ามเช็คแค่ img.src เฉยๆ เพราะ <img src=""> เบราว์เซอร์จะ resolve เป็น URL หน้าเว็บปัจจุบัน (truthy เสมอ)
+    // ต้องเช็คว่า src เป็นรูปภาพจริง (data:image...) เท่านั้น
+    var techSigImgEl = document.getElementById('techSigImg');
+    var custSigImgEl = document.getElementById('custSigImg');
+    var _hasTech = !!(techSigImgEl && techSigImgEl.style.display !== 'none' && techSigImgEl.src && techSigImgEl.src.indexOf('data:image') === 0);
+    var _hasCust = !!(custSigImgEl && custSigImgEl.style.display !== 'none' && custSigImgEl.src && custSigImgEl.src.indexOf('data:image') === 0);
+    var _jnoBadge = document.getElementById('jnoBadge');
+    var _jno = _jnoBadge ? _jnoBadge.textContent : '-';
+    var _comp = document.getElementById('companyName') ? document.getElementById('companyName').value : '-';
+    if (_hasTech && _hasCust && !_prevBothSigned) {
+      // กันแจ้งเตือนซ้ำชั้นที่ 2 (เผื่อกดบันทึกรัวๆ ในเครื่องเดียวกันจนเช็คสถานะก่อนหน้าไม่ทัน)
+      var _sigNotifKey = 'kimac_sig_notified_' + jid;
+      var _alreadyNotified = false;
+      try { _alreadyNotified = localStorage.getItem(_sigNotifKey) === '1'; } catch(e) {}
+      if (!_alreadyNotified) {
+        // ส่งผ่าน Edge Function (fan-out ไปทุก admin device)
+        // notify_admins:true = โหมดแจ้งเตือนแอดมินทั้งหมด, ใช้ job_id ดึงรายละเอียดงานฝั่ง server
+        try {
+          await sb.functions.invoke('notify-push', { body: {
+            job_id: jid,
+            notify_admins: true
+          }});
+          try { localStorage.setItem(_sigNotifKey, '1'); } catch(e) {}
+        } catch(e) { console.warn('sig push to admin (optional):', e); }
+      }
+    }
     return true;
   }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
   finally{btn.textContent='☁️ บันทึก';btn.disabled=false;}
@@ -1199,6 +1334,9 @@ async function loadJob(id){
       toastF('โหลดใบงาน ✅','ok');
       maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
       bindAutosave();
+      if(typeof scalePage==='function') scalePage();
+      // เผื่อรูปลายเซ็น/ฟอนต์ reflow ช้ากว่านี้อีกนิด ให้ย่อขนาดซ้ำอีกครั้งหลัง paint ถัดไป
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(typeof scalePage==='function') scalePage(); }); });
     },400);
   }catch(e){console.error('loadJob:',e);}
 }
