@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=210mm, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e1c36">
@@ -24,27 +24,25 @@
      -webkit-text-size-adjust:none กันมือถือขยายฟอนต์อัตโนมัติ */
   html {
     width: 100%;
-    min-width: 210mm;
-    overflow-x: auto;
+    min-width: 0;
+    overflow: hidden;
     -webkit-text-size-adjust: none;
     text-size-adjust: none;
   }
-  body { overflow-x: auto; }
   body {
-    width: 210mm;
-    min-width: 210mm;
-    max-width: 210mm;
-    margin: 0 auto;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    min-height: 100vh;
     font-family: 'Sarabun', sans-serif;
     background: #fffaff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px 0;
+    justify-content: flex-start;
+    padding: calc(58px + env(safe-area-inset-top)) 0 calc(72px + env(safe-area-inset-bottom)) 0;
     font-size: 13px;
-    /* ✅ FIX4: ใช้ overflow:auto แทน overflow:hidden กัน iOS blank page
-       overflow:hidden + height คงที่ทำให้ WebKit ซ่อนเนื้อหาทั้งหมดตอนพิมพ์ */
-    overflow-x: auto;
+    overflow: hidden;
     /* ⚠️ iPad Safari: บังคับพิมพ์สีพื้นหลังและภาพออกมาด้วย (ไม่งั้น background จะหายตอนพิมพ์) */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -288,7 +286,7 @@
 .header-spacer { width: 85px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; }
+.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; display: inline-block; max-width: 100%; }
 .page {
   width: 210mm;
   height: 297mm;
@@ -581,7 +579,32 @@ _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').te
 // --- RESPONSIVE SCALING ---
 // การย่อขนาดบนมือถือทำด้วย CSS zoom ใน stylesheet แล้ว
 // scalePage() ยังคงไว้เพราะ exportPDF() เรียกใช้ (restore wrapper หลัง export)
-function scalePage() { /* CSS zoom handles display scaling */ }
+function scalePage() {
+  var wrapper = document.getElementById('pageWrapper');
+  if (!wrapper) return;
+  // Measure the actual A4 page size without display transform.
+  var prevTransform = wrapper.style.transform || '';
+  wrapper.style.transform = 'none';
+  var rect = wrapper.getBoundingClientRect();
+  var pageWidth = rect.width;
+  var pageHeight = rect.height;
+  wrapper.style.transform = prevTransform;
+
+  var topbar = document.querySelector('.topbar-c');
+  var actbar = document.querySelector('.actbar');
+  var reservedHeight = 0;
+  if (topbar && getComputedStyle(topbar).display !== 'none') reservedHeight += topbar.offsetHeight;
+  if (actbar && getComputedStyle(actbar).display !== 'none') reservedHeight += actbar.offsetHeight;
+
+  var availableWidth = window.innerWidth - 16;
+  var availableHeight = window.innerHeight - reservedHeight - 16;
+  var scale = Math.min(1, availableWidth / pageWidth, availableHeight / pageHeight);
+  if (scale <= 0) scale = 0.1;
+  wrapper.style.transform = 'scale(' + scale + ')';
+  wrapper.style.margin = '0 auto';
+}
+
+function _doScale() { scalePage(); }
 
 // ⚠️ iPad Safari beforeprint/afterprint fix:
 // Safari iOS จะซ่อน element ที่มี position:fixed ตอนพิมพ์ ทำให้ topbar/actbar ที่ควร display:none
@@ -601,15 +624,16 @@ window.addEventListener('afterprint', function() {
 });
 
 var _lastVW = window.innerWidth;
-function _doScale() { /* no-op — CSS zoom handles it */ }
-window.addEventListener('load', function(){ _lastVW = window.innerWidth; });
-try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){}); } } catch(e){}
-// ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
-// CSS zoom handles display scaling — resize/orientation ไม่ต้องทำอะไร
+window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); });
+try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); }); } } catch(e){}
+// ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ)
 window.addEventListener('resize', function(){
-  _lastVW = window.innerWidth;
+  if (window.innerWidth !== _lastVW) {
+    _lastVW = window.innerWidth;
+    scalePage();
+  }
 });
-window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; }, 300); });
+window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; scalePage(); }, 300); });
 
 const NUM_ROWS = 5;
 let rowCount = 0;
