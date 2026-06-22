@@ -163,7 +163,7 @@
   .parts-table td { padding: 3px 3px !important; font-size: 11px !important; }
   .parts-table td input { font-size: 11px !important; }
 
-  .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; }
+  .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; flex: 1 !important; }
   .sig-box { padding: 5px 8px 8px !important; }
   .sig-box .sig-title { font-size: 13px !important; margin-bottom: 4px !important; }
   .sig-preview-wrap { min-height: 150px !important; height: auto !important; }
@@ -375,7 +375,7 @@ body.mobile-a4 .footer { margin-top: auto; }
 .parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
-.sig-section { clear: both; display: flex; gap: 8px; margin-top: 6px; margin-bottom: 4px; align-items: stretch; }
+.sig-section { clear: both; display: flex; gap: 8px; margin-top: 6px; margin-bottom: 4px; align-items: stretch; flex: 1; }
 .sig-box { flex: 1 1 0; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 8px 6px; background: white; text-align: center; display:flex; flex-direction:column; }
 .sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
 .sig-preview-wrap { position: relative; width: 100%; height: auto; min-height: 150px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; flex:1; }
@@ -1114,7 +1114,7 @@ async function exportPDF(){
       '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important}'+
       '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important}'+
       '#pdfExportHost .parts-table td input{font-size:11px!important}'+
-      '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important}'+
+      '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important;flex:1!important}'+
       '#pdfExportHost .sig-box{padding:5px 8px 8px!important}'+
       '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:4px!important}'+
       '#pdfExportHost .sig-preview-wrap{height:130px!important}'+
@@ -1254,10 +1254,23 @@ async function exportPDF(){
           // ⚠️ iPad/Mobile fix: ลด scale เป็น 1 เพื่อลดภาระ memory
           // scale:1=3.6MB, scale:1.5=8MB, scale:2=14MB — WebKit fail เงียบๆ เมื่อเกิน limit
           var _renderScale = _isMobileNow ? 1 : 2;
-          var _cvs = await _pdfWithTimeout(
-            html2canvas(clone, { scale: _renderScale, useCORS: true, allowTaint: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0, x: 0, y: 0, logging: false, ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; } }),
-            30000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
-          );
+          // ✅ iOS Fix: ดัก console.warn ก่อน html2canvas เพื่อซ่อน "unsupported color function" red banner
+          // ที่ iOS WKWebView แสดง console.warn เป็น native red error overlay
+          var _origWarn = console.warn;
+          console.warn = function() {
+            var msg = arguments[0] ? String(arguments[0]) : '';
+            if (msg.indexOf('color') !== -1 || msg.indexOf('parse') !== -1 || msg.indexOf('unsupported') !== -1) return;
+            _origWarn.apply(console, arguments);
+          };
+          var _cvs;
+          try {
+            _cvs = await _pdfWithTimeout(
+              html2canvas(clone, { scale: _renderScale, useCORS: true, allowTaint: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0, x: 0, y: 0, logging: false, ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; } }),
+              30000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
+            );
+          } finally {
+            console.warn = _origWarn; // restore เสมอ ไม่ว่าจะ success หรือ error
+          }
           // restore zoom หลัง capture
           if (_isMobileNow) {
             document.documentElement.style.zoom = _prevZoom;
@@ -1293,37 +1306,47 @@ async function exportPDF(){
         const ph = pdf.internal.pageSize.getHeight();
         pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
         cleanup2();
-        // ✅ Cross-platform PDF download: iOS Safari และ Android ต้องใช้ blob URL + <a> click
-        // เพราะ pdf.save() (ซึ่งใช้ FileSaver.js) อาจไม่ทำงานบน mobile browser บางตัว
+        // ✅ Mobile fix: ใช้ iframe print แทน blob download
+        // - iOS WKWebView: blob URL ไม่ trigger download, ต้องใช้ print dialog → "Save to Files"
+        // - Android WebView: <a download> ถูก block, ต้องใช้ print dialog → "Save as PDF"
         var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var _isAndroid = /Android/.test(navigator.userAgent);
         if (_isIOS || _isAndroid) {
           try {
-            var pdfBlob = pdf.output('blob');
-            var blobUrl = URL.createObjectURL(pdfBlob);
-            var dlLink = document.createElement('a');
-            dlLink.href = blobUrl;
-            dlLink.download = pdfName;
-            dlLink.target = '_blank';
-            document.body.appendChild(dlLink);
-            dlLink.click();
-            setTimeout(function() {
-              document.body.removeChild(dlLink);
-              URL.revokeObjectURL(blobUrl);
-            }, 3000);
-          } catch(iosErr) {
-            // fallback: open blob in new tab (iOS Files app จะจับได้)
-            try {
-              var pdfDataUri = pdf.output('datauristring');
-              var w = window.open('', '_blank');
-              if (w) {
-                w.document.write('<html><head><title>' + pdfName + '</title></head><body style="margin:0"><embed width="100%" height="100%" src="' + pdfDataUri + '" type="application/pdf"></body></html>');
-                w.document.close();
-              } else {
-                pdf.save(pdfName);
+            var pdfDataUri = pdf.output('datauristring');
+            var printFrame = document.createElement('iframe');
+            printFrame.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;';
+            printFrame.src = pdfDataUri;
+            document.body.appendChild(printFrame);
+            var _printDone = false;
+            printFrame.onload = function() {
+              if (_printDone) return;
+              _printDone = true;
+              try {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+              } catch(pe) {
+                // iframe.print() ถูก block → เปิด tab ใหม่แสดง PDF แทน
+                try { window.open(pdfDataUri, '_blank'); } catch(e2) { pdf.save(pdfName); }
               }
-            } catch(e2) { pdf.save(pdfName); }
+              setTimeout(function(){ if(printFrame.parentNode) printFrame.parentNode.removeChild(printFrame); }, 8000);
+            };
+            printFrame.onerror = function() {
+              if (_printDone) return;
+              _printDone = true;
+              if(printFrame.parentNode) printFrame.parentNode.removeChild(printFrame);
+              pdf.save(pdfName);
+            };
+            // timeout fallback กัน iframe ไม่ยิง onload
+            setTimeout(function() {
+              if (!_printDone) {
+                _printDone = true;
+                try { printFrame.contentWindow.print(); } catch(e) { pdf.save(pdfName); }
+              }
+            }, 3000);
+          } catch(mobileErr) {
+            pdf.save(pdfName);
           }
         } else {
           pdf.save(pdfName);
