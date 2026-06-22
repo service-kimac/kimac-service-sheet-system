@@ -25,7 +25,8 @@
   html {
     width: 100%;
     min-width: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-text-size-adjust: none;
     text-size-adjust: none;
   }
@@ -42,8 +43,8 @@
     justify-content: flex-start;
     padding: calc(58px + env(safe-area-inset-top)) 0 calc(72px + env(safe-area-inset-bottom)) 0;
     font-size: 13px;
-    overflow: hidden;
-    /* ⚠️ iPad Safari: บังคับพิมพ์สีพื้นหลังและภาพออกมาด้วย (ไม่งั้น background จะหายตอนพิมพ์) */
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -286,7 +287,7 @@
 .header-spacer { width: 85px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; display: inline-block; max-width: 100%; }
+.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; display: inline-block; max-width: 100%; margin: 0 auto; padding: 12px 0; }
 .page {
   width: 210mm;
   height: 297mm;
@@ -582,24 +583,17 @@ _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').te
 function scalePage() {
   var wrapper = document.getElementById('pageWrapper');
   if (!wrapper) return;
-  // Measure the actual A4 page size without display transform.
   var prevTransform = wrapper.style.transform || '';
   wrapper.style.transform = 'none';
   var rect = wrapper.getBoundingClientRect();
-  var pageWidth = rect.width;
-  var pageHeight = rect.height;
   wrapper.style.transform = prevTransform;
 
-  var topbar = document.querySelector('.topbar-c');
-  var actbar = document.querySelector('.actbar');
-  var reservedHeight = 0;
-  if (topbar && getComputedStyle(topbar).display !== 'none') reservedHeight += topbar.offsetHeight;
-  if (actbar && getComputedStyle(actbar).display !== 'none') reservedHeight += actbar.offsetHeight;
-
-  var availableWidth = window.innerWidth - 16;
-  var availableHeight = window.innerHeight - reservedHeight - 16;
-  var scale = Math.min(1, availableWidth / pageWidth, availableHeight / pageHeight);
-  if (scale <= 0) scale = 0.1;
+  var pageWidth = rect.width || 1;
+  var availableWidth = Math.max(window.innerWidth - 40, 320);
+  var scale = availableWidth / pageWidth;
+  var maxScale = 1.4;
+  if (scale > maxScale) scale = maxScale;
+  if (scale < 0.45) scale = 0.45;
   wrapper.style.transform = 'scale(' + scale + ')';
   wrapper.style.margin = '0 auto';
 }
