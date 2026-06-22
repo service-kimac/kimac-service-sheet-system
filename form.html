@@ -310,6 +310,23 @@
   .page-wrapper { justify-content: center; padding: 12px 10px; }
   .page { width: 210mm; flex: 0 0 auto; }
 }
+/* Mobile full-page A4 preview helper when body has .mobile-a4 */
+body.mobile-a4 { overflow-x: auto; }
+body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; }
+body.mobile-a4 .page {
+  width: 210mm;
+  aspect-ratio: 210 / 297;
+  height: auto;
+  min-height: 297mm;
+  max-width: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  overflow: visible;
+}
+body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+body.mobile-a4 .sig-section { min-height: var(--sig-min, 120px); flex-grow: 1; display: flex; gap: 12px; align-items: stretch; }
+body.mobile-a4 .sig-box { flex: 1 1 0; display: flex; flex-direction: column; }
+body.mobile-a4 .sig-preview-wrap { flex: 1 1 auto; height: auto !important; min-height: 50px; }
+body.mobile-a4 .footer { margin-top: auto; }
 .page-inner { flex: 1; display: flex; flex-direction: column; overflow: visible; }
 
 /* ✅ FIX1: ลบ media query ที่ย่อ height-heavy elements บนจอเล็ก
@@ -695,10 +712,21 @@ function scalePage() {
     scale = scaleH;
     // allow a readable minimum
     if (scale < 0.55) scale = 0.55;
+    // enable mobile-A4 class to apply flex growth for signatures
+    document.body.classList.add('mobile-a4');
+    // preserve current signature height as min so it won't shrink when parts are added
+    try{
+      var sigSection = page.querySelector('.sig-section');
+      if(sigSection){
+        var curSigH = sigSection.offsetHeight || parseInt(window.getComputedStyle(sigSection).height) || 120;
+        page.style.setProperty('--sig-min', curSigH + 'px');
+      }
+    }catch(e){}
   } else {
     // desktop/tablet: scale by width as before
     scale = Math.min(1, availableWidth / pageWidth);
     if (scale < 0.55) scale = 0.55;
+    document.body.classList.remove('mobile-a4');
   }
   if (scale < 0.55) scale = 0.55;
   page.style.transformOrigin = 'top center';
