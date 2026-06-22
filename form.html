@@ -56,7 +56,7 @@
 
   @page { size: 210mm 297mm portrait; margin: 0; }
   html, body { width: 210mm; height: 297mm; margin: 0 !important; padding: 0 !important; background: #fff !important; overflow: hidden; display: block; }
-  .page-wrapper { width: 210mm !important; transform: none !important; margin: 0 !important; padding: 0 !important; height: 297mm !important; }
+  .page-wrapper { width: 210mm !important; zoom: 1 !important; transform: none !important; margin: 0 !important; padding: 0 !important; height: 297mm !important; }
   .page { width: 210mm !important; min-height: 297mm !important; height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; padding: 5mm 7mm 4mm 7mm !important; font-size: 9.5pt !important; page-break-after: avoid !important; display: flex !important; flex-direction: column !important; }
   .header { margin-bottom: 3px !important; padding-bottom: 3px !important; }
   .header-logo { width: 75px !important; height: 55px !important; }
@@ -189,11 +189,12 @@
 .header-spacer { width: 110px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 210mm; transform-origin: top center; overflow: visible; }
+/* ใช้ px แทน mm เพราะ Safari iPad อ่าน zoom + mm ได้ผิดพลาด; 210mm @ 96dpi = 794px */
+.page-wrapper { width: 794px; transform-origin: top center; overflow: visible; }
 .page {
-  width: 210mm; min-height: auto; background: #ffffff;
+  width: 794px; min-height: auto; background: #ffffff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  padding: 5mm 8mm 4mm 8mm; position: relative;
+  padding: 19px 30px 15px 30px; position: relative;
   display: flex; flex-direction: column;
   overflow: visible;
 }
@@ -278,7 +279,7 @@
 .sig-meta input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
 
 /* footer */
-.footer { text-align: center; border-top: 2px solid #427aa1; padding-top: 4px; margin-top: auto; color: #427aa1; font-size: 11px; line-height: 1.5; }
+.footer { text-align: center; border-top: 2px solid #427aa1; padding-top: 4px; margin-top: 6px; color: #427aa1; font-size: 11px; line-height: 1.5; }
 .footer .company-name { font-size: 13px; font-weight: 700; color: #427aa1; }
 .footer .contact { color: #444; font-size: 11px; }
 
@@ -999,28 +1000,9 @@ async function exportPDF(){
         const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
-        // วาดเต็มความกว้างหน้าเสมอ (เหมือนเดิม) แล้วคำนวณความสูงทั้งหมดตามสัดส่วนจริง
-        // ไม่บีบอัดให้พอดีหน้าเดียวอีกต่อไป เพราะถ้าเนื้อหายาวเกิน 1 หน้า A4 (ที่อยู่ลูกค้ายาว/รายการอะไหล่เยอะ/รายละเอียดเครื่องยาว)
-        // การบีบทั้งภาพให้พอดีหน้าเดียวจะทำให้ส่วนท้ายสุด (เช่น ที่อยู่บริษัทใน footer) เสี่ยงโดนตัดหรือเนื้อหาเล็กจนอ่านไม่ออก
-        // แก้โดยตัดภาพเป็นหลายหน้า A4 แทน ถ้าเนื้อหายาวกว่า 1 หน้า
-        const scaleRatio = pw / canvas.width; // คำนวณจาก canvas.width จริง ไม่ assume scale ตายตัว (เพราะตอนนี้ scale ต่างกันระหว่าง iOS/อื่นๆ)
-        const totalImgH = canvas.height * scaleRatio; // ความสูงทั้งหมดของภาพ ถ้าวาดเต็มความกว้างหน้า
-        if (totalImgH <= ph + 0.5) {
-          // เนื้อหาพอดีหรือสั้นกว่า 1 หน้า → ดึงภาพให้เต็มความสูงหน้า A4 พอดี (ph) แทนที่จะปล่อยตามสัดส่วนจริง
-          // เพื่อไม่ให้เหลือพื้นที่ว่างด้านล่างหน้ากระดาษ
-          pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
-        } else {
-          // เนื้อหายาวเกิน 1 หน้า → ตัดเป็นหลายหน้า โดยแต่ละหน้าขยับภาพขึ้นทีละความสูงหนึ่งหน้า (เหมือนเลื่อนหน้าต่างมองภาพยาว)
-          let renderedH = 0;
-          let pageNum = 0;
-          while (renderedH < totalImgH - 0.5) {
-            if (pageNum > 0) pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, -renderedH, pw, totalImgH);
-            renderedH += ph;
-            pageNum++;
-            if (pageNum > 10) break; // กันลูปไม่รู้จบในกรณีผิดปกติ
-          }
-        }
+        // บังคับ fit ใน 1 หน้า A4 เสมอ — ฟอร์มนี้ออกแบบมาสำหรับ 1 หน้าพอดี
+        // ถ้าเนื้อหาล้นนิดหน่อย (footer อยู่ใต้เส้น) ให้บีบลงมาพอดีหน้า แทนที่จะตัดเป็นหน้า 2
+        pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
         // หมายเหตุ (เปลี่ยนกลับรอบนี้): เลิกใช้วิธี navigate ไปที่ blob URL เองสำหรับ iOS แล้ว เพราะพิสูจน์
         // ไม่ได้ว่าได้ผลจริงและกลับกลายเป็นได้หน้าขาวเปล่าแทน → ใช้ pdf.save() มาตรฐานของ jsPDF เหมือนกัน
         // ทุกแพลตฟอร์ม เพราะเป็นโค้ดเส้นทางที่ผ่านการทดสอบจริงมาแล้วมากที่สุด ลดความเสี่ยงจากโค้ดเฉพาะกิจ
