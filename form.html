@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=794, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e1c36">
@@ -25,11 +25,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px;
-    padding-left: 0;
-    padding-right: 0;
+    padding: 10px 0;
     font-size: 13px;
     overflow-x: hidden;
+    min-width: 794px;
   }
   .btn-export {
     margin-bottom: 15px;
@@ -200,28 +199,7 @@
 }
 .page-inner { flex: 1; overflow: visible; }
 
-/* Mobile zoom — ใช้ CSS zoom แทน JS transform เพื่อให้ layout reflow จริง
-   210mm @ 96dpi = 793.7px  ดังนั้น zoom = viewport / 794
-   เพิ่ม padding ซ้ายขวา 8px รวม = viewport - 16 */
-@media screen and (max-width: 390px) {
-  .page-wrapper { zoom: 0.47; }
-}
-@media screen and (min-width: 391px) and (max-width: 430px) {
-  .page-wrapper { zoom: 0.52; }
-}
-@media screen and (min-width: 431px) and (max-width: 500px) {
-  .page-wrapper { zoom: 0.58; }
-}
-@media screen and (min-width: 501px) and (max-width: 600px) {
-  .page-wrapper { zoom: 0.68; }
-}
-@media screen and (min-width: 601px) and (max-width: 700px) {
-  .page-wrapper { zoom: 0.78; }
-}
-@media screen and (min-width: 701px) and (max-width: 810px) {
-  .page-wrapper { zoom: 0.90; }
-}
-/* >= 811px (iPad portrait 768+safe, landscape, desktop) — เต็มขนาด */
+/* viewport width=794 จัดการ scale ให้อัตโนมัติแล้ว ไม่ต้องใช้ CSS zoom */
 
 /* service type bar */
 .service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
