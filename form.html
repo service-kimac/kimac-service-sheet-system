@@ -307,28 +307,31 @@
 /* Mobile A4 preview rules: keep fixed A4 aspect, center horizontally, allow horizontal scroll */
 @media (max-width: 820px) {
   body { overflow-x: hidden; }
-  .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: hidden; }
-  .page { width: min(calc(100vw - 16px), 210mm); max-width: 100%; aspect-ratio: 210 / 297; flex: 0 0 auto; margin: 0 auto; }
+  .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: auto; }
+  /* keep page at natural A4 width (210mm) and let JS scale it uniformly */
+  .page { width: 210mm; max-width: none; aspect-ratio: 210 / 297; flex: 0 0 auto; margin: 0 auto; background: #fff; box-shadow: 0 6px 26px rgba(0,0,0,0.12); border-radius: 6px; }
   .ab-hist { background: linear-gradient(135deg,#05406a,#0b5f8a); color: #fff; border: 1px solid rgba(0,0,0,0.12); }
 }
 /* Mobile full-page A4 preview helper when body has .mobile-a4 */
-body.mobile-a4 { overflow-x: hidden; }
-body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: hidden; }
+body.mobile-a4 { overflow-x: auto; background: #f0f2f5; }
+body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: auto; }
 body.mobile-a4 .page {
-  width: min(calc(100vw - 16px), 210mm);
-  max-width: 100%;
+  width: 210mm;
+  max-width: none;
   aspect-ratio: 210 / 297;
   height: auto;
   min-height: 297mm;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 26px rgba(0,0,0,0.12);
   overflow: visible;
-  margin: 0 auto;
+  margin: 16px auto;
+  background: #ffffff;
+  border-radius: 6px;
 }
 body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 /* increase signature min-height default and allow full flex growth */
 body.mobile-a4 .sig-section { min-height: var(--sig-min, 200px); flex-grow: 1; display: flex; gap: 12px; align-items: stretch; }
 body.mobile-a4 .sig-box { flex: 1 1 0; display: flex; flex-direction: column; height: 100%; }
-body.mobile-a4 .sig-preview-wrap { flex: 1 1 auto; height: 100% !important; min-height: 120px !important; }
+body.mobile-a4 .sig-preview-wrap { flex: 1 1 auto; height: 100% !important; min-height: 160px !important; }
 body.mobile-a4 .footer { margin-top: auto; }
 .page-inner { flex: 1; display: flex; flex-direction: column; overflow: visible; }
 
@@ -709,16 +712,20 @@ function scalePage() {
     var pageNaturalH = page.offsetHeight || (297 * 3.78); // fallback px estimate
     var pageNaturalW = page.offsetWidth || (210 * 3.78);
     page.style.transform = prev;
-    // On mobile, let CSS set the page width/height. Avoid additional JS scaling.
-    scale = 1;
-    // enable mobile-A4 class to apply flex growth for signatures
+    // compute available width/height for full-page visibility
+    var availW = Math.max(80, window.innerWidth - 24); // safe side padding
+    var availH = availableHeight;
+    // scale uniformly to fit both width and height, never upscale
+    scale = Math.min(1, availW / pageNaturalW, availH / pageNaturalH);
+    if (scale < 0.55) scale = 0.55;
+    // enable mobile-A4 class to apply paper visuals and signature flex growth
     document.body.classList.add('mobile-a4');
-    // preserve current signature height as min so it won't shrink when parts are added
+    // increase signature min by +80px over current to make canvases taller on mobile
     try{
       var sigSection = page.querySelector('.sig-section');
       if(sigSection){
         var curSigH = sigSection.offsetHeight || parseInt(window.getComputedStyle(sigSection).height) || 120;
-        page.style.setProperty('--sig-min', curSigH + 'px');
+        page.style.setProperty('--sig-min', (curSigH + 80) + 'px');
       }
     }catch(e){}
   } else {
