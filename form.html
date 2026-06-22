@@ -26,7 +26,10 @@
     flex-direction: column;
     align-items: center;
     padding: 10px;
+    padding-left: 0;
+    padding-right: 0;
     font-size: 13px;
+    overflow-x: hidden;
   }
   .btn-export {
     margin-bottom: 15px;
@@ -195,6 +198,29 @@
   overflow: visible;
 }
 .page-inner { flex: 1; overflow: visible; }
+
+/* Mobile zoom — ใช้ CSS zoom แทน JS transform เพื่อให้ layout reflow จริง
+   210mm @ 96dpi = 793.7px  ดังนั้น zoom = viewport / 794
+   เพิ่ม padding ซ้ายขวา 8px รวม = viewport - 16 */
+@media screen and (max-width: 390px) {
+  .page-wrapper { zoom: 0.47; }
+}
+@media screen and (min-width: 391px) and (max-width: 430px) {
+  .page-wrapper { zoom: 0.52; }
+}
+@media screen and (min-width: 431px) and (max-width: 500px) {
+  .page-wrapper { zoom: 0.58; }
+}
+@media screen and (min-width: 501px) and (max-width: 600px) {
+  .page-wrapper { zoom: 0.68; }
+}
+@media screen and (min-width: 601px) and (max-width: 700px) {
+  .page-wrapper { zoom: 0.78; }
+}
+@media screen and (min-width: 701px) and (max-width: 810px) {
+  .page-wrapper { zoom: 0.90; }
+}
+/* >= 811px (iPad portrait 768+safe, landscape, desktop) — เต็มขนาด */
 
 /* service type bar */
 .service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 4px 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -467,67 +493,20 @@ _logoEl.onload = function() { if(typeof _doScale==='function') _doScale(); };
 _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').textContent.trim();
 
 // --- RESPONSIVE SCALING ---
-// วัดจาก #page (เนื้อหาจริง) ไม่ใช่ wrapper เพื่อหลีกเลี่ยงการอ่าน height ที่ถูกล็อคไว้
-// iPad (>= 768px): ไม่ scale เพราะ 210mm ≈ 794px พอดีจอพอดีอยู่แล้ว
-// มือถือ (< 768px): scale ลงให้พอดี viewport
-function scalePage() {
-  var wrapper = document.getElementById('pageWrapper');
-  var page = document.getElementById('page');
-  if (!wrapper || !page) return;
-
-  // รีเซ็ต wrapper ก่อนวัดทุกครั้ง เพื่อไม่ให้ height เก่าทำให้วัดผิด
-  wrapper.style.transform = 'none';
-  wrapper.style.height = 'auto';
-  wrapper.style.minHeight = '';
-
-  // วัดจาก page element โดยตรง (ไม่มี transform ค้างอยู่แล้ว)
-  var pageH = page.offsetHeight;
-  var pageW = page.offsetWidth;
-
-  // ถ้า page ยังไม่ render (ขนาด 0) ให้รอ
-  if (pageH < 50 || pageW < 100) return;
-
-  var viewportW = window.innerWidth;
-  var availW = viewportW - 20; // body padding 10px แต่ละข้าง
-
-  if (pageW > availW) {
-    var scale = availW / pageW;
-    wrapper.style.transformOrigin = 'top center';
-    wrapper.style.transform = 'scale(' + scale + ')';
-    wrapper.dataset.scale = String(scale);
-    // ล็อค wrapper height = pageH * scale เพื่อให้ element ด้านล่าง (actbar) ไม่ทับ
-    wrapper.style.height = (pageH * scale) + 'px';
-  } else {
-    wrapper.style.transform = 'none';
-    wrapper.dataset.scale = '1';
-    wrapper.style.height = 'auto';
-  }
-}
+// การย่อขนาดบนมือถือทำด้วย CSS zoom ใน stylesheet แล้ว
+// scalePage() ยังคงไว้เพราะ exportPDF() เรียกใช้ (restore wrapper หลัง export)
+function scalePage() { /* CSS zoom handles display scaling */ }
 
 var _lastVW = window.innerWidth;
-function _doScale() {
-  // ใช้ rAF คู่เพื่อให้ browser layout รอบนี้เสร็จก่อนวัด
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      scalePage();
-    });
-  });
-}
-window.addEventListener('load', function(){
-  _lastVW = window.innerWidth;
-  _doScale();
-  setTimeout(_doScale, 300);
-  setTimeout(_doScale, 800);
-});
-try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(_doScale); } } catch(e){}
+function _doScale() { /* no-op — CSS zoom handles it */ }
+window.addEventListener('load', function(){ _lastVW = window.innerWidth; });
+try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){}); } } catch(e){}
 // ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ) — ตอน
-// คีย์บอร์ดเด้งบน Android จะยิง resize (สูงลด) ถ้าย่อใหม่ตอนนั้นหน้าจะเด้ง/ว่างโล่งตอนพิมพ์
+// CSS zoom handles display scaling — resize/orientation ไม่ต้องทำอะไร
 window.addEventListener('resize', function(){
-  if (window.innerWidth === _lastVW) return; // คีย์บอร์ดเด้ง/หุบ -> ข้าม
   _lastVW = window.innerWidth;
-  _doScale();
 });
-window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; _doScale(); }, 300); });
+window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; }, 300); });
 
 const NUM_ROWS = 5;
 let rowCount = 0;
@@ -792,9 +771,11 @@ async function exportPDF(){
     const prevTransform = wrapper.style.transform;
     const prevHeight = wrapper.style.height;
     const prevMarginBottom = wrapper.style.marginBottom;
+    const prevZoom = wrapper.style.zoom;
     wrapper.style.transform = 'none';
     wrapper.style.height = '';
     wrapper.style.marginBottom = '';
+    wrapper.style.zoom = '1';
 
     document.querySelectorAll('.sig-trigger-btn').forEach(b => b.style.display = 'none');
     document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'none');
@@ -932,6 +913,7 @@ async function exportPDF(){
       wrapper.style.transform = prevTransform;
       wrapper.style.height = prevHeight;
       wrapper.style.marginBottom = prevMarginBottom;
+      wrapper.style.zoom = prevZoom;
       _doScale();
     }
 
