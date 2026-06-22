@@ -27,8 +27,8 @@
     min-width: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    -webkit-text-size-adjust: none;
-    text-size-adjust: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     width: 100%;
@@ -211,7 +211,7 @@
   color: #ffd151; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
 .btn-bk { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
   color: #fff; padding: 5px 10px; border-radius: 8px; font-family: 'Sarabun',sans-serif;
-  font-size: 12px; font-weight: 600; cursor: pointer; -webkit-appearance: none; }
+  font-size: 12px; font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; }
 
 /* ── ACTION BAR ── */
 .actbar {
@@ -224,7 +224,7 @@
 .ab {
   flex: 1; padding: 10px 4px; border: none; border-radius: 10px;
   font-family: 'Sarabun',sans-serif; font-size: 12px; font-weight: 700;
-  cursor: pointer; -webkit-appearance: none; transition: opacity .15s;
+  cursor: pointer; appearance: none; -webkit-appearance: none; transition: opacity .15s;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 @media (max-width: 360px) {
@@ -287,7 +287,7 @@
 .header-spacer { width: 85px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; display: inline-block; max-width: 100%; margin: 0 auto; padding: 12px 0; }
+.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; display: inline-block; max-width: calc(210mm * 1.1); margin: 0 auto; padding: 12px 0; }
 .page {
   width: 210mm;
   height: 297mm;
@@ -386,7 +386,7 @@ body {
     <span class="tc-title">ระบบบันทึกงานบริการ</span>
   </div>
   <div class="tc-r">
-    <select class="status-select" id="jobStatus" style="padding:4px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;outline:none;-webkit-appearance:none;">
+    <select class="status-select" id="jobStatus" style="padding:4px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;outline:none;appearance:none;-webkit-appearance:none;">
   <option value="draft" style="color:#000;background:#fff;">📝 ร่าง</option>
   <option value="completed" style="color:#000;background:#fff;">✅ เสร็จสิ้น</option>
 </select>
@@ -589,11 +589,11 @@ function scalePage() {
   wrapper.style.transform = prevTransform;
 
   var pageWidth = rect.width || 1;
-  var availableWidth = Math.max(window.innerWidth - 40, 320);
+  var availableWidth = Math.min(window.innerWidth - 40, pageWidth * 1.05);
   var scale = availableWidth / pageWidth;
-  var maxScale = 1.4;
+  var maxScale = 1.1;
   if (scale > maxScale) scale = maxScale;
-  if (scale < 0.45) scale = 0.45;
+  if (scale < 0.55) scale = 0.55;
   wrapper.style.transform = 'scale(' + scale + ')';
   wrapper.style.margin = '0 auto';
 }
@@ -886,15 +886,14 @@ async function exportPDF(){
     }
 
     const original = document.getElementById('page');
-    const A4_W_PX = Math.round(original.getBoundingClientRect().width);
-    const A4_H_PX = Math.round(original.getBoundingClientRect().height);
-
     const wrapper = document.getElementById('pageWrapper');
     const prevTransform = wrapper.style.transform;
     const prevHeight = wrapper.style.height;
     const prevMarginBottom = wrapper.style.marginBottom;
     const prevZoom = wrapper.style.zoom;
     wrapper.style.transform = 'none';
+    const A4_W_PX = original.offsetWidth;
+    const A4_H_PX = original.offsetHeight;
     wrapper.style.height = '';
     wrapper.style.marginBottom = '';
     wrapper.style.zoom = '1';
