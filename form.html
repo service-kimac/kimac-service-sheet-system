@@ -187,7 +187,7 @@
 /* ── TOPBAR ── */
 .topbar-c {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  background: linear-gradient(135deg,#0e1c36 0%,#427aa1 100%);
+  background: linear-gradient(135deg,#032033 0%,#0b496f 100%);
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px;
   padding-top: calc(10px + env(safe-area-inset-top));
@@ -215,8 +215,8 @@
 
 /* ── ACTION BAR ── */
 .actbar {
-  position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
-  border-top: 1px solid #69747c22;
+  position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg,#032033,#073a5a);
+  border-top: 1px solid rgba(0,0,0,0.25);
   display: flex; gap: 8px; padding: 9px 12px;
   padding-bottom: calc(9px + env(safe-area-inset-bottom));
   z-index: 300; box-shadow: 0 -3px 16px rgba(0,0,0,.08);
@@ -236,6 +236,11 @@
 .ab-save:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
 .ab-pdf { background: linear-gradient(135deg,#15803d,#16a34a); color: #fff; box-shadow: 0 3px 10px rgba(21,128,61,.3); }
 .ab-pdf:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+
+/* increase button contrast on dark action bar */
+.ab { color: #fff; }
+.btn-export { background: linear-gradient(135deg,#0b5d8a,#0e2a4a); color: #fff; box-shadow: 0 4px 18px rgba(2,24,47,.35); }
+.btn-bk { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
 
 /* ── TOAST ── */
 .toast-f {
@@ -287,7 +292,7 @@
 .header-spacer { width: 85px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 210mm; min-height: 297mm; transform-origin: top center; overflow: visible; display: inline-block; max-width: calc(210mm * 1.1); margin: 0 auto; padding: 12px 0; }
+.page-wrapper { width: 100%; transform-origin: top center; overflow: visible; display: flex; justify-content: center; align-items: flex-start; margin: 0; padding: 12px 0; box-sizing: border-box; }
 .page {
   width: 210mm;
   height: 297mm;
@@ -346,10 +351,10 @@
 .parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
-.sig-section { clear: both; display: flex; gap: 8px; margin-top: auto; margin-bottom: 4px; }
-.sig-box { flex: 1; border: 1.5px solid #427aa1; border-radius: 6px; padding: 4px 8px 6px; background: white; text-align: center; }
-.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 4px; }
-.sig-preview-wrap { position: relative; width: 100%; height: 90px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sig-section { clear: both; display: flex; gap: 8px; margin-top: 6px; margin-bottom: 4px; align-items: stretch; }
+.sig-box { flex: 1 1 0; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 8px 6px; background: white; text-align: center; display:flex; flex-direction:column; }
+.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
+.sig-preview-wrap { position: relative; width: 100%; height: auto; min-height: 68px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; flex:1; }
 .sig-preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; }
 .sig-trigger-btn { font-size: 12px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; padding: 4px 8px; display: flex; align-items: center; gap: 4px; z-index: 1; }
 .btn-clear-sig { font-size: 11px; padding: 3px 10px; border: 1px solid #c00; border-radius: 3px; background: #fff; color: #c00; cursor: pointer; font-family: 'Sarabun', sans-serif; margin-top: 4px; font-weight: 600; display: none; }
@@ -578,27 +583,7 @@ _logoEl.onload = function() { if(typeof _doScale==='function') _doScale(); };
 _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').textContent.trim();
 
 // --- RESPONSIVE SCALING ---
-// การย่อขนาดบนมือถือทำด้วย CSS zoom ใน stylesheet แล้ว
-// scalePage() ยังคงไว้เพราะ exportPDF() เรียกใช้ (restore wrapper หลัง export)
-function scalePage() {
-  var wrapper = document.getElementById('pageWrapper');
-  if (!wrapper) return;
-  var prevTransform = wrapper.style.transform || '';
-  wrapper.style.transform = 'none';
-  var rect = wrapper.getBoundingClientRect();
-  wrapper.style.transform = prevTransform;
-
-  var pageWidth = rect.width || 1;
-  var availableWidth = Math.min(window.innerWidth - 40, pageWidth * 1.05);
-  var scale = availableWidth / pageWidth;
-  var maxScale = 1.1;
-  if (scale > maxScale) scale = maxScale;
-  if (scale < 0.55) scale = 0.55;
-  wrapper.style.transform = 'scale(' + scale + ')';
-  wrapper.style.margin = '0 auto';
-}
-
-function _doScale() { scalePage(); }
+// scalePage() uses inner #page scaling while the wrapper stays a full-width flex container
 
 // ⚠️ iPad Safari beforeprint/afterprint fix:
 // Safari iOS จะซ่อน element ที่มี position:fixed ตอนพิมพ์ ทำให้ topbar/actbar ที่ควร display:none
@@ -618,16 +603,16 @@ window.addEventListener('afterprint', function() {
 });
 
 var _lastVW = window.innerWidth;
-window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); });
-try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); }); } } catch(e){}
+window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); });
+try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); }); } } catch(e){}
 // ย่อหน้าใหม่เฉพาะตอนความกว้างจอเปลี่ยนจริง (หมุนจอ)
 window.addEventListener('resize', function(){
   if (window.innerWidth !== _lastVW) {
     _lastVW = window.innerWidth;
-    scalePage();
+    scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace();
   }
 });
-window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; scalePage(); }, 300); });
+window.addEventListener('orientationchange', function(){ setTimeout(function(){ _lastVW = window.innerWidth; scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); }, 300); });
 
 const NUM_ROWS = 5;
 let rowCount = 0;
@@ -651,13 +636,17 @@ function buildPartsTable() {
     tbody.appendChild(buildRow(i));
     rowCount = i;
   }
+  // adjust layout after initial rows
 }
 buildPartsTable();
+adjustLayoutForSpace();
 
 function addRow() {
   rowCount++;
   const tbody = document.getElementById('partsBody');
   tbody.appendChild(buildRow(rowCount));
+  // adjust layout when rows change
+  setTimeout(adjustLayoutForSpace, 60);
 }
 
 function formatNumber(num) {
@@ -665,21 +654,63 @@ function formatNumber(num) {
   return num.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function calcTotal() {
-  const rows = document.querySelectorAll('#partsBody tr');
-  let partsSum = 0;
-  rows.forEach(r => {
-    const inputs = r.querySelectorAll('input');
-    let qty = parseFloat(inputs[2].value);
-    if (isNaN(qty) || qty <= 0) qty = 1;
-    const price = parseFloat(inputs[4].value) || 0;
-    partsSum += (qty * price);
-  });
-  const vat = partsSum * 0.07;
-  const net = partsSum + vat;
-  document.getElementById('s_sub').value = formatNumber(partsSum);
-  document.getElementById('s_vat').value = formatNumber(vat);
-  document.getElementById('s_total').value = formatNumber(net);
+function scalePage() {
+  var wrapper = document.getElementById('pageWrapper');
+  var page = document.getElementById('page');
+  if (!wrapper || !page) return;
+  // measure page width without any transform
+  var prev = page.style.transform || '';
+  page.style.transform = 'none';
+  var rect = page.getBoundingClientRect();
+  page.style.transform = prev;
+
+  var pageWidth = rect.width || 1;
+  var availableWidth = Math.max(80, window.innerWidth - 20);
+  // scale down only when necessary; never scale above 1
+  var scale = Math.min(1, availableWidth / pageWidth);
+  if (scale < 0.55) scale = 0.55;
+  page.style.transformOrigin = 'top center';
+  page.style.transform = 'scale(' + scale + ')';
+  // wrapper (flex) keeps page centered; ensure minor margin reset
+  page.style.margin = '0 auto';
+  if (typeof adjustLayoutForSpace === 'function') adjustLayoutForSpace();
+}
+function _doScale() { scalePage(); }
+function adjustLayoutForSpace(){
+  try{
+    var page = document.getElementById('page'); if(!page) return;
+    var pageH = page.clientHeight;
+    var sigSection = page.querySelector('.sig-section'); if(!sigSection) return;
+    var footer = page.querySelector('.footer'); var footerH = footer?footer.offsetHeight:0;
+    // compute offsetTop of sigSection relative to page
+    var sigTop = sigSection.getBoundingClientRect().top - page.getBoundingClientRect().top;
+    var usedAbove = Math.max(0, sigTop);
+    var available = pageH - usedAbove - footerH - 8; // small buffer
+    var boxes = sigSection.querySelectorAll('.sig-box'); var count = boxes.length || 2;
+    var targetEach = Math.max(70, Math.floor(available / count) - 28);
+    boxes.forEach(function(b){
+      var preview = b.querySelector('.sig-preview-wrap');
+      if(preview){ preview.style.height = targetEach + 'px'; preview.style.minHeight = '60px'; }
+    });
+    // ensure footer is pushed down by page-inner flex
+    var pageInner = page.querySelector('.page-inner'); if(pageInner){ pageInner.style.flex = '1 1 auto'; }
+  }catch(e){ console.warn('adjustLayoutForSpace:', e); }
+}
+
+// When creating clone for PDF, adjust signature heights inside clone to fully utilize A4 space
+function adjustCloneSignatureHeights(clone, a4h){
+  try{
+    var sigSection = clone.querySelector('.sig-section'); if(!sigSection) return;
+    var footer = clone.querySelector('.footer'); var footerH = footer?footer.offsetHeight:0;
+    var sigTop = sigSection.getBoundingClientRect().top - clone.getBoundingClientRect().top;
+    var available = a4h - sigTop - footerH - 8;
+    var boxes = sigSection.querySelectorAll('.sig-box'); var count = boxes.length || 2;
+    var each = Math.max(60, Math.floor(available / count) - 24);
+    boxes.forEach(function(b){
+      var preview = b.querySelector('.sig-preview-wrap');
+      if(preview){ preview.style.height = each + 'px'; preview.style.minHeight = '50px'; }
+    });
+  }catch(e){ console.warn('adjustCloneSignatureHeights:', e); }
 }
 function toggleOtherService(sel) {
   const inp = document.getElementById('otherServiceInput');
@@ -887,11 +918,12 @@ async function exportPDF(){
 
     const original = document.getElementById('page');
     const wrapper = document.getElementById('pageWrapper');
-    const prevTransform = wrapper.style.transform;
+    const prevTransform = original.style.transform;
     const prevHeight = wrapper.style.height;
     const prevMarginBottom = wrapper.style.marginBottom;
     const prevZoom = wrapper.style.zoom;
-    wrapper.style.transform = 'none';
+    // ensure we measure the page at natural scale
+    original.style.transform = 'none';
     const A4_W_PX = original.offsetWidth;
     const A4_H_PX = original.offsetHeight;
     wrapper.style.height = '';
@@ -962,6 +994,8 @@ async function exportPDF(){
     exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
+    // allocate signature space inside the clone to fully use A4 height
+    if (typeof adjustCloneSignatureHeights === 'function') adjustCloneSignatureHeights(clone, A4_H_PX);
 
     // หมายเหตุ (พบสาเหตุจริงของปัญหาเนื้อหาล้นไปหน้า 2 แบบเกือบว่างเปล่า / ที่อยู่ท้ายฟอร์มหาย):
     // html2canvas จับภาพ clone โดยใช้ขนาดตัวอักษร/padding แบบหน้าจอปกติ (เช่น input 13px, ตาราง 12px)
@@ -1059,7 +1093,8 @@ async function exportPDF(){
       document.querySelectorAll('.sig-trigger-btn').forEach(b => { const t=b.id.replace('SigBtn',''); const img=document.getElementById(t+'SigImg'); if(!img.src||img.style.display==='none')b.style.display='flex'; });
       document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'inline-block');
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
-      wrapper.style.transform = prevTransform;
+      // restore page transform
+      original.style.transform = prevTransform;
       wrapper.style.height = prevHeight;
       wrapper.style.marginBottom = prevMarginBottom;
       wrapper.style.zoom = prevZoom;
