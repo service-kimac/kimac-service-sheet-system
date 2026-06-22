@@ -880,6 +880,9 @@ async function exportPDF(){
          เพราะ browser zoom จาก viewport width=794 ส่งผลต่อ pt→px conversion */
       '#pdfExportHost{font-size:12px!important}'+
       '#pdfExportHost *{box-sizing:border-box!important}'+
+      /* ⚠️ สำคัญ: override min-height:1056px จาก .page CSS class → ให้ clone สูงตามเนื้อหาจริง */
+      '#pdfExportHost .page{min-height:auto!important;height:auto!important}'+
+      '#pdfExportHost .page-inner{overflow:visible!important;flex:1!important}'+
       '#pdfExportHost .header{margin-bottom:3px!important;padding-bottom:3px!important}'+
       '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
       '#pdfExportHost .header-spacer{width:75px!important}'+
@@ -1027,9 +1030,15 @@ async function exportPDF(){
           }
           // รอให้ browser composite layer ใหม่ — iOS ต้องการนานกว่า desktop มาก
           await _pdfWait(_isIOSNow ? 300 : 60);
+          // ⚠️ force reflow ก่อนวัด เพื่อให้ exportCompactStyle (min-height:auto) มีผลแล้ว
+          void clone.offsetHeight;
           var _h1 = Math.max(clone.scrollHeight || 0, clone.offsetHeight || 0) || A4_H_PX;
           await _pdfWait(_isIOSNow ? 200 : 60);
+          void clone.offsetHeight; // reflow อีกครั้ง
           var _h = Math.max(_h1, clone.scrollHeight || 0, clone.offsetHeight || 0) + 8;
+          // ⚠️ cap _h ที่ A4_H_PX*1.05 กัน scrollHeight พอง (จาก margin collapse หรือ overflow)
+          // เกิน 5% → บีบลงมาใน A4 ตาม _imgH_final logic
+          _h = Math.min(_h, Math.round(A4_H_PX * 1.1));
           // ⚠️ iPad/Mobile fix: ลด scale เป็น 1 เพื่อลดภาระ memory
           // scale:1=3.6MB, scale:1.5=8MB, scale:2=14MB — WebKit fail เงียบๆ เมื่อเกิน limit
           var _renderScale = _isMobileNow ? 1 : 2;
@@ -1064,24 +1073,27 @@ async function exportPDF(){
         if (!imgData || imgData.length < 1000) {
           throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ข้อมูลภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
         }
-        const pdf = new J({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
-        const pw = pdf.internal.pageSize.getWidth();   // 210mm
-        const ph = pdf.internal.pageSize.getHeight();  // 297mm
-        // ⚠️ FIX iPad whitespace: คำนวณ height จริงจาก canvas ratio แทนการ force-fit A4
-        // canvas.width = A4_W_PX * scale, canvas.height = content_height * scale
-        // imgH_mm = pw * (canvas.height / canvas.width) → หน้า PDF สูงตามเนื้อหาจริง
-        // ถ้า content สูงกว่า A4 → บีบให้พอดี ph (ป้องกันล้นหน้า 2)
-        var _imgH_mm = pw * (canvas.height / canvas.width);
-        var _imgY = 0;
-        var _imgH_final;
-        if (_imgH_mm <= ph) {
-          // เนื้อหาสั้นกว่า A4 → วางที่ความสูงจริง ไม่ stretch
+        // ⚠️ FIX blank page 2: คำนวณ content height จริงจาก canvas ratio
+        // canvas.width = A4_W_PX * scale, canvas.height = actual_content * scale
+        // imgH_mm = 210mm * (canvas.h / canvas.w) → height จริงของเนื้อหา
+        const _pw = 210; // A4 width mm
+        const _ph = 297; // A4 height mm
+        var _imgH_mm = _pw * (canvas.height / canvas.width);
+        var _pdfH_mm, _imgH_final;
+        if (_imgH_mm <= _ph) {
+          // เนื้อหาสั้นกว่า A4 → สร้าง PDF ขนาดตามเนื้อหาจริง ไม่มีพื้นขาวล่าง
+          _pdfH_mm = _imgH_mm;
           _imgH_final = _imgH_mm;
         } else {
-          // เนื้อหายาวกว่า A4 (ล้นนิดหน่อย) → บีบให้พอดีหน้า
-          _imgH_final = ph;
+          // เนื้อหายาวกว่า A4 → บีบให้พอดี 1 หน้า A4 (ไม่ให้มีหน้า 2)
+          _pdfH_mm = _ph;
+          _imgH_final = _ph;
         }
-        pdf.addImage(imgData, 'JPEG', 0, _imgY, pw, _imgH_final);
+        // สร้าง PDF ด้วย format custom = [width, height] ตามเนื้อหาจริง
+        const pdf = new J({ unit: 'mm', format: [_pw, _pdfH_mm], orientation: 'portrait', compress: true });
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
         // หมายเหตุ (เปลี่ยนกลับรอบนี้): เลิกใช้วิธี navigate ไปที่ blob URL เองสำหรับ iOS แล้ว เพราะพิสูจน์
         // ไม่ได้ว่าได้ผลจริงและกลับกลายเป็นได้หน้าขาวเปล่าแทน → ใช้ pdf.save() มาตรฐานของ jsPDF เหมือนกัน
         // ทุกแพลตฟอร์ม เพราะเป็นโค้ดเส้นทางที่ผ่านการทดสอบจริงมาแล้วมากที่สุด ลดความเสี่ยงจากโค้ดเฉพาะกิจ
