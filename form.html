@@ -166,7 +166,7 @@
   .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; }
   .sig-box { padding: 5px 8px 8px !important; }
   .sig-box .sig-title { font-size: 13px !important; margin-bottom: 4px !important; }
-  .sig-preview-wrap { min-height: 68px !important; height: auto !important; }
+  .sig-preview-wrap { min-height: 100px !important; height: auto !important; }
   .sig-preview-img { display: block !important; }
   .sig-meta { font-size: 11px !important; margin-top: 3px !important; }
   .sig-meta label { font-size: 11px !important; }
@@ -378,7 +378,7 @@ body.mobile-a4 .footer { margin-top: auto; }
 .sig-section { clear: both; display: flex; gap: 8px; margin-top: 6px; margin-bottom: 4px; align-items: stretch; }
 .sig-box { flex: 1 1 0; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 8px 6px; background: white; text-align: center; display:flex; flex-direction:column; }
 .sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
-.sig-preview-wrap { position: relative; width: 100%; height: auto; min-height: 68px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; flex:1; }
+.sig-preview-wrap { position: relative; width: 100%; height: auto; min-height: 100px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; flex:1; }
 .sig-preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; }
 .sig-trigger-btn { font-size: 12px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; padding: 4px 8px; display: flex; align-items: center; gap: 4px; z-index: 1; }
 .btn-clear-sig { font-size: 11px; padding: 3px 10px; border: 1px solid #c00; border-radius: 3px; background: #fff; color: #c00; cursor: pointer; font-family: 'Sarabun', sans-serif; margin-top: 4px; font-weight: 600; display: none; }
@@ -1117,7 +1117,7 @@ async function exportPDF(){
       '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important}'+
       '#pdfExportHost .sig-box{padding:5px 8px 8px!important}'+
       '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:4px!important}'+
-      '#pdfExportHost .sig-preview-wrap{height:75px!important}'+
+      '#pdfExportHost .sig-preview-wrap{height:95px!important}'+
       '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:3px!important}'+
       '#pdfExportHost .sig-meta label{font-size:11px!important}'+
       '#pdfExportHost .sig-meta input{font-size:11px!important}'+
@@ -1255,7 +1255,7 @@ async function exportPDF(){
           // scale:1=3.6MB, scale:1.5=8MB, scale:2=14MB — WebKit fail เงียบๆ เมื่อเกิน limit
           var _renderScale = _isMobileNow ? 1 : 2;
           var _cvs = await _pdfWithTimeout(
-            html2canvas(clone, { scale: _renderScale, useCORS: true, allowTaint: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0, x: 0, y: 0 }),
+            html2canvas(clone, { scale: _renderScale, useCORS: true, allowTaint: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0, x: 0, y: 0, logging: false, ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; } }),
             30000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
           );
           // restore zoom หลัง capture
@@ -1292,18 +1292,48 @@ async function exportPDF(){
         const pw = pdf.internal.pageSize.getWidth();
         const ph = pdf.internal.pageSize.getHeight();
         pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
-        // หมายเหตุ (เปลี่ยนกลับรอบนี้): เลิกใช้วิธี navigate ไปที่ blob URL เองสำหรับ iOS แล้ว เพราะพิสูจน์
-        // ไม่ได้ว่าได้ผลจริงและกลับกลายเป็นได้หน้าขาวเปล่าแทน → ใช้ pdf.save() มาตรฐานของ jsPDF เหมือนกัน
-        // ทุกแพลตฟอร์ม เพราะเป็นโค้ดเส้นทางที่ผ่านการทดสอบจริงมาแล้วมากที่สุด ลดความเสี่ยงจากโค้ดเฉพาะกิจ
-        // ที่ยังไม่ได้พิสูจน์ผล คืนค่า UI ฟอร์มกลับมาก่อน (cleanup2) แล้วค่อยสั่งบันทึกไฟล์ทีหลังสุด
         cleanup2();
-        pdf.save(pdfName);
+        // ✅ Cross-platform PDF download: iOS Safari และ Android ต้องใช้ blob URL + <a> click
+        // เพราะ pdf.save() (ซึ่งใช้ FileSaver.js) อาจไม่ทำงานบน mobile browser บางตัว
+        var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var _isAndroid = /Android/.test(navigator.userAgent);
+        if (_isIOS || _isAndroid) {
+          try {
+            var pdfBlob = pdf.output('blob');
+            var blobUrl = URL.createObjectURL(pdfBlob);
+            var dlLink = document.createElement('a');
+            dlLink.href = blobUrl;
+            dlLink.download = pdfName;
+            dlLink.target = '_blank';
+            document.body.appendChild(dlLink);
+            dlLink.click();
+            setTimeout(function() {
+              document.body.removeChild(dlLink);
+              URL.revokeObjectURL(blobUrl);
+            }, 3000);
+          } catch(iosErr) {
+            // fallback: open blob in new tab (iOS Files app จะจับได้)
+            try {
+              var pdfDataUri = pdf.output('datauristring');
+              var w = window.open('', '_blank');
+              if (w) {
+                w.document.write('<html><head><title>' + pdfName + '</title></head><body style="margin:0"><embed width="100%" height="100%" src="' + pdfDataUri + '" type="application/pdf"></body></html>');
+                w.document.close();
+              } else {
+                pdf.save(pdfName);
+              }
+            } catch(e2) { pdf.save(pdfName); }
+          }
+        } else {
+          pdf.save(pdfName);
+        }
       } else {
         await html2pdf().set({
           margin: 0,
           filename: pdfName,
           image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, x: 0, y: 0, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff' },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true, width: A4_W_PX, height: A4_H_PX, windowWidth: A4_W_PX, windowHeight: A4_H_PX, x: 0, y: 0, scrollX: 0, scrollY: 0, backgroundColor: '#ffffff', logging: false },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
           pagebreak: { mode: ['avoid-all'] }
         }).from(clone).save();
