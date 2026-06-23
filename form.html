@@ -1006,12 +1006,15 @@ async function exportPDF(){
     const prevHeight = wrapper.style.height;
     const prevMarginBottom = wrapper.style.marginBottom;
     const prevZoom = wrapper.style.zoom;
-    // ✅ FIX: reset transform ก่อนวัด และ force reflow ให้แน่ใจ
+    // reset transforms
     wrapper.style.transform = 'none';
     original.style.transform = 'none';
-    void original.offsetWidth; // force reflow
-    const A4_W_PX = original.offsetWidth;
-    const A4_H_PX = original.offsetHeight;
+    void original.offsetWidth;
+    // ✅ FIX: ใช้ค่า A4 @ 96dpi คงที่ ไม่วัดจาก DOM ที่อาจถูก scale
+    // 210mm @ 96dpi = 794px, 297mm @ 96dpi = 1123px
+    // วัดจาก DOM เพื่อรู้ natural width จริง แต่ไม่น้อยกว่า 794
+    const A4_W_PX = Math.max(original.offsetWidth, 794);
+    const A4_H_PX = Math.round(A4_W_PX * 297 / 210);
     wrapper.style.height = '';
     wrapper.style.marginBottom = '';
     wrapper.style.zoom = '1';
@@ -1038,12 +1041,24 @@ async function exportPDF(){
     textareaParent.replaceChild(detailDiv, textarea);
 
     // จำสถานะติ๊กของ radio ต้นฉบับไว้ก่อน เพราะตอน append clone เข้า document ตัว copy จะแย่งสถานะในกลุ่มชื่อเดียวกัน ทำให้ el.checked ของต้นฉบับถูกปลด
+    // ✅ FIX: lock original ให้เป็นขนาด A4 pixel จริงก่อน clone
+    // กัน aspect-ratio หรือ CSS อื่นทำให้ height ผิด
+    original.style.setProperty('width', A4_W_PX + 'px', 'important');
+    original.style.setProperty('height', A4_H_PX + 'px', 'important');
+    original.style.setProperty('min-height', A4_H_PX + 'px', 'important');
+    original.style.setProperty('max-height', A4_H_PX + 'px', 'important');
+    original.style.setProperty('overflow', 'hidden', 'important');
+    void original.offsetHeight;
     const radioCheckedSnapshot = {};
     original.querySelectorAll('input[type=radio]').forEach(function(r){ radioCheckedSnapshot[r.name + '|' + r.value] = r.checked; });
     const clone = original.cloneNode(true);
     clone.id = 'pageClone';
     // ✅ FIX: ใช้ cssText เดียวบังคับทุก property พร้อมกัน — ชนะ CSS class ได้แน่นอน
     // สำคัญ: ต้องมี max-height + overflow:hidden เพื่อ clip content ให้พอดี A4
+    // ✅ FIX: padding เป็น px ไม่ใช่ mm — กัน browser แปลง mm ผิดตอน capture
+    // 7mm @ 96dpi ≈ 26px, 6mm ≈ 23px
+    var _padPx = Math.round(A4_W_PX * 7 / 210);
+    var _padBotPx = Math.round(A4_W_PX * 6 / 210);
     clone.style.cssText = [
       'width:' + A4_W_PX + 'px',
       'height:' + A4_H_PX + 'px',
@@ -1059,7 +1074,7 @@ async function exportPDF(){
       'flex-direction:column',
       'font-size:12px',
       'background:#ffffff',
-      'padding:7mm 7mm 6mm 7mm',
+      'padding:' + _padPx + 'px ' + _padPx + 'px ' + _padBotPx + 'px ' + _padPx + 'px',
       'box-sizing:border-box',
     ].join(';');
     var _footer = clone.querySelector('.footer');
@@ -1081,7 +1096,7 @@ async function exportPDF(){
     // เพราะ body มี padding-top จาก topbar (calc(58px + safe-area)) ทำให้ top:0 ของ absolute
     // ไม่ตรงกับ viewport top จริง → html2canvas วาดออกนอก viewport แล้วได้ภาพขาว
     // position:fixed + top:0 รับประกันว่าอยู่ที่มุมบนซ้ายของหน้าจอเสมอ
-    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
+    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;height:'+A4_H_PX+'px;overflow:hidden;background:#ffffff;z-index:99997;';
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
     // allocate signature space inside the clone to fully use A4 height
@@ -1107,7 +1122,11 @@ async function exportPDF(){
       '#pdfExportHost .page-inner{overflow:visible!important;flex:1!important}'+
       '#pdfExportHost .header{margin-bottom:4px!important;padding-bottom:4px!important}'+
       '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
+      // ✅ FIX: เพิ่ม #pageClone prefix เพื่อ specificity สูงกว่า .page .header-logo
+      '#pageClone .header-logo{width:75px!important;height:55px!important;max-width:75px!important;max-height:55px!important;object-fit:contain!important}'+
+      '#pageClone .header-logo-wrap{width:85px!important;flex-shrink:0!important}'+
       '#pdfExportHost .header-spacer{width:75px!important}'+
+      '#pageClone .header-spacer{width:75px!important}'+
       '#pdfExportHost .header-center h1{font-size:20px!important;letter-spacing:1px!important}'+
       '#pdfExportHost .header-center p{font-size:12px!important}'+
       '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:6px!important;margin-bottom:3px!important}'+
@@ -1138,7 +1157,7 @@ async function exportPDF(){
       '#pdfExportHost .footer .contact{font-size:11px!important}'+
       // ✅ FIX: เพิ่ม #pageClone rules (ID selector ชนะ class ทุก rule)
       // บังคับขนาด A4 พอดีอีกชั้น — กันกรณี cssText inline ถูก override โดย UA stylesheet
-      '#pageClone{width:'+A4_W_PX+'px!important;height:'+A4_H_PX+'px!important;min-height:'+A4_H_PX+'px!important;max-height:'+A4_H_PX+'px!important;overflow:hidden!important;transform:none!important;zoom:1!important;padding:7mm 7mm 6mm 7mm!important;background:#fff!important;}';
+      '#pageClone{width:'+A4_W_PX+'px!important;height:'+A4_H_PX+'px!important;min-height:'+A4_H_PX+'px!important;max-height:'+A4_H_PX+'px!important;overflow:hidden!important;transform:none!important;zoom:1!important;padding:'+_padPx+'px '+_padPx+'px '+_padBotPx+'px '+_padPx+'px!important;background:#fff!important;}';
     document.head.appendChild(exportCompactStyle);
 
     const exportOverlay = document.createElement('div');
@@ -1188,7 +1207,12 @@ async function exportPDF(){
       ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
       // restore page transform
       original.style.transform = prevTransform;
-      // restore wrapper transform (if any)
+      // ✅ restore style ที่ lock ไว้ตอน export
+      original.style.removeProperty('width');
+      original.style.removeProperty('height');
+      original.style.removeProperty('min-height');
+      original.style.removeProperty('max-height');
+      original.style.removeProperty('overflow');
       try{ wrapper.style.transform = prevWrapperTransform; }catch(e){}
       wrapper.style.height = prevHeight;
       wrapper.style.marginBottom = prevMarginBottom;
@@ -1246,31 +1270,35 @@ async function exportPDF(){
         // อีกครั้งหลังหน่วงเวลาเล็กน้อยให้ layout นิ่งจริง พร้อมเผื่อ buffer กันปัดเศษตัด footer ทิ้ง —
         // วิธีนี้ตรงไปตรงมาและตรวจสอบได้ ดีกว่าปล่อยให้ library เดาความสูงเอง ซึ่งพลาดมาแล้วทั้งสองทาง
         async function _captureFormCanvas(){
-          // ⚠️ ตรวจ iOS/Android ก่อน
           var _isIOSNow = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
           var _isMobileNow = _isIOSNow || /Android/.test(navigator.userAgent);
-          // ⚠️ CRITICAL FIX: บันทึกและ reset browser zoom ก่อน capture
-          // บนมือถือ viewport width=794 ทำให้ browser zoom = screen_width/794 (เช่น 390/794≈0.49)
-          // zoom นี้ส่งผลต่อ font-size rendering ใน html2canvas ทำให้ text ใหญ่ผิดปกติ
           var _prevZoom = document.documentElement.style.zoom || '';
           var _prevBodyZoom = document.body.style.zoom || '';
           if (_isMobileNow) {
             document.documentElement.style.zoom = '1';
             document.body.style.zoom = '1';
           }
-          // รอให้ browser composite layer ใหม่ — iOS ต้องการนานกว่า desktop มาก
-          await _pdfWait(_isIOSNow ? 300 : 60);
-          // ⚠️ force reflow ก่อนวัด เพื่อให้ exportCompactStyle (min-height:auto) มีผลแล้ว
-          void clone.offsetHeight;
+          await _pdfWait(_isIOSNow ? 400 : 80);
+          // ✅ FIX: force A4 size on clone ก่อน capture ทุกครั้ง
+          clone.style.setProperty('width', A4_W_PX + 'px', 'important');
+          clone.style.setProperty('height', A4_H_PX + 'px', 'important');
+          clone.style.setProperty('min-height', A4_H_PX + 'px', 'important');
+          clone.style.setProperty('max-height', A4_H_PX + 'px', 'important');
+          clone.style.setProperty('overflow', 'hidden', 'important');
+          clone.style.setProperty('transform', 'none', 'important');
+          clone.style.setProperty('zoom', '1', 'important');
+          clone.style.setProperty('font-size', '12px', 'important');
+          // ✅ FIX: force logo size
+          var _logo = clone.querySelector('.header-logo');
+          if (_logo) { _logo.style.setProperty('width','75px','important'); _logo.style.setProperty('height','55px','important'); }
+          var _logoSp = clone.querySelector('.header-spacer');
+          if (_logoSp) { _logoSp.style.setProperty('width','75px','important'); }
+          void clone.offsetHeight; // force reflow
           var _h = A4_H_PX;
           await _pdfWait(_isIOSNow ? 200 : 60);
-          void clone.offsetHeight; // reflow อีกครั้ง
-          // ⚠️ fixed A4 capture height เพื่อให้ PDF มีขนาด A4 แน่นอน 100%
-          // ไม่ปล่อยให้ความสูงวัดเองตามเนื้อหา เพราะหน้าเว็บต้องเป็นหน้าเดียวเต็ม A4
+          void clone.offsetHeight;
           _h = A4_H_PX;
-          // ⚠️ iPad/Mobile fix: ลด scale เป็น 1 เพื่อลดภาระ memory
-          // scale:1=3.6MB, scale:1.5=8MB, scale:2=14MB — WebKit fail เงียบๆ เมื่อเกิน limit
           var _renderScale = _isMobileNow ? 1 : 2;
           // ✅ iOS Fix: ดัก console.warn ก่อน html2canvas เพื่อซ่อน "unsupported color function" red banner
           // ที่ iOS WKWebView แสดง console.warn เป็น native red error overlay
@@ -1291,15 +1319,15 @@ async function exportPDF(){
         backgroundColor: '#ffffff',
         width: A4_W_PX,
         height: _h,
-        windowWidth: A4_W_PX,
-        windowHeight: _h,
+        windowWidth: A4_W_PX,   // ✅ lock to A4 width
+        windowHeight: _h,          // ✅ lock to A4 height
         scrollX: 0,
         scrollY: 0,
         x: 0,
         y: 0,
         logging: false,
         ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; },
-        // ✅ FIX: onclone — บังคับขนาด A4 อีกครั้งใน clone ที่ html2canvas สร้าง
+        // ✅ FIX: onclone — บังคับขนาด A4 ใน clone ที่ html2canvas สร้าง (clone ชั้น 2)
         onclone: function(clonedDoc) {
           var clonedPage = clonedDoc.getElementById('pageClone');
           if (clonedPage) {
@@ -1310,6 +1338,12 @@ async function exportPDF(){
             clonedPage.style.setProperty('overflow', 'hidden', 'important');
             clonedPage.style.setProperty('transform', 'none', 'important');
             clonedPage.style.setProperty('zoom', '1', 'important');
+            clonedPage.style.setProperty('padding', _padPx+'px '+_padPx+'px '+_padBotPx+'px '+_padPx+'px', 'important');
+            clonedPage.style.setProperty('font-size', '12px', 'important');
+            clonedPage.style.setProperty('box-sizing', 'border-box', 'important');
+            // แก้ logo ให้ไม่ใหญ่เกิน
+            var logo = clonedDoc.querySelector('#pageClone .header-logo');
+            if (logo) { logo.style.setProperty('width','75px','important'); logo.style.setProperty('height','55px','important'); }
           }
         }
       }),
