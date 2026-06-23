@@ -1317,47 +1317,43 @@ async function exportPDF(){
         pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
         cleanup2();
         // ✅ Mobile fix: ใช้ iframe print แทน blob download
-        // - iOS WKWebView: blob URL ไม่ trigger download, ต้องใช้ print dialog → "Save to Files"
-        // - Android WebView: <a download> ถูก block, ต้องใช้ print dialog → "Save as PDF"
+        // iOS: blob URL → window.open() → iOS PDF viewer มี Share/Save button
+        // Android: blob URL → <a download>.click() → บันทึกลง Downloads
         var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var _isAndroid = /Android/.test(navigator.userAgent);
-        if (_isIOS || _isAndroid) {
+        if (_isIOS) {
+          // iOS Safari/WKWebView: เปิด blob ใน tab ใหม่ → มี Share icon ให้กด "Save to Files"
           try {
-            var pdfDataUri = pdf.output('datauristring');
-            var printFrame = document.createElement('iframe');
-            printFrame.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;';
-            printFrame.src = pdfDataUri;
-            document.body.appendChild(printFrame);
-            var _printDone = false;
-            printFrame.onload = function() {
-              if (_printDone) return;
-              _printDone = true;
-              try {
-                printFrame.contentWindow.focus();
-                printFrame.contentWindow.print();
-              } catch(pe) {
-                // iframe.print() ถูก block → เปิด tab ใหม่แสดง PDF แทน
-                try { window.open(pdfDataUri, '_blank'); } catch(e2) { pdf.save(pdfName); }
-              }
-              setTimeout(function(){ if(printFrame.parentNode) printFrame.parentNode.removeChild(printFrame); }, 8000);
-            };
-            printFrame.onerror = function() {
-              if (_printDone) return;
-              _printDone = true;
-              if(printFrame.parentNode) printFrame.parentNode.removeChild(printFrame);
-              pdf.save(pdfName);
-            };
-            // timeout fallback กัน iframe ไม่ยิง onload
-            setTimeout(function() {
-              if (!_printDone) {
-                _printDone = true;
-                try { printFrame.contentWindow.print(); } catch(e) { pdf.save(pdfName); }
-              }
-            }, 3000);
-          } catch(mobileErr) {
-            pdf.save(pdfName);
-          }
+            var iosBlob = pdf.output('blob');
+            var iosUrl = URL.createObjectURL(iosBlob);
+            var iosWin = window.open(iosUrl, '_blank');
+            if (!iosWin) {
+              // popup ถูก block → fallback: สร้าง <a> แล้ว click
+              var iosA = document.createElement('a');
+              iosA.href = iosUrl;
+              iosA.download = pdfName;
+              iosA.target = '_blank';
+              document.body.appendChild(iosA);
+              iosA.click();
+              setTimeout(function(){ document.body.removeChild(iosA); URL.revokeObjectURL(iosUrl); }, 5000);
+            } else {
+              setTimeout(function(){ URL.revokeObjectURL(iosUrl); }, 10000);
+            }
+          } catch(iosErr) { pdf.save(pdfName); }
+        } else if (_isAndroid) {
+          // Android Chrome: <a download>.click() บันทึกลง Downloads โดยตรง
+          try {
+            var andBlob = pdf.output('blob');
+            var andUrl = URL.createObjectURL(andBlob);
+            var andA = document.createElement('a');
+            andA.href = andUrl;
+            andA.download = pdfName;
+            andA.style.display = 'none';
+            document.body.appendChild(andA);
+            andA.click();
+            setTimeout(function(){ document.body.removeChild(andA); URL.revokeObjectURL(andUrl); }, 5000);
+          } catch(andErr) { pdf.save(pdfName); }
         } else {
           pdf.save(pdfName);
         }
