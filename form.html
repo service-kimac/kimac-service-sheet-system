@@ -1006,9 +1006,10 @@ async function exportPDF(){
     const prevHeight = wrapper.style.height;
     const prevMarginBottom = wrapper.style.marginBottom;
     const prevZoom = wrapper.style.zoom;
-    // ensure we measure the page at natural scale (clear wrapper/page transforms)
+    // ✅ FIX: reset transform ก่อนวัด และ force reflow ให้แน่ใจ
     wrapper.style.transform = 'none';
     original.style.transform = 'none';
+    void original.offsetWidth; // force reflow
     const A4_W_PX = original.offsetWidth;
     const A4_H_PX = original.offsetHeight;
     wrapper.style.height = '';
@@ -1041,24 +1042,28 @@ async function exportPDF(){
     original.querySelectorAll('input[type=radio]').forEach(function(r){ radioCheckedSnapshot[r.name + '|' + r.value] = r.checked; });
     const clone = original.cloneNode(true);
     clone.id = 'pageClone';
-    clone.style.width = A4_W_PX + 'px';
-    clone.style.height = A4_H_PX + 'px';
-    clone.style.minHeight = A4_H_PX + 'px';
-    clone.style.boxShadow = 'none';
-    clone.style.margin = '0';
-    clone.style.transform = 'none';
-    clone.style.zoom = '1';         // ⚠️ force zoom:1 กัน mobile browser zoom ส่งผลต่อ render
-    clone.style.display = 'flex';
-    clone.style.flexDirection = 'column';
-    clone.style.fontSize = '12px';  // ⚠️ base font-size คงที่ ไม่ขึ้นกับ browser zoom
-    // แก้ footer margin-top:auto → กัน gap ใต้ลายเซ็น
+    // ✅ FIX: ใช้ cssText เดียวบังคับทุก property พร้อมกัน — ชนะ CSS class ได้แน่นอน
+    // สำคัญ: ต้องมี max-height + overflow:hidden เพื่อ clip content ให้พอดี A4
+    clone.style.cssText = [
+      'width:' + A4_W_PX + 'px',
+      'height:' + A4_H_PX + 'px',
+      'min-height:' + A4_H_PX + 'px',
+      'max-height:' + A4_H_PX + 'px',
+      'overflow:hidden',
+      'box-shadow:none',
+      'border-radius:0',
+      'margin:0',
+      'transform:none',
+      'zoom:1',
+      'display:flex',
+      'flex-direction:column',
+      'font-size:12px',
+      'background:#ffffff',
+      'padding:7mm 7mm 6mm 7mm',
+      'box-sizing:border-box',
+    ].join(';');
     var _footer = clone.querySelector('.footer');
-    if(_footer){
-      // reset margin-top:auto → px เพราะใน PDF clone ไม่มี min-height จึง auto=0
-      _footer.style.marginTop = '8px';
-    }
-    // reset min-height ของ clone page ให้เป็น auto สำหรับ PDF capture
-    clone.style.minHeight = 'auto';
+    if(_footer){ _footer.style.marginTop = '8px'; }
 
     const exportHost = document.createElement('div');
     exportHost.id = 'pdfExportHost';
@@ -1130,7 +1135,10 @@ async function exportPDF(){
       '#pdfExportHost .sig-meta input{font-size:11px!important}'+
       '#pdfExportHost .footer{font-size:11px!important;padding-top:5px!important;margin-top:3px!important;line-height:1.6!important}'+
       '#pdfExportHost .footer .company-name{font-size:13px!important}'+
-      '#pdfExportHost .footer .contact{font-size:11px!important}';
+      '#pdfExportHost .footer .contact{font-size:11px!important}'+
+      // ✅ FIX: เพิ่ม #pageClone rules (ID selector ชนะ class ทุก rule)
+      // บังคับขนาด A4 พอดีอีกชั้น — กันกรณี cssText inline ถูก override โดย UA stylesheet
+      '#pageClone{width:'+A4_W_PX+'px!important;height:'+A4_H_PX+'px!important;min-height:'+A4_H_PX+'px!important;max-height:'+A4_H_PX+'px!important;overflow:hidden!important;transform:none!important;zoom:1!important;padding:7mm 7mm 6mm 7mm!important;background:#fff!important;}';
     document.head.appendChild(exportCompactStyle);
 
     const exportOverlay = document.createElement('div');
@@ -1275,7 +1283,36 @@ async function exportPDF(){
           var _cvs;
           try {
             _cvs = await _pdfWithTimeout(
-              html2canvas(clone, { scale: _renderScale, useCORS: true, allowTaint: true, letterRendering: true, backgroundColor: '#ffffff', width: A4_W_PX, height: _h, windowWidth: A4_W_PX, windowHeight: _h, scrollX: 0, scrollY: 0, x: 0, y: 0, logging: false, ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; } }),
+              html2canvas(clone, {
+        scale: _renderScale,
+        useCORS: true,
+        allowTaint: true,
+        letterRendering: true,
+        backgroundColor: '#ffffff',
+        width: A4_W_PX,
+        height: _h,
+        windowWidth: A4_W_PX,
+        windowHeight: _h,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        logging: false,
+        ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; },
+        // ✅ FIX: onclone — บังคับขนาด A4 อีกครั้งใน clone ที่ html2canvas สร้าง
+        onclone: function(clonedDoc) {
+          var clonedPage = clonedDoc.getElementById('pageClone');
+          if (clonedPage) {
+            clonedPage.style.setProperty('width', A4_W_PX + 'px', 'important');
+            clonedPage.style.setProperty('height', _h + 'px', 'important');
+            clonedPage.style.setProperty('min-height', _h + 'px', 'important');
+            clonedPage.style.setProperty('max-height', _h + 'px', 'important');
+            clonedPage.style.setProperty('overflow', 'hidden', 'important');
+            clonedPage.style.setProperty('transform', 'none', 'important');
+            clonedPage.style.setProperty('zoom', '1', 'important');
+          }
+        }
+      }),
               30000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
             );
           } finally {
