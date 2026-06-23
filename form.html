@@ -1316,41 +1316,32 @@ async function exportPDF(){
         const ph = pdf.internal.pageSize.getHeight();
         pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
         cleanup2();
-        // ✅ สร้าง blob URL เก็บไว้ แล้วแสดง overlay ให้ user กดเองโดยตรง
-        // เพราะ iOS WKWebView block window.open() และ <a download> ที่เรียกแบบ programmatic
-        // แต่ถ้า user กดปุ่มเองโดยตรง (user gesture) → window.open() ทำงานได้ปกติ
         var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         var _isAndroid = /Android/.test(navigator.userAgent);
-        var _mobileBlob = pdf.output('blob');
-        var _mobileBlobUrl = URL.createObjectURL(_mobileBlob);
         if (_isIOS || _isAndroid) {
-          // สร้าง overlay ให้ user กดเอง → ไม่ถูก popup blocker block
-          var _ov = document.createElement('div');
-          _ov.id = '_pdfOverlay';
-          _ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;';
-          _ov.innerHTML = '<div style="background:#fff;border-radius:16px;padding:28px 24px;text-align:center;max-width:300px;width:90%;">'
-            + '<div style="font-size:48px;margin-bottom:8px;">📄</div>'
-            + '<div style="font-family:Sarabun,sans-serif;font-size:17px;font-weight:700;color:#1a3a5c;margin-bottom:6px;">PDF พร้อมแล้ว!</div>'
-            + '<div style="font-family:Sarabun,sans-serif;font-size:13px;color:#666;margin-bottom:20px;">กดปุ่มด้านล่างเพื่อเปิดและบันทึกไฟล์</div>'
-            + '<a id="_pdfOpenBtn" href="'+_mobileBlobUrl+'" download="'+pdfName+'" target="_blank" '
-            + 'style="display:block;background:#28a745;color:#fff;font-family:Sarabun,sans-serif;font-size:16px;font-weight:700;'
-            + 'padding:14px 24px;border-radius:10px;text-decoration:none;margin-bottom:10px;">⬇️ เปิด / บันทึก PDF</a>'
-            + '<button id="_pdfCloseBtn" style="background:none;border:none;color:#999;font-family:Sarabun,sans-serif;font-size:14px;cursor:pointer;padding:8px;">ปิด</button>'
-            + '</div>';
-          document.body.appendChild(_ov);
-          document.getElementById('_pdfCloseBtn').onclick = function() {
-            document.body.removeChild(_ov);
-            URL.revokeObjectURL(_mobileBlobUrl);
-          };
-          // auto cleanup หลัง 5 นาที
-          setTimeout(function(){ if(document.getElementById('_pdfOverlay')){ document.body.removeChild(_ov); } URL.revokeObjectURL(_mobileBlobUrl); }, 300000);
+          // ✅ iOS/Android: upload ขึ้น Supabase Storage → เปิด HTTPS URL ตรงๆ
+          // วิธีนี้ทำงานได้ทุก browser/WebView เพราะเป็น HTTPS URL ปกติ
+          try {
+            var _pdfBlob = pdf.output('blob');
+            var _ts = Date.now();
+            var _fileName = 'exports/' + _ts + '_' + pdfName;
+            var _up = await sb.storage.from('pdf-exports').upload(_fileName, _pdfBlob, {
+              contentType: 'application/pdf', upsert: true
+            });
+            if (_up.error) throw _up.error;
+            var _pub = sb.storage.from('pdf-exports').getPublicUrl(_fileName);
+            var _url = _pub.data && _pub.data.publicUrl;
+            if (!_url) throw new Error('no public url');
+            // เปิด URL ใน tab ใหม่ → iOS/Android เปิด PDF viewer ได้เสมอ
+            var _wa = window.open(_url, '_blank');
+            if (!_wa) { window.location.href = _url; }
+          } catch(upErr) {
+            console.warn('upload failed:', upErr);
+            toastF('❌ อัปโหลดไม่สำเร็จ: ' + upErr.message, 'err');
+          }
         } else {
-          // Desktop: download ปกติ
-          var _deskA = document.createElement('a');
-          _deskA.href = _mobileBlobUrl; _deskA.download = pdfName;
-          document.body.appendChild(_deskA); _deskA.click();
-          setTimeout(function(){ document.body.removeChild(_deskA); URL.revokeObjectURL(_mobileBlobUrl); }, 5000);
+          pdf.save(pdfName);
         }
       }
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
