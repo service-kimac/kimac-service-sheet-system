@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" id="metaViewport">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e1c36">
@@ -179,6 +179,20 @@
 
   .btn-add-row { display: none !important; }
   .btn-clear-sig { display: none !important; }
+
+  /* ✅ iOS FIX: บังคับ flex layout ไม่ให้ wrap บน mobile viewport */
+  .form-row { flex-wrap: nowrap !important; align-items: center !important; }
+  .field { flex-shrink: 1 !important; min-width: 0 !important; }
+  .full-width { flex-wrap: wrap !important; }
+  .status-row { flex-wrap: nowrap !important; }
+
+  /* ✅ iOS FIX: ซ่อน native select UI ใน service-type-bar — แสดงเป็น text แทน */
+  .service-type-bar select { -webkit-appearance: none !important; appearance: none !important; border: none !important; border-bottom: 1px solid #c4960a !important; background: transparent !important; padding: 0 4px !important; }
+  .status-block select { -webkit-appearance: none !important; appearance: none !important; border: 1px solid #bfa000 !important; background: white !important; }
+
+  /* ✅ iOS FIX: กัน page scale transform ส่งผลต่อ print */
+  .page-wrapper { transform: none !important; zoom: 1 !important; justify-content: flex-start !important; }
+  .page { transform: none !important; zoom: 1 !important; aspect-ratio: unset !important; }
 }
 </style>
 <style>
@@ -613,17 +627,81 @@ _logoEl.src = 'data:image/jpeg;base64,' + document.getElementById('logoData').te
 // Safari iOS จะซ่อน element ที่มี position:fixed ตอนพิมพ์ ทำให้ topbar/actbar ที่ควร display:none
 // อาจยังค้างอยู่ใน paint tree แล้วบังเนื้อหา ใช้ event นี้บังคับ display:none ก่อนพิมพ์จริง
 window.addEventListener('beforeprint', function() {
+  // ✅ iOS FIX: switch viewport เป็น 794px (A4 @ 96dpi) ก่อนพิมพ์
+  var mvp = document.getElementById('metaViewport');
+  if (mvp) {
+    document.body.setAttribute('data-print-vp', mvp.getAttribute('content') || '');
+    mvp.setAttribute('content', 'width=794, initial-scale=1.0');
+  }
+  // ซ่อน UI elements ที่ไม่ต้องพิมพ์
   var els = document.querySelectorAll('.topbar-c, .actbar, .status-bar, .toast-f, .sig-trigger-btn, .btn-add-row, .btn-export, .btn-clear-sig, #pdfExportOverlay');
   els.forEach(function(el){ el.setAttribute('data-print-hidden', el.style.display || ''); el.style.display = 'none'; });
-  // บังคับให้ body ไม่มี padding ตอนพิมพ์ (Safari อาจไม่ apply @media print padding:0 ทันที)
+
+  // reset body padding
   document.body.setAttribute('data-print-pad', document.body.style.padding || '');
   document.body.style.padding = '0';
+
+  // ✅ iOS FIX: reset page transform ก่อนพิมพ์ — กัน scalePage() transform ทำให้ iOS render ย่อ
+  var page = document.getElementById('page');
+  var wrapper = document.getElementById('pageWrapper');
+  if (page) {
+    document.body.setAttribute('data-print-page-tr', page.style.transform || '');
+    document.body.setAttribute('data-print-page-zoom', page.style.zoom || '');
+    page.style.transform = 'none';
+    page.style.zoom = '1';
+    page.style.width = '210mm';
+    page.style.height = 'auto';
+    page.style.minHeight = '297mm';
+    page.style.maxHeight = 'none';
+    page.style.overflow = 'visible';
+  }
+  if (wrapper) {
+    document.body.setAttribute('data-print-wrap-tr', wrapper.style.transform || '');
+    wrapper.style.transform = 'none';
+    wrapper.style.zoom = '1';
+    wrapper.style.justifyContent = 'flex-start';
+    wrapper.style.padding = '0';
+  }
 });
+
 window.addEventListener('afterprint', function() {
+  // restore UI elements
   var els = document.querySelectorAll('[data-print-hidden]');
   els.forEach(function(el){ el.style.display = el.getAttribute('data-print-hidden'); el.removeAttribute('data-print-hidden'); });
+
+  // restore body padding
   document.body.style.padding = document.body.getAttribute('data-print-pad') || '';
   document.body.removeAttribute('data-print-pad');
+
+  // ✅ iOS FIX: restore page transform หลังพิมพ์
+  var page = document.getElementById('page');
+  var wrapper = document.getElementById('pageWrapper');
+  if (page) {
+    page.style.transform = document.body.getAttribute('data-print-page-tr') || '';
+    page.style.zoom = document.body.getAttribute('data-print-page-zoom') || '';
+    page.style.width = '';
+    page.style.height = '';
+    page.style.minHeight = '';
+    page.style.maxHeight = '';
+    page.style.overflow = '';
+    document.body.removeAttribute('data-print-page-tr');
+    document.body.removeAttribute('data-print-page-zoom');
+  }
+  if (wrapper) {
+    wrapper.style.transform = document.body.getAttribute('data-print-wrap-tr') || '';
+    wrapper.style.zoom = '';
+    wrapper.style.justifyContent = '';
+    wrapper.style.padding = '';
+    document.body.removeAttribute('data-print-wrap-tr');
+  }
+  // ✅ iOS FIX: restore viewport หลังพิมพ์
+  var mvp2 = document.getElementById('metaViewport');
+  if (mvp2) {
+    var origVp = document.body.getAttribute('data-print-vp');
+    if (origVp) { mvp2.setAttribute('content', origVp); document.body.removeAttribute('data-print-vp'); }
+  }
+  // re-scale หลังพิมพ์
+  if (typeof scalePage === 'function') setTimeout(scalePage, 300);
 });
 
 var _lastVW = window.innerWidth;
@@ -974,868 +1052,32 @@ async function exportPDF(){
   try{
     if(!CJ_READONLY){
       var saved=await saveCloud();
-      if(!saved){toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}return;}
-    }
-    if(btn)btn.textContent='⏳ กำลังสร้าง PDF...';
-
-    // โหลด html2canvas และ jsPDF แยกกัน (html2pdf bundle ไม่ expose window.html2canvas / window.jsPDF)
-    function _loadScript(url, checkFn, timeoutMs) {
-      return new Promise(function(resolve, reject) {
-        if (checkFn()) { resolve(); return; }
-        var s = document.createElement('script');
-        s.src = url;
-        document.head.appendChild(s);
-        var timer = setTimeout(function(){ reject(new Error('โหลดไลบรารีไม่สำเร็จ (หมดเวลา): ' + url)); }, timeoutMs || 20000);
-        s.onload = function() { clearTimeout(timer); resolve(); };
-        s.onerror = function() { clearTimeout(timer); reject(new Error('โหลดไลบรารีไม่สำเร็จ: ' + url)); };
-      });
-    }
-    await _loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-      function(){ return !!window.html2canvas; }, 20000
-    );
-    await _loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-      function(){ return !!(window.jspdf && window.jspdf.jsPDF); }, 20000
-    );
-
-    const original = document.getElementById('page');
-    const wrapper = document.getElementById('pageWrapper');
-    const prevTransform = original.style.transform;
-    const prevWrapperTransform = wrapper.style.transform;
-    const prevHeight = wrapper.style.height;
-    const prevMarginBottom = wrapper.style.marginBottom;
-    const prevZoom = wrapper.style.zoom;
-    // reset transforms
-    wrapper.style.transform = 'none';
-    original.style.transform = 'none';
-    void original.offsetWidth;
-    // ✅ FIX: ใช้ค่า A4 @ 96dpi คงที่ ไม่วัดจาก DOM ที่อาจถูก scale
-    // 210mm @ 96dpi = 794px, 297mm @ 96dpi = 1123px
-    // วัดจาก DOM เพื่อรู้ natural width จริง แต่ไม่น้อยกว่า 794
-    const A4_W_PX = Math.max(original.offsetWidth, 794);
-    const A4_H_PX = Math.round(A4_W_PX * 297 / 210);
-    wrapper.style.height = '';
-    wrapper.style.marginBottom = '';
-    wrapper.style.zoom = '1';
-
-    document.querySelectorAll('.sig-trigger-btn').forEach(b => b.style.display = 'none');
-    document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'none');
-    document.querySelectorAll('.btn-clear-sig').forEach(b => b.style.display = 'none');
-
-    ['tech','cust'].forEach(t => {
-      const img = document.getElementById(t + 'SigImg');
-      if (img && img.src && img.src !== window.location.href) img.style.display = 'block';
-    });
-
-    // Swap textarea → div สำหรับ 5 บรรทัด
-    const textarea = document.getElementById('detailTextarea');
-    const textareaValue = textarea.value;
-    const textareaParent = textarea.parentNode;
-    const fontSize = 13, paddingPx = 4;
-    const linePx = 24; // line-height แบบ px ชัดเจน กันบรรทัดไทยซ้อนกันใน html2canvas
-    const fiveLinesPx = (linePx * 5) + (paddingPx * 2);
-    const detailDiv = document.createElement('div');
-    detailDiv.style.cssText = ['width:100%','border:1px solid #bfa000','border-radius:4px','background:rgba(255,255,255,0.7)','padding:'+paddingPx+'px','font-family:Sarabun,sans-serif','font-size:'+fontSize+'px','line-height:'+linePx+'px','color:#222','white-space:pre-wrap','word-break:break-word','overflow-wrap:anywhere','min-height:'+fiveLinesPx+'px','overflow:visible','box-sizing:border-box'].join(';');
-    detailDiv.textContent = thaiBreakable(textareaValue);
-    textareaParent.replaceChild(detailDiv, textarea);
-
-    // จำสถานะติ๊กของ radio ต้นฉบับไว้ก่อน เพราะตอน append clone เข้า document ตัว copy จะแย่งสถานะในกลุ่มชื่อเดียวกัน ทำให้ el.checked ของต้นฉบับถูกปลด
-    // ✅ FIX: lock original ให้เป็นขนาด A4 pixel จริงก่อน clone
-    // กัน aspect-ratio หรือ CSS อื่นทำให้ height ผิด
-    original.style.setProperty('width', A4_W_PX + 'px', 'important');
-    original.style.setProperty('height', A4_H_PX + 'px', 'important');
-    original.style.setProperty('min-height', A4_H_PX + 'px', 'important');
-    original.style.setProperty('max-height', A4_H_PX + 'px', 'important');
-    original.style.setProperty('overflow', 'hidden', 'important');
-    void original.offsetHeight;
-    const radioCheckedSnapshot = {};
-    original.querySelectorAll('input[type=radio]').forEach(function(r){ radioCheckedSnapshot[r.name + '|' + r.value] = r.checked; });
-    const clone = original.cloneNode(true);
-    clone.id = 'pageClone';
-    // ✅ FIX: ใช้ cssText เดียวบังคับทุก property พร้อมกัน — ชนะ CSS class ได้แน่นอน
-    // สำคัญ: ต้องมี max-height + overflow:hidden เพื่อ clip content ให้พอดี A4
-    // ✅ FIX: padding เป็น px ไม่ใช่ mm — กัน browser แปลง mm ผิดตอน capture
-    // 7mm @ 96dpi ≈ 26px, 6mm ≈ 23px
-    var _padPx = Math.round(A4_W_PX * 7 / 210);
-    var _padBotPx = Math.round(A4_W_PX * 6 / 210);
-    clone.style.cssText = [
-      'width:' + A4_W_PX + 'px',
-      'height:' + A4_H_PX + 'px',
-      'min-height:' + A4_H_PX + 'px',
-      'max-height:' + A4_H_PX + 'px',
-      'overflow:hidden',
-      'box-shadow:none',
-      'border-radius:0',
-      'margin:0',
-      'transform:none',
-      'zoom:1',
-      'display:flex',
-      'flex-direction:column',
-      'font-size:12px',
-      'background:#ffffff',
-      'padding:' + _padPx + 'px ' + _padPx + 'px ' + _padBotPx + 'px ' + _padPx + 'px',
-      'box-sizing:border-box',
-    ].join(';');
-    var _footer = clone.querySelector('.footer');
-    if(_footer){ _footer.style.marginTop = '8px'; }
-
-    const exportHost = document.createElement('div');
-    exportHost.id = 'pdfExportHost';
-    // วิธีนี้แก้ปัญหา PDF ว่างเปล่าบน iPad ที่ยังไม่หายแม้ลองซ่อนด้วยวิธีต่างๆ มาแล้วหลายรอบ
-    // (position:fixed นอกจอ, opacity ต่ำ, ดันลงไปไกลด้านล่าง) สุดท้ายใช้วิธีตรงไปตรงมาที่สุด:
-    // วาง element ไว้ในตำแหน่งจริงที่มองเห็นได้ปกติ (top:0;left:0) ซึ่งรับประกันว่าทุกเบราว์เซอร์
-    // จะ paint ตามปกติแน่นอน แล้วใช้ overlay ทึบปิดทับไว้ระหว่างสร้างภาพแทน ผู้ใช้จะเห็นแค่หน้าจอ
-    // "กำลังสร้าง PDF" ไม่เห็นฟอร์มกระพริบ
-    // หมายเหตุ: เปลี่ยนจาก position:fixed เป็น position:absolute เพื่อเลี่ยงพฤติกรรมแปลกๆ ของ WebKit
-    // กับ position:fixed ตอน html2canvas เดิน DOM (ทำ scrollTo(0,0) ไว้ด้านบนของฟังก์ชันแล้วเพื่อให้
-    // top:0;left:0 ตรงกับขอบบนจอจริง) — แต่ "ไม่" ย้ายออกนอกจอหรือใช้ z-index ติดลบเหมือนที่เคยลองมาก่อน
-    // เพราะจุดนั้นเป็นสาเหตุที่ยืนยันแล้วว่าทำให้ภาพว่างเปล่าบนไอแพด (ดูไฟล์เก่าที่เคยใช้ left:-10000px)
-    // ยังคงให้อยู่ในตำแหน่งจริงที่มองเห็นได้ปกติ แล้วซ่อนด้วย overlay ทึบที่ z-index สูงกว่าแทน
-    // ⚠️ iPad Safari fix: ใช้ position:fixed แทน position:absolute
-    // เพราะ body มี padding-top จาก topbar (calc(58px + safe-area)) ทำให้ top:0 ของ absolute
-    // ไม่ตรงกับ viewport top จริง → html2canvas วาดออกนอก viewport แล้วได้ภาพขาว
-    // position:fixed + top:0 รับประกันว่าอยู่ที่มุมบนซ้ายของหน้าจอเสมอ
-    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;height:'+A4_H_PX+'px;overflow:hidden;background:#ffffff;z-index:99997;';
-    document.body.appendChild(exportHost);
-    exportHost.appendChild(clone);
-    // allocate signature space inside the clone to fully use A4 height
-    if (typeof adjustCloneSignatureHeights === 'function') adjustCloneSignatureHeights(clone, A4_H_PX);
-
-    // หมายเหตุ (พบสาเหตุจริงของปัญหาเนื้อหาล้นไปหน้า 2 แบบเกือบว่างเปล่า / ที่อยู่ท้ายฟอร์มหาย):
-    // html2canvas จับภาพ clone โดยใช้ขนาดตัวอักษร/padding แบบหน้าจอปกติ (เช่น input 13px, ตาราง 12px)
-    // ไม่ใช่ขนาดแบบ @media print ที่ออกแบบมาให้พอดี 1 หน้า A4 พอดี (input 9pt, ตาราง 8.5pt ฯลฯ)
-    // ผลต่างขนาดเล็กๆ นี้สะสมรวมกันหลายสิบจุดทั่วฟอร์ม ทำให้ความสูงรวมเกินหน้า A4 ไปเล็กน้อย ระบบเลย
-    // ตัดแบ่งเป็นหน้า 2 ทั้งที่จริงควรพอดีหน้าเดียว ส่วนที่ล้นไปหน้า 2 ก็มักจะเป็นแค่ footer ชิ้นเดียว
-    // ดูว่างเปล่า → แก้โดยใส่ขนาดแบบ print (กระชับ) ทับเฉพาะตอน capture เพื่อให้ความสูงตรงกับที่ออกแบบไว้จริง
-    var exportCompactStyle = document.createElement('style');
-    exportCompactStyle.id = 'pdfExportCompactStyle';
-    exportCompactStyle.textContent =
-    /* ⚠️ ทุกค่าเป็น px ล้วน (ไม่ใช้ pt) เพื่อบังคับ html2canvas ให้ render
-         ขนาดเดียวกันทุก platform: มือถือ/iPad/PC — pt ทำให้มือถือ render ใหญ่กว่า PC
-         เพราะ browser zoom จาก viewport width=794 ส่งผลต่อ pt→px conversion
-         ✅ FIX2+3: ค่าขยาย spacing ให้เต็มหน้า A4 และล็อก font เป็น px ทั้งหมด */
-      '#pdfExportHost{font-size:12px!important}'+
-      '#pdfExportHost *{box-sizing:border-box!important}'+
-      /* ⚠️ สำคัญ: override min-height:1056px จาก .page CSS class */
-      '#pdfExportHost .page{min-height:auto!important}'+
-      '#pdfExportHost .page-inner{overflow:visible!important;flex:1!important}'+
-      '#pdfExportHost .header{margin-bottom:4px!important;padding-bottom:4px!important}'+
-      '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
-      // ✅ FIX: เพิ่ม #pageClone prefix เพื่อ specificity สูงกว่า .page .header-logo
-      '#pageClone .header-logo{width:75px!important;height:55px!important;max-width:75px!important;max-height:55px!important;object-fit:contain!important}'+
-      '#pageClone .header-logo-wrap{width:85px!important;flex-shrink:0!important}'+
-      '#pdfExportHost .header-spacer{width:75px!important}'+
-      '#pageClone .header-spacer{width:75px!important}'+
-      '#pdfExportHost .header-center h1{font-size:20px!important;letter-spacing:1px!important}'+
-      '#pdfExportHost .header-center p{font-size:12px!important}'+
-      '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:6px!important;margin-bottom:3px!important}'+
-      '#pdfExportHost .form-row{margin-bottom:3px!important;gap:4px!important}'+
-      '#pdfExportHost .field{gap:3px!important}'+
-      '#pdfExportHost .field label{font-size:11px!important}'+
-      '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important;padding:1px 3px!important}'+
-      '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important}'+
-      '#pdfExportHost .service-type-bar select{font-size:12px!important}'+
-      '#pdfExportHost .status-row{gap:6px!important;margin-bottom:3px!important}'+
-      '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important}'+
-      '#pdfExportHost .status-block label{font-size:11px!important}'+
-      '#pdfExportHost .radio-group{font-size:11px!important;gap:8px!important}'+
-      '#pdfExportHost .radio-group label{font-size:11px!important}'+
-      '#pdfExportHost .parts-table{font-size:11px!important;margin-bottom:4px!important}'+
-      '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important}'+
-      '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important}'+
-      '#pdfExportHost .parts-table td input{font-size:11px!important}'+
-      '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important;flex:1!important}'+
-      '#pdfExportHost .sig-box{padding:5px 8px 8px!important}'+
-      '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:4px!important}'+
-      '#pdfExportHost .sig-preview-wrap{height:130px!important}'+
-      '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:3px!important}'+
-      '#pdfExportHost .sig-meta label{font-size:11px!important}'+
-      '#pdfExportHost .sig-meta input{font-size:11px!important}'+
-      '#pdfExportHost .footer{font-size:11px!important;padding-top:5px!important;margin-top:3px!important;line-height:1.6!important}'+
-      '#pdfExportHost .footer .company-name{font-size:13px!important}'+
-      '#pdfExportHost .footer .contact{font-size:11px!important}'+
-      // ✅ FIX: เพิ่ม #pageClone rules (ID selector ชนะ class ทุก rule)
-      // บังคับขนาด A4 พอดีอีกชั้น — กันกรณี cssText inline ถูก override โดย UA stylesheet
-      '#pageClone{width:'+A4_W_PX+'px!important;height:'+A4_H_PX+'px!important;min-height:'+A4_H_PX+'px!important;max-height:'+A4_H_PX+'px!important;overflow:hidden!important;transform:none!important;zoom:1!important;padding:'+_padPx+'px '+_padPx+'px '+_padBotPx+'px '+_padPx+'px!important;background:#fff!important;}';
-    document.head.appendChild(exportCompactStyle);
-
-    const exportOverlay = document.createElement('div');
-    exportOverlay.id = 'pdfExportOverlay';
-    exportOverlay.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#0e1c36;z-index:99998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
-    exportOverlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.25);border-top-color:#ffd151;border-radius:50%;animation:pdfSpin .8s linear infinite"></div>'
-      + '<div style="color:#fff;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div>'
-      + '<style>@keyframes pdfSpin{to{transform:rotate(360deg)}}</style>';
-    document.body.appendChild(exportOverlay);
-
-    const srcEls = original.querySelectorAll('input, textarea, select');
-    const dstEls = clone.querySelectorAll('input, textarea, select');
-    srcEls.forEach((el, i) => {
-      const d = dstEls[i]; if (!d) return;
-      if (el.tagName === 'SELECT') { d.value = el.value; }
-      else if (el.type === 'radio') {
-        // วาดปุ่ม radio (สถานะรับประกัน / ประเภทค่าบริการ) ใหม่จากสถานะที่จำไว้ก่อน append ให้ html2canvas จับที่ติ๊กได้ตอน export PDF
-        var checked = radioCheckedSnapshot[el.name + '|' + el.value];
-        var span = document.createElement('span');
-        span.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#ffffff;border:1px solid '+(checked?'#1a3a6e':'#777777')+';';
-        if (checked){
-          var dot = document.createElement('span');
-          dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#1a3a6e;display:block;';
-          span.appendChild(dot);
-        }
-        if (d.parentNode) d.parentNode.replaceChild(span, d);
-      }
-      else if (el.type === 'checkbox') { d.checked = el.checked; if (el.checked) d.setAttribute('checked','checked'); else d.removeAttribute('checked'); }
-      else { d.value = el.value; d.setAttribute('value', el.value); }
-    });
-    ['tech','cust'].forEach(t => {
-      const srcImg = original.querySelector('#'+t+'SigImg');
-      const dstImg = clone.querySelector('#'+t+'SigImg');
-      if (srcImg && dstImg && srcImg.src && srcImg.style.display !== 'none') { dstImg.src = srcImg.src; dstImg.style.display = 'block'; }
-      const sb2 = clone.querySelector('#'+t+'SigBtn'); if (sb2) sb2.style.display = 'none';
-      const cb = clone.querySelector('#'+t+'ClearBtn'); if (cb) cb.style.display = 'none';
-    });
-    clone.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'none');
-
-    function cleanup2(){
-      if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
-      if (exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
-      if (exportOverlay.parentNode) exportOverlay.parentNode.removeChild(exportOverlay);
-      if (exportCompactStyle.parentNode) exportCompactStyle.parentNode.removeChild(exportCompactStyle);
-      document.querySelectorAll('.sig-trigger-btn').forEach(b => { const t=b.id.replace('SigBtn',''); const img=document.getElementById(t+'SigImg'); if(!img.src||img.style.display==='none')b.style.display='flex'; });
-      document.querySelectorAll('.btn-add-row').forEach(b => b.style.display = 'inline-block');
-      ['tech','cust'].forEach(t => { const img=document.getElementById(t+'SigImg'); const cb=document.getElementById(t+'ClearBtn'); if(img.src&&img.style.display!=='none'){cb.classList.add('show');cb.style.display='';} else{cb.classList.remove('show');} });
-      // restore page transform
-      original.style.transform = prevTransform;
-      // ✅ restore style ที่ lock ไว้ตอน export
-      original.style.removeProperty('width');
-      original.style.removeProperty('height');
-      original.style.removeProperty('min-height');
-      original.style.removeProperty('max-height');
-      original.style.removeProperty('overflow');
-      try{ wrapper.style.transform = prevWrapperTransform; }catch(e){}
-      wrapper.style.height = prevHeight;
-      wrapper.style.marginBottom = prevMarginBottom;
-      wrapper.style.zoom = prevZoom;
-      _doScale();
-    }
-
-    var co = (document.getElementById('companyName')&&document.getElementById('companyName').value||'').trim().replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_');
-    var dt = document.getElementById('serviceDate')&&document.getElementById('serviceDate').value||'';
-    var dateStr = dt ? dt.replace(/-/g,'') : '';
-    var pdfName = 'SERVICE_SHEET' + (co?'_'+co:'') + (dateStr?'_'+dateStr:'') + '.pdf';
-    // รอให้ฟอนต์ Sarabun โหลดเสร็จก่อนวาดภาพ ไม่งั้น html2canvas จะวาดด้วย metric ผิดทำให้ตัวอักษรไทยซ้อนกัน
-    // ใช้ setTimeout แทน requestAnimationFrame ในการหน่วงรอ เพราะ rAF จะหยุดยิงถ้าแท็บกลายเป็น background
-    // tab (เช่นผู้ใช้สลับแอประหว่างรอ) ทำให้ฟังก์ชันค้างรอ frame ที่ไม่มีวันมาถึง ส่วน setTimeout ยังทำงาน
-    // ต่อได้แม้แท็บจะเป็น background (อาจถูกหน่วงเพิ่มเล็กน้อยแต่ยังยิงแน่นอน)
-    function _pdfWait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
-    function _pdfWithTimeout(promise, ms, msg){
-      return Promise.race([
-        promise,
-        new Promise(function(_, rej){ setTimeout(function(){ rej(new Error(msg || 'หมดเวลาดำเนินการสร้าง PDF กรุณาลองใหม่')); }, ms); })
-      ]);
-    }
-    try {
-      if (document.fonts && document.fonts.ready) {
-        await _pdfWithTimeout(document.fonts.ready, 4000, 'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
-        await _pdfWithTimeout(document.fonts.load('400 13px Sarabun'), 4000, 'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
-        await _pdfWithTimeout(document.fonts.load('700 13px Sarabun'), 4000, 'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
-      }
-    } catch(e){}
-    await _pdfWait(60);
-    try {
-      var J = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-      if (!window.html2canvas || !J) {
-        throw new Error('โหลดไลบรารีไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
-      }
-      if (window.html2canvas && J) {
-        // ตรวจว่า canvas ที่ได้ "ว่างเปล่าจริงๆ" หรือไม่ (สุ่มอ่านค่าสีหลายจุดทั่วภาพ) ไม่ใช่แค่เช็คขนาด —
-        // เพราะปัญหาที่เจอบนไอแพดคือได้ canvas ขนาดถูกต้องแต่เนื้อหาในภาพเป็นพื้นขาวล้วน (วาดไม่ทันจริง)
-        function _canvasLooksBlank(cv){
-          try{
-            var ctx = cv.getContext('2d');
-            var cols = 12, rows = 16;
-            for (var r = 0; r < rows; r++){
-              for (var c = 0; c < cols; c++){
-                var x = Math.floor((c + 0.5) * cv.width / cols);
-                var y = Math.floor((r + 0.5) * cv.height / rows);
-                var d = ctx.getImageData(x, y, 1, 1).data;
-                if (d[0] < 250 || d[1] < 250 || d[2] < 250) return false; // เจอจุดที่ไม่ใช่สีขาวล้วน แปลว่ามีเนื้อหาจริง
-              }
-            }
-            return true; // ทุกจุดที่สุ่มมาเป็นสีขาวล้วนหมด ถือว่าว่างเปล่าผิดปกติ
-          } catch(e){ return false; } // อ่านค่าสีไม่ได้ (เช่น browser จำกัดสิทธิ์) ไม่ถือว่าว่างเปล่า กัน false positive
-        }
-        // วัด actual height หลัง render ให้ชัดเจนด้วยตัวเอง (แทนที่จะปล่อยให้ html2canvas เดาเอง) แล้ววัดซ้ำ
-        // อีกครั้งหลังหน่วงเวลาเล็กน้อยให้ layout นิ่งจริง พร้อมเผื่อ buffer กันปัดเศษตัด footer ทิ้ง —
-        // วิธีนี้ตรงไปตรงมาและตรวจสอบได้ ดีกว่าปล่อยให้ library เดาความสูงเอง ซึ่งพลาดมาแล้วทั้งสองทาง
-        async function _captureFormCanvas(){
-          var _isIOSNow = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          var _isMobileNow = _isIOSNow || /Android/.test(navigator.userAgent);
-          var _prevZoom = document.documentElement.style.zoom || '';
-          var _prevBodyZoom = document.body.style.zoom || '';
-          if (_isMobileNow) {
-            document.documentElement.style.zoom = '1';
-            document.body.style.zoom = '1';
-          }
-          await _pdfWait(_isIOSNow ? 400 : 80);
-          // ✅ FIX: force A4 size on clone ก่อน capture ทุกครั้ง
-          clone.style.setProperty('width', A4_W_PX + 'px', 'important');
-          clone.style.setProperty('height', A4_H_PX + 'px', 'important');
-          clone.style.setProperty('min-height', A4_H_PX + 'px', 'important');
-          clone.style.setProperty('max-height', A4_H_PX + 'px', 'important');
-          clone.style.setProperty('overflow', 'hidden', 'important');
-          clone.style.setProperty('transform', 'none', 'important');
-          clone.style.setProperty('zoom', '1', 'important');
-          clone.style.setProperty('font-size', '12px', 'important');
-          // ✅ FIX: force logo size
-          var _logo = clone.querySelector('.header-logo');
-          if (_logo) { _logo.style.setProperty('width','75px','important'); _logo.style.setProperty('height','55px','important'); }
-          var _logoSp = clone.querySelector('.header-spacer');
-          if (_logoSp) { _logoSp.style.setProperty('width','75px','important'); }
-          void clone.offsetHeight; // force reflow
-          var _h = A4_H_PX;
-          await _pdfWait(_isIOSNow ? 200 : 60);
-          void clone.offsetHeight;
-          _h = A4_H_PX;
-          var _renderScale = _isMobileNow ? 1 : 2;
-          // ✅ iOS Fix: ดัก console.warn ก่อน html2canvas เพื่อซ่อน "unsupported color function" red banner
-          // ที่ iOS WKWebView แสดง console.warn เป็น native red error overlay
-          var _origWarn = console.warn;
-          console.warn = function() {
-            var msg = arguments[0] ? String(arguments[0]) : '';
-            if (msg.indexOf('color') !== -1 || msg.indexOf('parse') !== -1 || msg.indexOf('unsupported') !== -1) return;
-            _origWarn.apply(console, arguments);
-          };
-          var _cvs;
-          try {
-            _cvs = await _pdfWithTimeout(
-              html2canvas(clone, {
-        scale: _renderScale,
-        useCORS: true,
-        allowTaint: true,
-        letterRendering: true,
-        backgroundColor: '#ffffff',
-        width: A4_W_PX,
-        height: _h,
-        windowWidth: A4_W_PX,   // ✅ lock to A4 width
-        windowHeight: _h,          // ✅ lock to A4 height
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        logging: false,
-        ignoreElements: function(el){ return el.tagName === 'SCRIPT' || el.tagName === 'STYLE'; },
-        // ✅ FIX: onclone — บังคับขนาด A4 ใน clone ที่ html2canvas สร้าง (clone ชั้น 2)
-        onclone: function(clonedDoc) {
-          var clonedPage = clonedDoc.getElementById('pageClone');
-          if (clonedPage) {
-            clonedPage.style.setProperty('width', A4_W_PX + 'px', 'important');
-            clonedPage.style.setProperty('height', _h + 'px', 'important');
-            clonedPage.style.setProperty('min-height', _h + 'px', 'important');
-            clonedPage.style.setProperty('max-height', _h + 'px', 'important');
-            clonedPage.style.setProperty('overflow', 'hidden', 'important');
-            clonedPage.style.setProperty('transform', 'none', 'important');
-            clonedPage.style.setProperty('zoom', '1', 'important');
-            clonedPage.style.setProperty('padding', _padPx+'px '+_padPx+'px '+_padBotPx+'px '+_padPx+'px', 'important');
-            clonedPage.style.setProperty('font-size', '12px', 'important');
-            clonedPage.style.setProperty('box-sizing', 'border-box', 'important');
-            // แก้ logo ให้ไม่ใหญ่เกิน
-            var logo = clonedDoc.querySelector('#pageClone .header-logo');
-            if (logo) { logo.style.setProperty('width','75px','important'); logo.style.setProperty('height','55px','important'); }
-          }
-        }
-      }),
-              30000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
-            );
-          } finally {
-            console.warn = _origWarn; // restore เสมอ ไม่ว่าจะ success หรือ error
-          }
-          // restore zoom หลัง capture
-          if (_isMobileNow) {
-            document.documentElement.style.zoom = _prevZoom;
-            document.body.style.zoom = _prevBodyZoom;
-          }
-          return _cvs;
-        }
-        var canvas = await _captureFormCanvas();
-        if (canvas && canvas.width >= 10 && canvas.height >= 10 && _canvasLooksBlank(canvas)) {
-          // เจอภาพว่างเปล่าผิดปกติรอบแรก → รอนานขึ้นแล้วลองจับภาพซ้ำ
-          // ⚠️ iPad Safari: รอ 1.5 วินาที (แทน 500ms) เพราะ WebKit ต้องการเวลามากกว่าในการ paint
-          var _isIOSRetry = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-          await _pdfWait(_isIOSRetry ? 1500 : 500);
-          canvas = await _captureFormCanvas();
-        }
-        // ตรวจสอบว่า canvas ที่ได้ไม่ใช่ภาพว่างเปล่าผิดปกติ (กันกรณี render ล้มเหลวแบบเงียบๆ แล้วได้ PDF ขาวเปล่า)
-        if (!canvas || canvas.width < 10 || canvas.height < 10) {
-          throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
-        }
-        if (_canvasLooksBlank(canvas)) {
-          throw new Error('สร้าง PDF ไม่สำเร็จ (เนื้อหาว่างเปล่าผิดปกติ) กรุณาลองใหม่อีกครั้ง หากเกิดซ้ำอีกแจ้งผมได้เลย');
-        }
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        if (!imgData || imgData.length < 1000) {
-          throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ข้อมูลภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
-        }
-        // ⚠️ FIX blank page 2: คำนวณ content height จริงจาก canvas ratio
-        // canvas.width = A4_W_PX * scale, canvas.height = actual_content * scale
-        // imgH_mm = 210mm * (canvas.h / canvas.w) → height จริงของเนื้อหา
-        const pdf = new J({ unit: 'mm', format: [210, 297], orientation: 'portrait', compress: true });
-        const pw = pdf.internal.pageSize.getWidth();
-        const ph = pdf.internal.pageSize.getHeight();
-        pdf.addImage(imgData, 'JPEG', 0, 0, pw, ph);
-        cleanup2();
-        var _isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        var _isAndroid = /Android/.test(navigator.userAgent);
-        if (_isIOS || _isAndroid) {
-          // ✅ iOS/Android: upload ขึ้น Supabase Storage → เปิด HTTPS URL ตรงๆ
-          // วิธีนี้ทำงานได้ทุก browser/WebView เพราะเป็น HTTPS URL ปกติ
-          try {
-            var _pdfBlob = pdf.output('blob');
-            var _ts = Date.now();
-            var _fileName = 'exports/' + _ts + '_' + pdfName;
-            var _up = await sb.storage.from('pdf-exports').upload(_fileName, _pdfBlob, {
-              contentType: 'application/pdf', upsert: true
-            });
-            if (_up.error) throw _up.error;
-            var _pub = sb.storage.from('pdf-exports').getPublicUrl(_fileName);
-            var _url = _pub.data && _pub.data.publicUrl;
-            if (!_url) throw new Error('no public url');
-            // เปิด URL ใน tab ใหม่ → iOS/Android เปิด PDF viewer ได้เสมอ
-            var _wa = window.open(_url, '_blank');
-            if (!_wa) { window.location.href = _url; }
-          } catch(upErr) {
-            console.warn('upload failed:', upErr);
-            toastF('❌ อัปโหลดไม่สำเร็จ: ' + upErr.message, 'err');
-          }
-        } else {
-          pdf.save(pdfName);
-        }
-      }
-      toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
-    } catch (err) {
-      console.error('PDF export error:', err);
-      toastF('❌ '+err.message,'err');
-      cleanup2();
-    }
-  } catch(e) { console.error('PDF:',e); toastF('❌ '+e.message,'err'); }
-  if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
-}
-</script>
-
-<script id="LD2" type="text/plain">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</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-// ── SUPABASE ──────────────────────────────────────────────────────────────
-var SURL='https://vjblfdlzerpiazmqxuce.supabase.co';
-var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M';
-var sb=supabase.createClient(SURL,SKEY);
-var CU=null,CJ=null,CP=null,CJTECH=null,CJ_READONLY=false,CJ_UPDATED=null;
-
-function toastF(m,t){
-  var el=document.querySelector('.toast-f');
-  if(!el){el=document.createElement('div');el.className='toast-f';document.body.appendChild(el);}
-  el.textContent=m;
-  el.style.background=t==='ok'?'#16a34a':t==='err'?'#dc2626':t==='info'?'#b45309':'#1a3a6e';
-  el.style.color='#fff';el.style.opacity='1';
-  clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity='0';},3000);
-}
-
-function fillForm(j,pts){
-  pts=pts||[];
-  try{
-    var js=document.getElementById('jobStatus');if(js&&j.status)js.value=j.status;
-        var st=document.getElementById('serviceTypeSelect');
-        if(st&&j.service_type){
-          if(j.service_type==='install'||j.service_type==='repair')st.value=j.service_type;
-          else{st.value='other';var oi=document.getElementById('otherServiceInput');if(oi){oi.classList.add('show');oi.value=j.service_type;}}
-        }
-        var dis=document.querySelectorAll('#page input[type="date"]');
-        var _tsEl=document.getElementById('timeStart');
-  var _teEl=document.getElementById('timeEnd');
-        if(dis[0]&&j.service_date)dis[0].value=j.service_date;
-        if(_tsEl&&j.time_start)_tsEl.value=j.time_start;
-        if(_teEl&&j.time_end)_teEl.value=j.time_end;
-        var cn=document.getElementById('companyName');if(cn)cn.value=j.company||'';
-        var tel=document.getElementById('contactPhone');if(tel)tel.value=j.phone||'';
-        var txt=document.querySelectorAll('#page input[type="text"]');
-        var ci=document.getElementById('contactName');if(ci)ci.value=j.contact_name||'';
-        var pin=document.getElementById('positionInput');if(pin)pin.value=j.position||'';
-        var addrEl=document.getElementById('addressInput');if(addrEl)addrEl.value=j.address||'';
-        if(txt[6])txt[6].value=j.machine_name||'';if(txt[7])txt[7].value=j.machine_model||'';
-        if(txt[8])txt[8].value=j.machine_sn||'';
-        if(dis[1]&&j.purchase_date)dis[1].value=j.purchase_date;
-        var ta=document.getElementById('detailTextarea');if(ta)ta.value=j.machine_detail||'';
-        if(j.warranty_status){
-          var wr=document.querySelector('input[name="warranty"][value="'+j.warranty_status+'"]');
-          if(wr){wr.checked=true;toggleWarranty(wr);}
-          var wn=document.getElementById('warrantyNo');if(wn)wn.value=j.warranty_no||'';
-        }
-        if(j.fee_type){
-          var fr=document.querySelector('input[name="feeType"][value="'+j.fee_type+'"]');
-          if(fr){fr.checked=true;toggleFee(fr);}
-          var pi=document.getElementById('provinceInput');if(pi)pi.value=j.province||'';
-        }
-        function fs(iid,bid,cid,d){
-          if(!d)return;
-          var img=document.getElementById(iid),b=document.getElementById(bid),c=document.getElementById(cid);
-          if(img){img.src=d;img.style.display='block';}
-          if(b)b.style.display='none';if(c)c.classList.add('show');
-        }
-        fs('techSigImg','techSigBtn','techClearBtn',j.tech_sig_data);
-        fs('custSigImg','custSigBtn','custClearBtn',j.cust_sig_data);
-        var tn2=document.getElementById('techName');if(tn2)tn2.value=j.tech_name_sign||'';
-        var td2=document.getElementById('techDate');if(td2&&j.tech_sign_date)td2.value=j.tech_sign_date;
-        var cname=document.getElementById('custName');if(cname)cname.value=j.cust_name_sign||'';
-        var cdept=document.getElementById('custDept');if(cdept)cdept.value=j.cust_dept||'';
-        var cdate=document.getElementById('custDate');if(cdate&&j.cust_sign_date)cdate.value=j.cust_sign_date;
-        if(pts.length>0){
-          var tb=document.getElementById('partsBody');tb.innerHTML='';rowCount=0;
-          pts.forEach(function(p){
-            rowCount++;var tr=buildRow(rowCount);tb.appendChild(tr);
-            var inp=tr.querySelectorAll('input');
-            inp[0].value=p.part_name||'';inp[1].value=p.part_code||'';
-            inp[2].value=p.qty||'';inp[3].value=p.unit||'';inp[4].value=p.price||'';
-          });
-          while(rowCount<5){rowCount++;document.getElementById('partsBody').appendChild(buildRow(rowCount));}
-          calcTotal();
-        }
-    var sl=document.querySelector('.status-block select');if(sl&&j.service_location)sl.value=j.service_location;
-  }catch(e){console.error('fillForm:',e);}
-}
-
-// ── กู้ข้อมูลหายตอนรีโหลด / สลับแอป (LOCAL DRAFT AUTOSAVE) ──
-// ล้างร่างเก่าที่อาจค้างจากเวอร์ชันก่อนแก้บั๊ก (ทำครั้งเดียวต่อเครื่อง เมื่อโหลดโค้ดใหม่ครั้งแรก)
-(function purgeLegacyDrafts(){
-  try{
-    var FIXV='2026-06-fix1';
-    if(localStorage.getItem('kfix_ver')===FIXV)return;
-    Object.keys(localStorage).forEach(function(k){ if(k.indexOf('kdraft_')===0) localStorage.removeItem(k); });
-    localStorage.setItem('kfix_ver',FIXV);
-  }catch(e){}
-})();
-
-function draftKey(){return CJ?('kdraft_'+CJ):'kdraft_new';}
-
-function getDraftData(){
-  var d=getFormData();
-  // เก็บแถวอะไหล่ทุกแถว รวมที่ยังกรอกไม่ครบ
-  var parts=[];
-  document.querySelectorAll('#partsBody tr').forEach(function(r,i){
-    var inp=r.querySelectorAll('input');
-    parts.push({seq:i+1,
-      part_name:(inp[0]&&inp[0].value)||'',part_code:(inp[1]&&inp[1].value)||'',
-      qty:(inp[2]&&inp[2].value)||'',unit:(inp[3]&&inp[3].value)||'',price:(inp[4]&&inp[4].value)||''});
-  });
-  d.parts=parts;
-  var cd=document.getElementById('custDept');d.cust_dept=cd&&cd.value||'';
-  return d;
-}
-
-var _draftT=null;
-function saveDraft(){
-  try{localStorage.setItem(draftKey(),JSON.stringify({ts:Date.now(),jid:CJ||null,data:getDraftData()}));}catch(e){}
-}
-function scheduleDraftSave(){clearTimeout(_draftT);_draftT=setTimeout(saveDraft,600);}
-function clearDraft(){try{localStorage.removeItem('kdraft_new');if(CJ)localStorage.removeItem('kdraft_'+CJ);}catch(e){}}
-
-var _autosaveBound=false;
-function bindAutosave(){
-  if(_autosaveBound)return;_autosaveBound=true;
-  var page=document.getElementById('page');
-  if(page){page.addEventListener('input',scheduleDraftSave,true);page.addEventListener('change',scheduleDraftSave,true);}
-  // บันทึกทันทีตอนสลับแอป/พับจอ/ปิดแท็บ (Android มัก kill แท็บ)
-  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveDraft();});
-  window.addEventListener('pagehide',saveDraft);
-  window.addEventListener('beforeunload',saveDraft);
-}
-
-// เช็คว่าหน้านี้ถูก "รีเฟรช/รีโหลด" หรือไม่ (กด refresh, pull-to-refresh, แท็บถูกปิดแล้วโหลดใหม่)
-function isPageReload(){
-  try{
-    var nav=performance.getEntriesByType&&performance.getEntriesByType('navigation');
-    if(nav&&nav.length)return nav[0].type==='reload';
-    if(performance.navigation)return performance.navigation.type===1; // 1 = TYPE_RELOAD (ของเก่า)
-  }catch(e){}
-  return false;
-}
-
-function maybeRestoreDraft(key, serverTs, existing){
-  try{
-    var raw=localStorage.getItem(key);if(!raw)return;
-    var d=JSON.parse(raw);if(!d||!d.data){localStorage.removeItem(key);return;}
-    // ถ้าข้อมูลบนเซิร์ฟเวอร์ถูกแก้ล่าสุดกว่าร่างในเครื่อง (เช่นแอดมินเพิ่งอัปเดต)
-    // ให้ทิ้งร่างเก่าและยึดของเซิร์ฟเวอร์ ไม่ต้องถามกู้คืน (กันร่างเก่าทับของใหม่)
-    if(serverTs){
-      var sv=Date.parse(serverTs);
-      if(!isNaN(sv) && (d.ts||0) <= sv + 60000){ localStorage.removeItem(key); return; }
-    }
-    // ถามกู้คืนเฉพาะตอนรีเฟรช/รีโหลดหน้าเท่านั้น
-    if(!isPageReload()){
-      // ใบงานที่มีบนเซิร์ฟเวอร์อยู่แล้ว: เปิดปกติให้ยึดเซิร์ฟเวอร์เสมอ และลบร่างเก่าทิ้งกันมาหลอนภายหลัง
-      // (ถ้าแก้ระหว่างนี้ autosave จะสร้างร่างใหม่เอง ยังกู้ได้ตอนรีโหลด/แครช)
-      if(existing) localStorage.removeItem(key);
-      return;
-    }
-    var mins=Math.round((Date.now()-(d.ts||0))/60000);
-    var when=mins<1?'เมื่อสักครู่':mins<60?(mins+' นาทีที่แล้ว'):(Math.round(mins/60)+' ชม.ที่แล้ว');
-    if(confirm('พบข้อมูลที่ยังไม่ได้บันทึก ('+when+')\nต้องการกู้คืนหรือไม่?')){
-      fillForm(d.data,d.data.parts||[]);
-      toastF('กู้คืนข้อมูลแล้ว ✅','ok');
-    }else{localStorage.removeItem(key);}
-  }catch(e){console.error('restoreDraft:',e);}
-}
-
-
-async function cloudInit(){
-  try{
-    var s=await sb.auth.getSession();
-    if(!s.data.session){location.href='login.html';return;}
-    CU=s.data.session.user;
-    var pr=await sb.from('profiles').select('*').eq('id',CU.id).single();
-    CP=pr.data;
-    if(CP&&CP.role==='admin'){var _bl=document.getElementById('btnLink');if(_bl)_bl.style.display='';}
-    if(CP&&CP.full_name){
-      var tn=document.getElementById('techName');
-      if(tn&&!tn.value)tn.value=CP.full_name;
-    }
-    // รองรับลิงก์ตรงจากแจ้งเตือน: form.html?id=123
-    var urlId=new URLSearchParams(location.search).get('id');
-    if(urlId){localStorage.setItem('kjid',urlId);}
-    var eid=localStorage.getItem('kjid');
-    if(eid){CJ=parseInt(eid);await loadJob(CJ);}
-    else{
-      var today=new Date().toISOString().split('T')[0];
-      var dis=document.querySelectorAll('#page input[type="date"]');
-      if(dis[0]&&!dis[0].value)dis[0].value=today;
-      var ti=document.getElementById('techDate');
-      if(ti&&!ti.value)ti.value=today;
-      maybeRestoreDraft('kdraft_new');
-      bindAutosave();
-    }
-    // โลโก้ topbar
-    try{
-      var ld2=document.getElementById('LD2');
-      var top=document.getElementById('logoTopbar');
-      if(ld2&&top){top.src='data:image/png;base64,'+ld2.textContent.trim();top.style.display='block';top.onerror=function(){this.style.display='none';};}
-    }catch(e){}
-  }catch(e){console.error('cloudInit:',e);toastF('เชื่อมต่อไม่ได้','err');}
-}
-
-function getFormData(){
-  var st=document.getElementById('serviceTypeSelect');
-  var stype=st&&st.value==='other'
-    ?(document.getElementById('otherServiceInput')&&document.getElementById('otherServiceInput').value||'')
-    :(st&&st.value||'');
-  var warr=document.querySelector('input[name="warranty"]:checked');
-  var fee=document.querySelector('input[name="feeType"]:checked');
-  var dis=document.querySelectorAll('#page input[type="date"]');
-  var _tsEl=document.getElementById('timeStart');
-  var _teEl=document.getElementById('timeEnd');
-  var ta=document.getElementById('detailTextarea');
-  var parts=[];
-  document.querySelectorAll('#partsBody tr').forEach(function(r,i){
-    var inp=r.querySelectorAll('input');
-    var nm=inp[0]&&inp[0].value.trim()||'';
-    if(!nm)return;
-    var qty=parseFloat(inp[2]&&inp[2].value)||1;
-    var price=parseFloat(inp[4]&&inp[4].value)||0;
-    parts.push({seq:i+1,part_name:nm,part_code:inp[1]&&inp[1].value||'',
-      qty:qty,unit:inp[3]&&inp[3].value||'',price:price,line_total:qty*price});
-  });
-  var txt=document.querySelectorAll('#page input[type="text"]');
-  var tel=document.getElementById('contactPhone');
-  var tsi=document.getElementById('techSigImg');
-  var csi=document.getElementById('custSigImg');
-  function gv(id){var e=document.getElementById(id);return parseFloat((e&&e.value||'0').replace(/,/g,''))||0;}
-  var status=document.getElementById('jobStatus')&&document.getElementById('jobStatus').value||'draft';
-  return{
-    service_type:stype,service_date:dis[0]&&dis[0].value||null,
-    time_start:_tsEl&&_tsEl.value||null,time_end:_teEl&&_teEl.value||null,
-    company:document.getElementById('companyName')&&document.getElementById('companyName').value||'',
-    contact_name:document.getElementById('contactName')&&document.getElementById('contactName').value||'',
-    position:document.getElementById('positionInput')&&document.getElementById('positionInput').value||'',phone:tel&&tel.value||'',
-    address:(document.getElementById('addressInput')&&document.getElementById('addressInput').value)||'',
-    service_location:document.querySelector('.status-block select')&&document.querySelector('.status-block select').value||'',
-    warranty_status:warr&&warr.value||'',
-    warranty_no:document.getElementById('warrantyNo')&&document.getElementById('warrantyNo').value||'',
-    machine_name:txt[6]&&txt[6].value||'',machine_model:txt[7]&&txt[7].value||'',
-    machine_sn:txt[8]&&txt[8].value||'',purchase_date:dis[1]&&dis[1].value||null,
-    machine_detail:ta&&ta.value||'',fee_type:fee&&fee.value||'',
-    province:document.getElementById('provinceInput')&&document.getElementById('provinceInput').value||'',
-    subtotal:gv('s_sub'),vat:gv('s_vat'),total:gv('s_total'),
-    tech_sig_data:(tsi&&tsi.style.display!=='none'&&tsi.src&&tsi.src.indexOf('data:image')===0)?tsi.src:null,
-    cust_sig_data:(csi&&csi.style.display!=='none'&&csi.src&&csi.src.indexOf('data:image')===0)?csi.src:null,
-    tech_name_sign:document.getElementById('techName')&&document.getElementById('techName').value||'',
-    tech_sign_date:document.getElementById('techDate')&&document.getElementById('techDate').value||null,
-    cust_name_sign:document.getElementById('custName')&&document.getElementById('custName').value||'',
-    cust_sign_date:document.getElementById('custDate')&&document.getElementById('custDate').value||null,
-    status:status,parts:parts
-  };
-}
-
-async function saveCloud(){
-  var btn=document.getElementById('btnSave');
-  btn.textContent='⏳ บันทึก...';btn.disabled=true;
-  try{
-    var fd=getFormData();
-    var parts=fd.parts;delete fd.parts;
-    var jid=CJ;
-    var isAdminEdit=CP&&CP.role==='admin';
-    // ดึงสถานะลายเซ็น "ก่อนหน้า" จากฐานข้อมูล ก่อนจะ update ทับ เพื่อเช็คว่าการบันทึกครั้งนี้
-    // เป็นการเปลี่ยนจาก "ยังไม่ครบ" ไปเป็น "ครบทั้งสองฝ่าย" จริงๆ หรือไม่ (กันแจ้งเตือนซ้ำข้ามอุปกรณ์
-    // เพราะอิงจากฐานข้อมูลกลาง ไม่ใช่ localStorage ที่เก็บแยกเครื่อง)
-    var _prevBothSigned = false;
-    if (jid) {
-      try {
-        var _prevRow = await sb.from('service_jobs').select('tech_sig_data,cust_sig_data').eq('id', jid).single();
-        if (_prevRow.data) {
-          _prevBothSigned = !!(_prevRow.data.tech_sig_data && _prevRow.data.cust_sig_data);
-        }
-      } catch(e) { console.warn('fetch prev sig state (optional):', e); }
-    }
-    if(jid&&CJTECH){
-      fd.technician_id=CJTECH.id;fd.technician_name=CJTECH.name;
-    }else{
-      fd.technician_id=CU.id;fd.technician_name=CP&&CP.full_name||CU.email;
-    }
-    if(jid){
-      var r1=await sb.from('service_jobs').update(fd).eq('id',jid).select();
-      if(r1.error)throw r1.error;
-      if(!r1.data||!r1.data.length)throw new Error('บันทึกไม่สำเร็จ: ไม่มีสิทธิ์แก้ไขใบงานนี้ หรือไม่พบใบงาน (ตรวจสิทธิ์ RLS ของ service_jobs)');
-      var rdel=await sb.from('service_parts').delete().eq('job_id',jid);
-      if(rdel.error)throw rdel.error;
-    }else{
-      var yr=fd.service_date?new Date(fd.service_date).getFullYear():new Date().getFullYear();
-      var yrPrefix='KIMAC-'+yr+'-';
-      var seqNum=null;
-      // ใช้ตัวนับแบบเพิ่มขึ้นอย่างเดียว (ไม่ลดลงเมื่อมีการลบ) เพื่อกันเลขรันซ้ำ
-      var rpc=await sb.rpc('next_job_seq',{p_year:yr});
-      if(!rpc.error && rpc.data!=null){
-        seqNum=parseInt(rpc.data);
-      }else{
-        // เผื่อยังไม่ได้สร้างฟังก์ชันใน Supabase ให้ย้อนไปใช้วิธีหาเลขสูงสุดเดิม
-        var existing=await sb.from('service_jobs').select('job_no').ilike('job_no',yrPrefix+'%').order('job_no',{ascending:false}).limit(1);
-        var maxSeq=0;
-        if(existing.data&&existing.data.length>0){
-          var lastSeq=parseInt(existing.data[0].job_no.split('-').pop());
-          if(!isNaN(lastSeq))maxSeq=lastSeq;
-        }
-        seqNum=maxSeq+1;
-      }
-      var sq=String(seqNum).padStart(4,'0');
-      fd.job_no=yrPrefix+sq;
-      var ins=await sb.from('service_jobs').insert(fd).select().single();
-      if(ins.error)throw ins.error;
-      jid=ins.data.id;CJ=jid;localStorage.setItem('kjid',jid);
-      document.getElementById('jnoBadge').textContent=fd.job_no;
-    }
-    if(parts.length>0){
-      var pd=parts.map(function(p){return Object.assign({},p,{job_id:jid});});
-      var rip=await sb.from('service_parts').insert(pd).select();
-      if(rip.error)throw rip.error;
-      if(!rip.data||!rip.data.length)throw new Error('บันทึกรายการอะไหล่ไม่สำเร็จ (ตรวจสิทธิ์ RLS ของ service_parts)');
-    }
-    clearDraft();
-    toastF('✅ บันทึกสำเร็จ!','ok');
-    // ถ้าบันทึกครั้งนี้มีทั้งลายเซ็นช่างและลูกค้าครบ → แจ้งเตือนแอดมินทันที
-    // หมายเหตุ: ห้ามเช็คแค่ img.src เฉยๆ เพราะ <img src=""> เบราว์เซอร์จะ resolve เป็น URL หน้าเว็บปัจจุบัน (truthy เสมอ)
-    // ต้องเช็คว่า src เป็นรูปภาพจริง (data:image...) เท่านั้น
-    var techSigImgEl = document.getElementById('techSigImg');
-    var custSigImgEl = document.getElementById('custSigImg');
-    var _hasTech = !!(techSigImgEl && techSigImgEl.style.display !== 'none' && techSigImgEl.src && techSigImgEl.src.indexOf('data:image') === 0);
-    var _hasCust = !!(custSigImgEl && custSigImgEl.style.display !== 'none' && custSigImgEl.src && custSigImgEl.src.indexOf('data:image') === 0);
-    var _jnoBadge = document.getElementById('jnoBadge');
-    var _jno = _jnoBadge ? _jnoBadge.textContent : '-';
-    var _comp = document.getElementById('companyName') ? document.getElementById('companyName').value : '-';
-    if (_hasTech && _hasCust && !_prevBothSigned) {
-      // กันแจ้งเตือนซ้ำชั้นที่ 2 (เผื่อกดบันทึกรัวๆ ในเครื่องเดียวกันจนเช็คสถานะก่อนหน้าไม่ทัน)
-      var _sigNotifKey = 'kimac_sig_notified_' + jid;
-      var _alreadyNotified = false;
-      try { _alreadyNotified = localStorage.getItem(_sigNotifKey) === '1'; } catch(e) {}
-      if (!_alreadyNotified) {
-        // ส่งผ่าน Edge Function (fan-out ไปทุก admin device)
-        // notify_admins:true = โหมดแจ้งเตือนแอดมินทั้งหมด, ใช้ job_id ดึงรายละเอียดงานฝั่ง server
-        try {
-          await sb.functions.invoke('notify-push', { body: {
-            job_id: jid,
-            notify_admins: true
-          }});
-          try { localStorage.setItem(_sigNotifKey, '1'); } catch(e) {}
-        } catch(e) { console.warn('sig push to admin (optional):', e); }
+      if(!saved){
+        toastF('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่','err');
+        if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
+        return;
       }
     }
-    return true;
-  }catch(e){toastF('❌ '+e.message,'err');console.error(e);return false;}
-  finally{btn.textContent='☁️ บันทึก';btn.disabled=false;}
-}
-
-function setFormReadonly(ro){
-  CJ_READONLY=ro;
-  var page=document.getElementById('page');
-  if(page){
-    page.querySelectorAll('input,textarea,select').forEach(function(el){el.disabled=ro;});
-    page.querySelectorAll('button').forEach(function(el){if(el.id!=='btnPDF')el.disabled=ro;});
-  }
-  var bs=document.getElementById('btnSave');if(bs)bs.style.display=ro?'none':'';
-  if(ro)toastF('👁 ดูได้อย่างเดียว (ไม่ใช่ช่างเจ้าของใบงาน)','info');
-}
-
-async function loadJob(id){
-  try{
-    var r=await sb.from('service_jobs').select('*').eq('id',id).single();
-    if(r.error){console.error('loadJob:',r.error);return;}
-    var j=r.data;if(!j)return;
-    CJTECH={id:j.technician_id,name:j.technician_name};
-    CJ_UPDATED=j.updated_at||j.created_at||null; // เวลาที่ข้อมูลบนเซิร์ฟเวอร์ถูกแก้ล่าสุด ใช้กันร่างเก่าทับของใหม่
-    var isAdmin=CP&&CP.role==='admin';
-    var isOwner=j.technician_id===CU.id;
-    var isShared=Array.isArray(j.shared_with)&&j.shared_with.includes(CU.id);
-    if(!isAdmin&&!isOwner&&!isShared)setFormReadonly(true);
-    var rp=await sb.from('service_parts').select('*').eq('job_id',id).order('seq');
-    var pts=rp.data||[];
-    document.getElementById('jnoBadge').textContent=j.job_no||'';
-    var ss=document.getElementById('jobStatus');if(ss&&j.status)ss.value=j.status;
+    if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
+    // reset transform ก่อน print ให้แน่ใจ (beforeprint handler จะทำซ้ำ แต่ทำไว้เผื่อ)
+    var _page = document.getElementById('page');
+    var _wrapper = document.getElementById('pageWrapper');
+    var _prevTr = _page ? _page.style.transform : '';
+    var _prevWr = _wrapper ? _wrapper.style.transform : '';
+    if (_page) { _page.style.transform = 'none'; _page.style.zoom = '1'; }
+    if (_wrapper) { _wrapper.style.transform = 'none'; }
     setTimeout(function(){
-      fillForm(j,pts);
-      toastF('โหลดใบงาน ✅','ok');
-      maybeRestoreDraft('kdraft_'+id, CJ_UPDATED, true);
-      bindAutosave();
-      if(typeof scalePage==='function') scalePage();
-      // เผื่อรูปลายเซ็น/ฟอนต์ reflow ช้ากว่านี้อีกนิด ให้ย่อขนาดซ้ำอีกครั้งหลัง paint ถัดไป
-      requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(typeof scalePage==='function') scalePage(); }); });
-    },400);
-  }catch(e){console.error('loadJob:',e);}
+      window.print();
+      // restore หลัง print dialog ปิด (afterprint event จะ restore ด้วย)
+      setTimeout(function(){
+        if (_page && !_page.style.transform) _page.style.transform = _prevTr;
+        if (_wrapper && !_wrapper.style.transform) _wrapper.style.transform = _prevWr;
+        if (typeof scalePage === 'function') scalePage();
+      }, 500);
+    }, 300);
+  }catch(e){
+    console.error('exportPDF:',e);
+    toastF('❌ '+e.message,'err');
+    if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
+  }
 }
-
-async function custLink(){
-  if(!(CP&&CP.role==='admin')){ alert('เฉพาะแอดมินเท่านั้นที่สร้างลิงก์ได้'); return; }
-  if(!CJ){ alert('กรุณาบันทึกใบงานในระบบก่อน แล้วจึงสร้างลิงก์ให้ลูกค้า'); return; }
-  var btn=document.getElementById('btnLink');
-  var old=btn?btn.textContent:'';
-  if(btn){ btn.disabled=true; btn.textContent='กำลังสร้างลิงก์...'; }
-  try{
-    var r=await sb.rpc('get_or_create_job_token',{p_job_id:CJ});
-    if(r.error)throw r.error;
-    var link=new URL('view.html?t='+r.data, location.href).href;
-    try{ await navigator.clipboard.writeText(link); }catch(e){}
-    if(navigator.share){
-      try{ await navigator.share({title:'ใบงานบริการ KIMAC', text:'กรุณากดลิงก์เพื่อดูและเซ็นรับงาน', url:link}); }catch(e){}
-    } else {
-      prompt('คัดลอกลิงก์นี้ส่งให้ลูกค้า (ลิงก์มีอายุ 1 วัน):', link);
-    }
-    if(typeof toastF==='function') toastF('🔗 สร้างลิงก์แล้ว (คัดลอกไว้ให้ในคลิปบอร์ด)','info');
-  }catch(e){ alert('สร้างลิงก์ไม่สำเร็จ: '+(e.message||e)); }
-  if(btn){ btn.disabled=false; btn.textContent=old; }
-}
-
-function goBack(){localStorage.removeItem('kjid');location.href='history.html';}
-
-// เรียก cloudInit เมื่อ load
-window.addEventListener('load',function(){cloudInit();});
-</script>
-</body>
-</html>
