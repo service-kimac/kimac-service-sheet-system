@@ -168,6 +168,12 @@
     min-height: 60px !important;
   }
   .page input[type="radio"], .page input[type="checkbox"] { accent-color: #427aa1 !important; }
+  .page .other-input, .page .warranty-input, .page .province-input {
+    border: none !important;
+    border-bottom: 1px solid #aaa !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
   .service-type-bar { background: #fff7d6 !important; border: 1px solid #ffd151 !important; }
   .status-block { background: #fff7d6 !important; border: 1px solid #ffd151 !important; }
   .parts-table { border-collapse: collapse !important; }
@@ -375,10 +381,10 @@ body.mobile-a4 .footer { margin-top: auto; }
 /* service type bar */
 .service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; margin-bottom: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; }
-.service-type-bar select { border: 1px solid #ffd151; border-radius: 4px; background: #fff; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; box-shadow: none; appearance: none; -webkit-appearance: none; }
+.service-type-bar select { border: none; border-bottom: 1px solid #aaa; border-radius: 0; background: #fff7d6; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; box-shadow: none; appearance: none; -webkit-appearance: none; }
   .status-block select { border: none; border-bottom: none; border-radius: 0; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; box-shadow: none; appearance: none; -webkit-appearance: none; }
   .field select { border: none; border-bottom: 1px solid #c4960a; border-radius: 0; background: transparent; padding: 2px 4px; cursor: pointer; box-shadow: none; appearance: none; -webkit-appearance: none; }
-.other-input { border: none; border-bottom: 1px solid #aaa; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 200px; outline: none; display: none; }
+.other-input { border: none; border-bottom: 1px solid #aaa; background: #fff7d6; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 200px; outline: none; display: none; padding: 1px 4px; }
 .other-input.show { display: inline-block; }
 
 /* section titles */
@@ -398,9 +404,9 @@ body.mobile-a4 .footer { margin-top: auto; }
 .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; font-weight: 400; color: #333; }
 .radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #427aa1; cursor: pointer; }
-.warranty-input { border: none; border-bottom: 1px solid #ffd151; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
+.warranty-input { border: none; border-bottom: 1px solid #aaa; background: #fff7d6; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; padding: 1px 4px; }
   .warranty-input.show { display: inline-block; }
-  .province-input { border: none; border-bottom: 1px solid #ffd151; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
+  .province-input { border: none; border-bottom: 1px solid #aaa; background: #fff; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; padding: 1px 4px; }
 .province-input.show { display: inline-block; }
 
 /* parts table */
@@ -504,7 +510,7 @@ body {
   <div style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
       <label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานที่บริการ :</label>
-      <select style="border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
+      <select style="border:none;border-bottom:1px solid #aaa;border-radius:0;background:#fff7d6;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
         <option value="">-- เลือก --</option>
         <option>บริษัทลูกค้า</option>
         <option>บจก.คีแมค</option>
