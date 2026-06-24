@@ -130,6 +130,12 @@
     flex-direction: column !important;
   }
   .page-inner { flex: 1 !important; }
+  /* print color/shadow fidelity */
+  *, .page, .page * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .page input, .page select, .page textarea { border-bottom: 1px solid #c4960a !important; background: transparent !important; }
+  .page select { color: #000 !important; }
+  .page textarea { background: transparent !important; }
+  .service-type-bar, .status-block, .parts-table th, .parts-table .total-label, .parts-table .total-val { background: inherit !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   /* ✅ FIX3: footer ดันลงล่างสุดด้วย margin-top:auto */
   .footer { margin-top: auto !important; }
 
@@ -503,25 +509,26 @@ body {
     <thead>
       <tr>
         <th style="text-align:center;">ลำดับ</th>
-        <th style="text-align:center;width:32%">รายการอะไหล่</th>
+        <th style="text-align:center;width:28%">รายการอะไหล่</th>
         <th style="width:12%">รหัส</th>
-        <th style="width:7%">จำนวน</th>
+        <th style="width:8%">จำนวน</th>
         <th style="width:8%">หน่วย</th>
-        <th style="width:26%">ราคา</th>
+        <th style="width:14%">ราคา/หน่วย</th>
+        <th style="width:16%">ราคารวม</th>
       </tr>
     </thead>
     <tbody id="partsBody"></tbody>
     <tfoot>
       <tr>
-        <td colspan="5" class="total-label">รวมยอด</td>
+        <td colspan="6" class="total-label">รวมยอด</td>
         <td class="total-val"><input type="text" id="s_sub" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="5" class="total-label">VAT 7%</td>
+        <td colspan="6" class="total-label">VAT 7%</td>
         <td class="total-val"><input type="text" id="s_vat" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
+        <td colspan="6" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
         <td style="text-align:right;background:#e8f4fb;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
       </tr>
     </tfoot>
@@ -645,11 +652,12 @@ function buildRow(num) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>${num}</td>
-    <td><input type="text" style="text-align:left;width:100%" oninput="calcTotal()"></td>
-    <td><input type="text" style="width:100%"></td>
-    <td><input type="number" min="0" step="1" oninput="calcTotal()" style="width:100%;text-align:right"></td>
-    <td><input type="text" style="width:100%"></td>
-    <td class="price-cell"><input type="number" min="0" step="0.01" oninput="calcTotal()" style="width:100%;text-align:right"></td>
+    <td><input type="text" class="part-name" style="text-align:left;width:100%"></td>
+    <td><input type="text" class="part-code" style="width:100%"></td>
+    <td><input type="number" class="part-qty" min="0" step="1" oninput="calcTotal()" style="width:100%;text-align:right"></td>
+    <td><input type="text" class="part-unit" style="width:100%"></td>
+    <td class="price-cell"><input type="number" class="part-price" min="0" step="0.01" oninput="calcTotal()" style="width:100%;text-align:right"></td>
+    <td class="line-total-cell"><input type="text" class="part-line-total" readonly value="0.00" style="width:100%;text-align:right;background:transparent;border:none;color:#1a3a6e;font-weight:700"></td>
   `;
   return tr;
 }
@@ -660,7 +668,7 @@ function buildPartsTable() {
     tbody.appendChild(buildRow(i));
     rowCount = i;
   }
-  // adjust layout after initial rows
+  calcTotal();
 }
 buildPartsTable();
 adjustLayoutForSpace();
@@ -674,8 +682,33 @@ function addRow() {
 }
 
 function formatNumber(num) {
-  if (num === 0) return '';
+  num = parseFloat(num);
+  if (!isFinite(num)) num = 0;
   return num.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function calcTotal() {
+  const tbody = document.getElementById('partsBody');
+  if (!tbody) return;
+  let subtotal = 0;
+  tbody.querySelectorAll('tr').forEach(function(tr) {
+    const qtyEl = tr.querySelector('input.part-qty');
+    const priceEl = tr.querySelector('input.part-price');
+    const lineTotalEl = tr.querySelector('input.part-line-total');
+    const qty = parseFloat((qtyEl && qtyEl.value || '').replace(/,/g, '')) || 0;
+    const price = parseFloat((priceEl && priceEl.value || '').replace(/,/g, '')) || 0;
+    const lineTotal = qty * price;
+    subtotal += lineTotal;
+    if (lineTotalEl) lineTotalEl.value = formatNumber(lineTotal);
+  });
+  const vat = subtotal * 0.07;
+  const total = subtotal + vat;
+  const subEl = document.getElementById('s_sub');
+  const vatEl = document.getElementById('s_vat');
+  const totalEl = document.getElementById('s_total');
+  if (subEl) subEl.value = formatNumber(subtotal);
+  if (vatEl) vatEl.value = formatNumber(vat);
+  if (totalEl) totalEl.value = formatNumber(total);
 }
 
 function scalePage() {
@@ -1425,9 +1458,18 @@ function fillForm(j,pts){
           var tb=document.getElementById('partsBody');tb.innerHTML='';rowCount=0;
           pts.forEach(function(p){
             rowCount++;var tr=buildRow(rowCount);tb.appendChild(tr);
-            var inp=tr.querySelectorAll('input');
-            inp[0].value=p.part_name||'';inp[1].value=p.part_code||'';
-            inp[2].value=p.qty||'';inp[3].value=p.unit||'';inp[4].value=p.price||'';
+            var nameInput = tr.querySelector('input.part-name');
+          var codeInput = tr.querySelector('input.part-code');
+          var qtyInput = tr.querySelector('input.part-qty');
+          var unitInput = tr.querySelector('input.part-unit');
+          var priceInput = tr.querySelector('input.part-price');
+          var lineTotalInput = tr.querySelector('input.part-line-total');
+          if (nameInput) nameInput.value = p.part_name || '';
+          if (codeInput) codeInput.value = p.part_code || '';
+          if (qtyInput) qtyInput.value = p.qty || '';
+          if (unitInput) unitInput.value = p.unit || '';
+          if (priceInput) priceInput.value = p.price || '';
+          if (lineTotalInput) lineTotalInput.value = formatNumber((parseFloat(p.qty) || 0) * (parseFloat(p.price) || 0));
           });
           while(rowCount<5){rowCount++;document.getElementById('partsBody').appendChild(buildRow(rowCount));}
           calcTotal();
@@ -1454,10 +1496,14 @@ function getDraftData(){
   // เก็บแถวอะไหล่ทุกแถว รวมที่ยังกรอกไม่ครบ
   var parts=[];
   document.querySelectorAll('#partsBody tr').forEach(function(r,i){
-    var inp=r.querySelectorAll('input');
+    var partNameEl = r.querySelector('input.part-name');
+    var partCodeEl = r.querySelector('input.part-code');
+    var qtyEl = r.querySelector('input.part-qty');
+    var unitEl = r.querySelector('input.part-unit');
+    var priceEl = r.querySelector('input.part-price');
     parts.push({seq:i+1,
-      part_name:(inp[0]&&inp[0].value)||'',part_code:(inp[1]&&inp[1].value)||'',
-      qty:(inp[2]&&inp[2].value)||'',unit:(inp[3]&&inp[3].value)||'',price:(inp[4]&&inp[4].value)||''});
+      part_name:(partNameEl&&partNameEl.value)||'',part_code:(partCodeEl&&partCodeEl.value)||'',
+      qty:(qtyEl&&qtyEl.value)||'',unit:(unitEl&&unitEl.value)||'',price:(priceEl&&priceEl.value)||''});
   });
   d.parts=parts;
   var cd=document.getElementById('custDept');d.cust_dept=cd&&cd.value||'';
@@ -1567,13 +1613,17 @@ function getFormData(){
   var ta=document.getElementById('detailTextarea');
   var parts=[];
   document.querySelectorAll('#partsBody tr').forEach(function(r,i){
-    var inp=r.querySelectorAll('input');
-    var nm=inp[0]&&inp[0].value.trim()||'';
+    var nameEl=r.querySelector('input.part-name');
+    var codeEl=r.querySelector('input.part-code');
+    var qtyEl=r.querySelector('input.part-qty');
+    var unitEl=r.querySelector('input.part-unit');
+    var priceEl=r.querySelector('input.part-price');
+    var nm=(nameEl&&nameEl.value.trim())||'';
     if(!nm)return;
-    var qty=parseFloat(inp[2]&&inp[2].value)||1;
-    var price=parseFloat(inp[4]&&inp[4].value)||0;
-    parts.push({seq:i+1,part_name:nm,part_code:inp[1]&&inp[1].value||'',
-      qty:qty,unit:inp[3]&&inp[3].value||'',price:price,line_total:qty*price});
+    var qty=parseFloat((qtyEl&&qtyEl.value||'').replace(/,/g,''))||1;
+    var price=parseFloat((priceEl&&priceEl.value||'').replace(/,/g,''))||0;
+    parts.push({seq:i+1,part_name:nm,part_code:codeEl&&codeEl.value||'',
+      qty:qty,unit:unitEl&&unitEl.value||'',price:price,line_total:qty*price});
   });
   var txt=document.querySelectorAll('#page input[type="text"]');
   var tel=document.getElementById('contactPhone');
