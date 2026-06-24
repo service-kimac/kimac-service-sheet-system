@@ -303,6 +303,7 @@
 /* header layout */
 .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #427aa1; padding-bottom: 2px; margin-bottom: 3px; }
 .header-logo-wrap { display: flex; flex-direction: column; align-items: center; }
+.established-text { font-size: 7px; font-weight: 700; color: #0e1c36; letter-spacing: 0.5px; text-align: center; margin-top: 1px; white-space: nowrap; }
 .header-logo { width: 85px; height: 62px; object-fit: contain; }
 .header-center { text-align: center; flex: 1; }
 .header-center h1 { font-size: 22px; font-weight: 700; color: #427aa1; letter-spacing: 2px; }
@@ -440,6 +441,7 @@ body {
   <div class="header">
     <div class="header-logo-wrap">
       <img class="header-logo" id="kimacLogo" src="" alt="KIMAC Logo">
+      <div class="established-text">ESTABLISHED IN 1979</div>
     </div>
     <div class="header-center">
       <h1>SERVICE SHEET</h1>
@@ -1101,6 +1103,7 @@ async function exportPDF(){
       /* หยุด position:absolute จากกระทบ header-logo */
       .header-logo{position:static!important;width:75px!important;height:55px!important;object-fit:contain!important;display:block!important;}
       .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;}
+      .established-text{font-size:7px!important;font-weight:700!important;color:#0e1c36!important;letter-spacing:0.5px!important;text-align:center!important;margin-top:1px!important;white-space:nowrap!important;display:block!important;}
       .sig-clear-wrap{display:none!important;min-height:0!important;}
       .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important;}
       .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important;}
