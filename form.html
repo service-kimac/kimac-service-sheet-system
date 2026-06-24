@@ -1247,7 +1247,18 @@ async function exportPDF(){
     // 1. งานบริการ select → กรอบเหลือง พื้นขาว
     var _cloneSvcSelect = pageClone.querySelector('#serviceTypeSelect');
     if(_cloneSvcSelect){
-      _cloneSvcSelect.style.cssText='border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
+      _cloneSvcSelect.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
+    }
+    // other-input: แสดงเฉพาะตอนเลือก "อื่นๆ"
+    var _svcVal = document.getElementById('serviceTypeSelect') ? document.getElementById('serviceTypeSelect').value : '';
+    var _cloneOtherInput = pageClone.querySelector('#otherServiceInput');
+    if(_cloneOtherInput){
+      if(_svcVal === 'other'){
+        _cloneOtherInput.style.display = 'inline-block';
+        _cloneOtherInput.style.cssText = 'display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:200px;outline:none;padding:1px 4px;';
+      } else {
+        _cloneOtherInput.style.display = 'none';
+      }
     }
 
     // 2. status-bar-wrap → กรอบเหลือง พื้นเหลืองอ่อน
@@ -1257,11 +1268,36 @@ async function exportPDF(){
       var _cloneLocSel = _cloneStatusWrap.querySelector('select');
       if(_cloneLocSel) _cloneLocSel.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
     }
+    // warrantyNo + warrantyLabel: แสดงเฉพาะตอนเลือก "ในรับประกัน"
+    var _warrantyChecked = original.querySelector('input[name="warranty"]:checked');
+    var _cloneWarrantyNo = pageClone.querySelector('#warrantyNo');
+    var _cloneWarrantyLbl = pageClone.querySelector('#warrantyLabel');
+    if(_cloneWarrantyNo){
+      if(_warrantyChecked && _warrantyChecked.value === 'in'){
+        _cloneWarrantyNo.style.display = 'inline-block';
+        _cloneWarrantyNo.style.cssText = 'display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:160px;outline:none;padding:1px 4px;';
+        if(_cloneWarrantyLbl) _cloneWarrantyLbl.style.display = 'inline';
+      } else {
+        _cloneWarrantyNo.style.display = 'none';
+        if(_cloneWarrantyLbl) _cloneWarrantyLbl.style.display = 'none';
+      }
+    }
 
     // 3. fee-bar-wrap → กรอบเหลือง พื้นขาว
     var _cloneFeeWrap = pageClone.querySelector('.fee-bar-wrap');
     if(_cloneFeeWrap){
       _cloneFeeWrap.style.cssText='background:#fff;border:1px solid #ffd151;border-radius:4px;padding:4px 8px;margin-bottom:4px;';
+    }
+    // provinceInput: แสดงเฉพาะตอนเลือก "ต่างจังหวัด"
+    var _feeChecked = original.querySelector('input[name="feeType"]:checked');
+    var _cloneProvince = pageClone.querySelector('#provinceInput');
+    if(_cloneProvince){
+      if(_feeChecked && _feeChecked.value === 'province'){
+        _cloneProvince.style.display = 'inline-block';
+        _cloneProvince.style.cssText = 'display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:110px;outline:none;padding:1px 4px;color:#222;';
+      } else {
+        _cloneProvince.style.display = 'none';
+      }
     }
 
     // ── สร้าง iframe ──────────────────────────────────────────────
