@@ -67,7 +67,7 @@
   @page { size: A4 portrait; margin: 10mm 12mm; }
 
   html {
-    width: 210mm !important;
+    width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -79,7 +79,7 @@
     print-color-adjust: exact;
   }
   body {
-    width: 210mm !important;
+    width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -95,7 +95,7 @@
     max-width: 210mm !important;
     zoom: 1 !important;
     transform: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     min-height: auto !important;
   }
@@ -1677,13 +1677,49 @@ async function custLink(){
     var r=await sb.rpc('get_or_create_job_token',{p_job_id:CJ});
     if(r.error)throw r.error;
     var link=new URL('view.html?t='+r.data, location.href).href;
-    try{ await navigator.clipboard.writeText(link); }catch(e){}
+
+    // แสดง modal ลิงก์พร้อมปุ่มคัดลอก
+    var existing=document.getElementById('custLinkModal');
+    if(existing)existing.parentNode.removeChild(existing);
+    var modal=document.createElement('div');
+    modal.id='custLinkModal';
+    modal.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:99998;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+    modal.innerHTML='<div style="background:#fff;border-radius:14px;padding:22px 20px;max-width:520px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.35);font-family:\'Sarabun\',sans-serif;">'
+      +'<div style="font-size:16px;font-weight:800;color:#0e1c36;margin-bottom:6px;">🔗 ลิงก์ให้ลูกค้าเซ็นรับงาน</div>'
+      +'<div style="font-size:12px;color:#6b7280;margin-bottom:12px;">ลิงก์มีอายุ 1 วัน — ส่งลิงก์นี้ให้ลูกค้าเพื่อดูและเซ็นรับงาน</div>'
+      +'<div style="display:flex;gap:8px;align-items:center;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;padding:10px 12px;margin-bottom:14px;">'
+        +'<span id="custLinkText" style="flex:1;font-size:13px;color:#111827;word-break:break-all;line-height:1.5;">'+link+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;">'
+        +'<button id="custLinkCopyBtn" style="flex:1;min-width:120px;padding:11px 16px;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#fff;border:none;border-radius:9px;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📋 คัดลอกลิงก์</button>'
+        +(navigator.share?'<button id="custLinkShareBtn" style="flex:1;min-width:120px;padding:11px 16px;background:linear-gradient(135deg,#065f46,#16a34a);color:#fff;border:none;border-radius:9px;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">↗ แชร์</button>':'')
+        +'<button id="custLinkCloseBtn" style="padding:11px 16px;background:#f3f4f6;color:#374151;border:none;border-radius:9px;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">ปิด</button>'
+      +'</div>'
+    +'</div>';
+    document.body.appendChild(modal);
+
+    document.getElementById('custLinkCopyBtn').addEventListener('click',function(){
+      navigator.clipboard.writeText(link).then(function(){
+        document.getElementById('custLinkCopyBtn').textContent='✅ คัดลอกแล้ว!';
+        setTimeout(function(){var b=document.getElementById('custLinkCopyBtn');if(b)b.textContent='📋 คัดลอกลิงก์';},2000);
+      }).catch(function(){
+        var ta=document.createElement('textarea');ta.value=link;ta.style.position='fixed';ta.style.opacity='0';
+        document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+        document.getElementById('custLinkCopyBtn').textContent='✅ คัดลอกแล้ว!';
+        setTimeout(function(){var b=document.getElementById('custLinkCopyBtn');if(b)b.textContent='📋 คัดลอกลิงก์';},2000);
+      });
+    });
     if(navigator.share){
-      try{ await navigator.share({title:'ใบงานบริการ KIMAC', text:'กรุณากดลิงก์เพื่อดูและเซ็นรับงาน', url:link}); }catch(e){}
-    } else {
-      prompt('คัดลอกลิงก์นี้ส่งให้ลูกค้า (ลิงก์มีอายุ 1 วัน):', link);
+      document.getElementById('custLinkShareBtn').addEventListener('click',function(){
+        navigator.share({title:'ใบงานบริการ KIMAC',text:'กรุณากดลิงก์เพื่อดูและเซ็นรับงาน',url:link}).catch(function(){});
+      });
     }
-    if(typeof toastF==='function') toastF('🔗 สร้างลิงก์แล้ว (คัดลอกไว้ให้ในคลิปบอร์ด)','info');
+    document.getElementById('custLinkCloseBtn').addEventListener('click',function(){
+      var m=document.getElementById('custLinkModal');if(m)m.parentNode.removeChild(m);
+    });
+    modal.addEventListener('click',function(ev){if(ev.target===modal){modal.parentNode.removeChild(modal);}});
+
+    if(typeof toastF==='function') toastF('🔗 สร้างลิงก์แล้ว','info');
   }catch(e){ alert('สร้างลิงก์ไม่สำเร็จ: '+(e.message||e)); }
   if(btn){ btn.disabled=false; btn.textContent=old; }
 }

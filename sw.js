@@ -26,7 +26,7 @@ self.addEventListener('fetch', e => {
   if(e.request.destination==='document') {
     e.respondWith(fetch(e.request).then(res=>{
       const c=res.clone();caches.open(VER).then(ca=>ca.put(e.request,c));return res;
-    }).catch(()=>caches.match(e.request)));
+    }).catch(()=>caches.match(e.request, { ignoreSearch: true })));
     return;
   }
   e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));

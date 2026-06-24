@@ -8,7 +8,7 @@
 <style>
   :root { color-scheme: light; }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  body{font-family:'Sarabun','Segoe UI',sans-serif;background:#eef2ف7;background:#eef2f7;color:#1f2937;padding:0 0 40px}
+  body{font-family:'Sarabun','Segoe UI',sans-serif;background:#eef2f7;color:#1f2937;padding:0 0 40px}
   .top{background:linear-gradient(135deg,#1a3a6e,#2a5298);color:#fff;padding:18px 16px;display:flex;align-items:center;gap:10px}
   .top .logo{width:38px;height:38px;border-radius:50%;object-fit:contain;background:#fff;flex-shrink:0}
   .top .t1{font-size:16px;font-weight:800}
@@ -123,17 +123,24 @@ function setupPad(){
   const c=document.getElementById('pad');
   const ratio=window.devicePixelRatio||1;
   const w=c.offsetWidth, h=180;
-  c.width=w*ratio; c.height=h*ratio;
-  ctx=c.getContext('2d'); ctx.scale(ratio,ratio);
-  ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.strokeStyle='#111827';
-  const pos=e=>{const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top};};
+  c.width=Math.round(w*ratio); c.height=Math.round(h*ratio);
+  c.style.width=w+'px'; c.style.height=h+'px';
+  ctx=c.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(ratio,ratio);
+  ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#111827';
+  const pos=e=>{
+    const r=c.getBoundingClientRect();
+    const t=e.touches?e.touches[0]:e;
+    return{x:(t.clientX-r.left),y:(t.clientY-r.top)};
+  };
   const start=e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);e.preventDefault();};
   const move=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();hasInk=true;e.preventDefault();};
   const end=()=>{drawing=false;};
   c.addEventListener('mousedown',start);c.addEventListener('mousemove',move);window.addEventListener('mouseup',end);
   c.addEventListener('touchstart',start,{passive:false});c.addEventListener('touchmove',move,{passive:false});c.addEventListener('touchend',end);
 }
-function clearPad(){const c=document.getElementById('pad');if(ctx){ctx.clearRect(0,0,c.width,c.height);}hasInk=false;}
+function clearPad(){const c=document.getElementById('pad');if(ctx){const ratio=window.devicePixelRatio||1;ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);ctx.scale(ratio,ratio);}hasInk=false;}
 
 async function submitSign(){
   const name=(document.getElementById('cName').value||'').trim();
