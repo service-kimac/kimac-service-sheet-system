@@ -1417,13 +1417,20 @@ async function exportPDF(){
       if(_isIOSNow||_isAndroidNow){
         try{
           var bl=pdf.output('blob');
-          var fn='exports/'+Date.now()+'_'+pdfName;
-          var up=await sb.storage.from('pdf-exports').upload(fn,bl,{contentType:'application/pdf',upsert:true});
-          if(up.error)throw up.error;
-          var pub=sb.storage.from('pdf-exports').getPublicUrl(fn);
-          var url=pub.data&&pub.data.publicUrl;if(!url)throw new Error('no url');
-          var w=window.open(url,'_blank');if(!w)window.location.href=url;
-        }catch(upErr){console.warn('upload:',upErr);toastF('❌ อัปโหลดไม่สำเร็จ: '+upErr.message,'err');}
+          if(navigator.canShare&&navigator.canShare({files:[new File([bl],'x.pdf',{type:'application/pdf'})]})){
+            var shareFile=new File([bl],pdfName,{type:'application/pdf'});
+            await navigator.share({files:[shareFile],title:'SERVICE SHEET'});
+          }else{
+            var blobUrl=URL.createObjectURL(bl);
+            var a=document.createElement('a');
+            a.href=blobUrl;a.download=pdfName;a.target='_blank';
+            document.body.appendChild(a);a.click();document.body.removeChild(a);
+            setTimeout(function(){URL.revokeObjectURL(blobUrl);},30000);
+          }
+        }catch(mobErr){
+          if(mobErr&&mobErr.name==='AbortError'){/* ผู้ใช้กด cancel เอง */}
+          else{console.warn('mobile PDF:',mobErr);toastF('❌ ไม่สามารถแชร์ PDF ได้: '+(mobErr.message||mobErr),'err');}
+        }
       }else{pdf.save(pdfName);}
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
     }catch(err){
