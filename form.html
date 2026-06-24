@@ -310,7 +310,6 @@
 .header-spacer { width: 110px; flex: 0 0 110px; }
 
 /* page wrapper & A4 page */
-/* desktop: เลื่อนขึ้นลงได้ / mobile: ล็อกกลางจอ */
 .page-wrapper { width: 100%; overflow: visible; display: flex; justify-content: center; align-items: flex-start; margin: 0; padding: 12px 0; box-sizing: border-box; }
 .page {
   width: 210mm;
@@ -324,18 +323,19 @@
   overflow: hidden;
 }
 @media (max-width: 820px) {
-  body { overflow: hidden; height: 100%; }
-  .page-wrapper { justify-content: center; align-items: center; padding: 0; overflow: hidden; height: 100%; }
+  html, body { overflow: hidden !important; height: 100% !important; }
+  .page-wrapper { justify-content: center; align-items: center; padding: 0; overflow: hidden; width: 100%; height: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: calc(58px + env(safe-area-inset-top)); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .page { width: 210mm; max-width: none; flex: 0 0 auto; margin: 0; background: #fff; box-shadow: 0 6px 26px rgba(0,0,0,0.12); border-radius: 6px; }
   .ab-hist { background: linear-gradient(135deg,#05406a,#0b5f8a); color: #fff; border: 1px solid rgba(0,0,0,0.12); }
 }
-body.mobile-a4 { overflow: hidden; background: #f0f2f5; height: 100%; }
-body.mobile-a4 .page-wrapper { justify-content: center; align-items: center; padding: 0; overflow: hidden; width: 100%; height: 100%; }
+body.mobile-a4 { overflow: hidden !important; background: #f0f2f5; }
+body.mobile-a4 .page-wrapper { justify-content: center; align-items: center; padding-top: calc(58px + env(safe-area-inset-top)); padding-bottom: calc(72px + env(safe-area-inset-bottom)); overflow: hidden; }
 body.mobile-a4 .page {
   width: 210mm;
   max-width: none;
   height: 297mm;
   min-height: 297mm;
+  max-height: 297mm;
   box-shadow: 0 6px 26px rgba(0,0,0,0.12);
   overflow: hidden;
   margin: 0;
@@ -710,7 +710,6 @@ function scalePage() {
   var mobileThreshold = 820;
   var scale;
   if (window.innerWidth <= mobileThreshold) {
-    // มือถือ: ล็อกกลางจอ ไม่เลื่อน
     var topbar = document.querySelector('.topbar-c');
     var actbar = document.querySelector('.actbar');
     var topH = topbar ? topbar.offsetHeight : 0;
@@ -721,19 +720,14 @@ function scalePage() {
     if (scale < 0.3) scale = 0.3;
     if (scale > 1) scale = 1;
     document.body.classList.add('mobile-a4');
-    wrapper.style.width = '100%';
-    wrapper.style.maxWidth = '100%';
     page.style.transformOrigin = 'center center';
     page.style.transform = 'scale(' + scale + ')';
     page.style.margin = '0';
   } else {
-    // คอม: เลื่อนขึ้นลงได้ปกติ
     var availableWidth = Math.max(80, window.innerWidth - 20);
     scale = Math.min(1, availableWidth / pageNaturalW);
     if (scale < 0.55) scale = 0.55;
     document.body.classList.remove('mobile-a4');
-    wrapper.style.width = '';
-    wrapper.style.maxWidth = '';
     page.style.transformOrigin = 'top center';
     page.style.transform = 'scale(' + scale + ')';
     page.style.margin = '0 auto';
@@ -1041,8 +1035,10 @@ async function exportPDF(){
       .topbar-c,.actbar,.btn-add-row,.btn-export,.sig-trigger-btn,.sig-clear-wrap,.toast-f,.btn-clear-sig{display:none!important;}
       /* Header */
       .header{display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:3px solid #427aa1!important;padding-bottom:2px!important;margin-bottom:3px!important;}
-      .header-logo{width:95px!important;height:70px!important;object-fit:contain!important;}
-      .header-spacer{width:95px!important;}
+      .header-logo{width:95px!important;height:70px!important;object-fit:contain!important;position:static!important;display:block!important;}
+      .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;width:95px!important;flex:0 0 95px!important;}
+      .header-spacer{width:95px!important;flex:0 0 95px!important;}
+      .header-center{text-align:center!important;flex:1!important;}
       .header-center h1{font-size:20px!important;font-weight:700!important;color:#427aa1!important;letter-spacing:1px!important;}
       .header-center p{font-size:12px!important;color:#555!important;}
       /* Service type */
@@ -1076,26 +1072,14 @@ async function exportPDF(){
       .parts-table .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important;}
       .parts-table .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#cc0000!important;border:1px solid #c4960a!important;padding-right:6px!important;}
       #s_total{font-size:13px!important;font-weight:700!important;color:#1a3a6e!important;}
-      /* Conditional inputs — ซ่อนถ้าไม่มี .show */
-      .other-input{display:none!important;}
-      .other-input.show{display:inline-block!important;}
-      .warranty-input{display:none!important;}
-      .warranty-input.show{display:inline-block!important;}
-      .province-input{display:none!important;}
-      .province-input.show{display:inline-block!important;}
-      #warrantyLabel{display:none!important;}
       /* Fee row */
       .fee-row-pdf{background:#f8f8f8!important;border:1px solid #d4c000!important;border-radius:0 0 4px 4px!important;padding:4px 8px!important;margin-bottom:4px!important;display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;font-size:12px!important;}
-
       /* Signature */
-      .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:3px!important;flex:1!important;min-height:0!important;align-items:stretch!important;max-height:200px!important;}
+      .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important;}
       .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important;}
       .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;}
       .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
       .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important;}
-      /* หยุด position:absolute จากกระทบ header-logo */
-      .header-logo{position:static!important;width:95px!important;height:70px!important;object-fit:contain!important;display:block!important;}
-      .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;}
       .sig-clear-wrap{display:none!important;min-height:0!important;}
       .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important;}
       .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important;}
@@ -1165,31 +1149,6 @@ async function exportPDF(){
 
     // ซ่อนปุ่มที่ไม่ต้องการ
     pageClone.querySelectorAll('.btn-add-row,.sig-trigger-btn,.btn-clear-sig,.sig-clear-wrap').forEach(function(el){el.style.display='none';});
-
-    // ── sync conditional inputs ให้ตรงกับหน้าจริง ────────────────
-    var _cloneOther=pageClone.querySelector('#otherServiceInput');
-    var _realOther=original.querySelector('#otherServiceInput');
-    if(_cloneOther&&_realOther){
-      if(_realOther.classList.contains('show')){_cloneOther.classList.add('show');}
-      else{_cloneOther.classList.remove('show');}
-    }
-    var _cloneWno=pageClone.querySelector('#warrantyNo');
-    var _realWno=original.querySelector('#warrantyNo');
-    var _cloneWlbl=pageClone.querySelector('#warrantyLabel');
-    var _realWlbl=original.querySelector('#warrantyLabel');
-    if(_cloneWno&&_realWno){
-      if(_realWno.classList.contains('show')){_cloneWno.classList.add('show');}
-      else{_cloneWno.classList.remove('show');}
-    }
-    if(_cloneWlbl){
-      _cloneWlbl.style.display=(_realWlbl&&_realWlbl.style.display==='inline')?'inline':'none';
-    }
-    var _cloneProv=pageClone.querySelector('#provinceInput');
-    var _realProv=original.querySelector('#provinceInput');
-    if(_cloneProv&&_realProv){
-      if(_realProv.classList.contains('show')){_cloneProv.classList.add('show');}
-      else{_cloneProv.classList.remove('show');}
-    }
 
     // ── สร้าง iframe ──────────────────────────────────────────────
     var iframe=document.createElement('iframe');
@@ -1282,16 +1241,15 @@ async function exportPDF(){
       cleanup3();
 
       var co=(document.getElementById('companyName')&&document.getElementById('companyName').value||'').trim().replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_');
-      var _sdEl=document.getElementById('serviceDate');
-      var dt=(_sdEl&&_sdEl.value||'').replace(/-/g,'');
-      var pdfName='SERVICE_SHEET'+(co?'_'+co:'')+(dt?'_'+dt:'')+'.pdf';
+      var dt=document.getElementById('serviceDate')&&document.getElementById('serviceDate').value||'';
+      var pdfName='SERVICE_SHEET'+(co?'_'+co:'')+(dt?'_'+dt.replace(/-/g,''):'')+'.pdf';
 
       var _isIOSNow=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
       var _isAndroidNow=/Android/.test(navigator.userAgent);
       if(_isIOSNow||_isAndroidNow){
         try{
           var bl=pdf.output('blob');
-          var fn='exports/'+Date.now()+'_'+pdfName;
+          var fn='exports/'+pdfName;
           var up=await sb.storage.from('pdf-exports').upload(fn,bl,{contentType:'application/pdf',upsert:true});
           if(up.error)throw up.error;
           var pub=sb.storage.from('pdf-exports').getPublicUrl(fn);
@@ -1331,21 +1289,11 @@ function fillForm(j,pts){
   pts=pts||[];
   try{
     var js=document.getElementById('jobStatus');if(js&&j.status)js.value=j.status;
-
-    // ── service type: reset ก่อน แล้วค่อย apply ──────────────────
-    var st=document.getElementById('serviceTypeSelect');
-    var oi=document.getElementById('otherServiceInput');
-    if(st)st.value='';
-    if(oi){oi.classList.remove('show');oi.value='';}
-    if(st&&j.service_type){
-      if(j.service_type==='install'||j.service_type==='repair'){
-        st.value=j.service_type;
-      }else{
-        st.value='other';
-        if(oi){oi.classList.add('show');oi.value=j.service_type;}
-      }
-    }
-
+        var st=document.getElementById('serviceTypeSelect');
+        if(st&&j.service_type){
+          if(j.service_type==='install'||j.service_type==='repair')st.value=j.service_type;
+          else{st.value='other';var oi=document.getElementById('otherServiceInput');if(oi){oi.classList.add('show');oi.value=j.service_type;}}
+        }
         var dis=document.querySelectorAll('#page input[type="date"]');
         var _tsEl=document.getElementById('timeStart');
   var _teEl=document.getElementById('timeEnd');
@@ -1362,23 +1310,11 @@ function fillForm(j,pts){
         if(txt[8])txt[8].value=j.machine_sn||'';
         if(dis[1]&&j.purchase_date)dis[1].value=j.purchase_date;
         var ta=document.getElementById('detailTextarea');if(ta)ta.value=j.machine_detail||'';
-
-    // ── warranty: reset ก่อน แล้วค่อย apply ──────────────────────
-    document.querySelectorAll('input[name="warranty"]').forEach(function(r){r.checked=false;});
-    var _wn=document.getElementById('warrantyNo');
-    var _wl=document.getElementById('warrantyLabel');
-    if(_wn){_wn.classList.remove('show');_wn.value='';}
-    if(_wl){_wl.style.display='none';}
         if(j.warranty_status){
           var wr=document.querySelector('input[name="warranty"][value="'+j.warranty_status+'"]');
           if(wr){wr.checked=true;toggleWarranty(wr);}
           var wn=document.getElementById('warrantyNo');if(wn)wn.value=j.warranty_no||'';
         }
-
-    // ── fee type: reset ก่อน แล้วค่อย apply ──────────────────────
-    document.querySelectorAll('input[name="feeType"]').forEach(function(r){r.checked=false;});
-    var _pi=document.getElementById('provinceInput');
-    if(_pi){_pi.classList.remove('show');_pi.value='';}
         if(j.fee_type){
           var fr=document.querySelector('input[name="feeType"][value="'+j.fee_type+'"]');
           if(fr){fr.checked=true;toggleFee(fr);}
