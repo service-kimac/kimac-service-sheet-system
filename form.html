@@ -1198,10 +1198,26 @@ async function exportPDF(){
     var dstEls=pageClone.querySelectorAll('input,textarea,select');
     srcEls.forEach(function(el,i){
       var d=dstEls[i]; if(!d)return;
-      if(el.tagName==='SELECT'){d.value=el.value;}
+      if(el.tagName==='SELECT'){
+        // แทน select ด้วย span แสดงค่าที่เลือก เพราะ html2canvas ไม่ render select.value
+        var selVal=el.value;
+        var selText='';
+        for(var oi=0;oi<el.options.length;oi++){
+          if(el.options[oi].value===selVal){selText=el.options[oi].text;break;}
+        }
+        if(!selText&&el.options.length>0) selText=el.options[0].text;
+        var selSpan=document.createElement('span');
+        selSpan.textContent=selText;
+        // คัดลอก style จาก select เดิมในฝั่ง clone
+        selSpan.style.cssText=d.style.cssText;
+        selSpan.style.display='inline-block';
+        selSpan.style.fontFamily='Sarabun,sans-serif';
+        selSpan.style.fontSize='12px';
+        selSpan.style.color='#222';
+        if(d.parentNode) d.parentNode.replaceChild(selSpan,d);
+      }
       else if(el.type==='radio'){
         var checked=radioSnap[el.name+'|'+el.value]||false;
-        // วาด radio circle แทน input จริง
         var span=document.createElement('span');
         span.style.cssText='display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1.5px solid '+(checked?'#1a3a6e':'#999')+';margin-right:3px;';
         if(checked){var dot=document.createElement('span');dot.style.cssText='width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;';span.appendChild(dot);}
@@ -1244,29 +1260,31 @@ async function exportPDF(){
     pageClone.querySelectorAll('.btn-add-row,.sig-trigger-btn,.btn-clear-sig,.sig-clear-wrap').forEach(function(el){el.style.display='none';});
 
     // ── 3 จุดนี้คงกรอบเหลืองเสมอใน PDF ──
-    // 1. งานบริการ select → กรอบเหลือง พื้นขาว
-    var _cloneSvcSelect = pageClone.querySelector('#serviceTypeSelect');
-    if(_cloneSvcSelect){
-      _cloneSvcSelect.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
+    // 1. งานบริการ span (เดิมคือ select) → กรอบเหลือง พื้นขาว
+    var _svcVal = document.getElementById('serviceTypeSelect') ? document.getElementById('serviceTypeSelect').value : '';
+    var _cloneSvcSpan = pageClone.querySelector('.service-type-bar span:not([style*="font-weight"])') || pageClone.querySelector('.service-type-bar > span + span');
+    // หา span ที่แทน select ใน service-type-bar (span แรกคือ label "งานบริการ :" ส่วน span ที่สองคือ select ที่ถูกแทน)
+    var _svcBarSpans = pageClone.querySelectorAll('.service-type-bar span');
+    if(_svcBarSpans.length >= 2){
+      _svcBarSpans[1].style.cssText='display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#222;min-width:120px;';
     }
     // other-input: แสดงเฉพาะตอนเลือก "อื่นๆ"
-    var _svcVal = document.getElementById('serviceTypeSelect') ? document.getElementById('serviceTypeSelect').value : '';
     var _cloneOtherInput = pageClone.querySelector('#otherServiceInput');
     if(_cloneOtherInput){
       if(_svcVal === 'other'){
-        _cloneOtherInput.style.display = 'inline-block';
-        _cloneOtherInput.style.cssText = 'display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:200px;outline:none;padding:1px 4px;';
+        _cloneOtherInput.style.cssText='display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:200px;outline:none;padding:1px 4px;';
       } else {
-        _cloneOtherInput.style.display = 'none';
+        _cloneOtherInput.style.display='none';
       }
     }
 
-    // 2. status-bar-wrap → กรอบเหลือง พื้นเหลืองอ่อน
+    // 2. status-bar-wrap → กรอบเหลือง พื้นเหลืองอ่อน + span (เดิม select) พื้นขาว
     var _cloneStatusWrap = pageClone.querySelector('.status-bar-wrap');
     if(_cloneStatusWrap){
       _cloneStatusWrap.style.cssText='background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:3px;';
-      var _cloneLocSel = _cloneStatusWrap.querySelector('select');
-      if(_cloneLocSel) _cloneLocSel.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;';
+      // span ที่แทน select (ลูก span ใน div แรกของ status-bar-wrap)
+      var _locSpan = _cloneStatusWrap.querySelector('div > span');
+      if(_locSpan) _locSpan.style.cssText='display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;min-width:80px;';
     }
     // warrantyNo + warrantyLabel: แสดงเฉพาะตอนเลือก "ในรับประกัน"
     var _warrantyChecked = original.querySelector('input[name="warranty"]:checked');
@@ -1274,12 +1292,11 @@ async function exportPDF(){
     var _cloneWarrantyLbl = pageClone.querySelector('#warrantyLabel');
     if(_cloneWarrantyNo){
       if(_warrantyChecked && _warrantyChecked.value === 'in'){
-        _cloneWarrantyNo.style.display = 'inline-block';
-        _cloneWarrantyNo.style.cssText = 'display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:160px;outline:none;padding:1px 4px;';
-        if(_cloneWarrantyLbl) _cloneWarrantyLbl.style.display = 'inline';
+        _cloneWarrantyNo.style.cssText='display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:160px;outline:none;padding:1px 4px;';
+        if(_cloneWarrantyLbl) _cloneWarrantyLbl.style.display='inline';
       } else {
-        _cloneWarrantyNo.style.display = 'none';
-        if(_cloneWarrantyLbl) _cloneWarrantyLbl.style.display = 'none';
+        _cloneWarrantyNo.style.display='none';
+        if(_cloneWarrantyLbl) _cloneWarrantyLbl.style.display='none';
       }
     }
 
@@ -1293,10 +1310,9 @@ async function exportPDF(){
     var _cloneProvince = pageClone.querySelector('#provinceInput');
     if(_cloneProvince){
       if(_feeChecked && _feeChecked.value === 'province'){
-        _cloneProvince.style.display = 'inline-block';
-        _cloneProvince.style.cssText = 'display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:110px;outline:none;padding:1px 4px;color:#222;';
+        _cloneProvince.style.cssText='display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:110px;outline:none;padding:1px 4px;color:#222;';
       } else {
-        _cloneProvince.style.display = 'none';
+        _cloneProvince.style.display='none';
       }
     }
 
