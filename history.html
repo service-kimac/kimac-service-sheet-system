@@ -1753,9 +1753,20 @@ async function renderJobPDF(job){
     +'</div></div>';
 
   // ── สร้าง iframe ──
+  // ย้าย iframe ออกนอกหน้าจอทางซ้ายไกลมากๆ กัน render บนมือถือ
+  // ใช้ position:fixed กับ left ที่เป็น negative ขนาดใหญ่
+  // body.style.overflowX=hidden กัน scrollbar แนวนอน
+  var _savedBodyOX=document.body.style.overflowX;
+  var _savedHtmlOX=document.documentElement.style.overflowX;
+  document.body.style.overflowX='hidden';
+  document.documentElement.style.overflowX='hidden';
+
+  var iframeWrap=document.createElement('div');
+  iframeWrap.style.cssText='position:fixed;left:-'+(A4W+500)+'px;top:0;width:'+A4W+'px;height:'+A4H+'px;overflow:hidden;pointer-events:none;z-index:-1;';
   var iframe=document.createElement('iframe');
-  iframe.style.cssText='position:fixed;left:0;top:0;width:'+A4W+'px;height:'+A4H+'px;border:none;z-index:-9997;background:#fff;transform:none;zoom:1;opacity:0;pointer-events:none;';
-  document.body.appendChild(iframe);
+  iframe.style.cssText='position:absolute;left:0;top:0;width:'+A4W+'px;height:'+A4H+'px;border:none;background:#fff;';
+  iframeWrap.appendChild(iframe);
+  document.body.appendChild(iframeWrap);
 
   var iDoc=iframe.contentDocument||iframe.contentWindow.document;
   iDoc.open();
@@ -1778,7 +1789,6 @@ async function renderJobPDF(job){
   await _jpdfWait(100);
 
   // ── html2canvas capture ──
-  iframe.style.opacity='1';
   var canvas=await _jpdfWithTimeout(
     html2canvas(iframePage||iDoc.body,{
       scale:2,useCORS:true,allowTaint:true,letterRendering:true,
@@ -1788,10 +1798,11 @@ async function renderJobPDF(job){
       scrollX:0,scrollY:0,x:0,y:0,logging:false
     }),30000,'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา)'
   );
-  iframe.style.opacity='0';
 
-  // cleanup iframe
-  if(iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  // cleanup iframe + คืนค่า overflow
+  if(iframeWrap.parentNode) iframeWrap.parentNode.removeChild(iframeWrap);
+  document.body.style.overflowX=_savedBodyOX;
+  document.documentElement.style.overflowX=_savedHtmlOX;
 
   // ── jsPDF: addImage แบบ hardcode 210×297 เหมือน form.html ──
   var pdf=new J({unit:'mm',format:[210,297],orientation:'portrait',compress:true});
