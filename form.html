@@ -1147,7 +1147,7 @@ async function exportPDF(){
     // เพราะ body มี padding-top จาก topbar (calc(58px + safe-area)) ทำให้ top:0 ของ absolute
     // ไม่ตรงกับ viewport top จริง → html2canvas วาดออกนอก viewport แล้วได้ภาพขาว
     // position:fixed + top:0 รับประกันว่าอยู่ที่มุมบนซ้ายของหน้าจอเสมอ
-    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;background:#ffffff;z-index:99997;';
+    exportHost.style.cssText = 'position:fixed;left:0;top:0;width:'+A4_W_PX+'px;height:'+A4_H_PX+'px;overflow:hidden;background:#ffffff;z-index:99997;padding:0;margin:0;';
     document.body.appendChild(exportHost);
     exportHost.appendChild(clone);
     // allocate signature space inside the clone to fully use A4 height
@@ -1166,10 +1166,11 @@ async function exportPDF(){
          ขนาดเดียวกันทุก platform: มือถือ/iPad/PC — pt ทำให้มือถือ render ใหญ่กว่า PC
          เพราะ browser zoom จาก viewport width=794 ส่งผลต่อ pt→px conversion
          ✅ FIX2+3: ค่าขยาย spacing ให้เต็มหน้า A4 และล็อก font เป็น px ทั้งหมด */
-      '#pdfExportHost{font-size:12px!important}'+
-      '#pdfExportHost *{box-sizing:border-box!important}'+
+      '#pdfExportHost{font-size:12px!important;background:#ffffff!important}'+
+      '#pdfExportHost *{box-sizing:border-box!important;background-clip:padding-box!important}'+
       /* ⚠️ สำคัญ: override min-height:1056px จาก .page CSS class */
-      '#pdfExportHost .page{min-height:auto!important}'+
+      '#pdfExportHost .page{width:'+A4_W_PX+'px!important;max-width:'+A4_W_PX+'px!important;height:'+A4_H_PX+'px!important;min-height:'+A4_H_PX+'px!important;background:#ffffff!important;overflow:visible!important}'+
+      '#pdfExportHost .page-wrapper{width:'+A4_W_PX+'px!important;max-width:'+A4_W_PX+'px!important;margin:0!important;padding:0!important}'+
       '#pdfExportHost .page-inner{overflow:visible!important;flex:1!important}'+
       '#pdfExportHost .header{margin-bottom:4px!important;padding-bottom:4px!important}'+
       '#pdfExportHost .header-logo{width:75px!important;height:55px!important}'+
@@ -1185,12 +1186,34 @@ async function exportPDF(){
       '#pdfExportHost .field input[type="text"],#pdfExportHost .field input[type="tel"],#pdfExportHost .field input[type="date"],#pdfExportHost .field input[type="time"],#pdfExportHost .field input[type="number"]{line-height:1.4!important;padding:1px 4px!important;background:#ffffff!important}'+
       '#pdfExportHost .field select{border:1px solid #c4960a!important;background:#ffffff!important;border-radius:4px!important;color:#000!important;padding:1px 4px!important;appearance:none!important;-webkit-appearance:none!important}'+
       '#pdfExportHost .field textarea{border:1px solid #c4960a!important;background:#ffffff!important;padding:4px!important;min-height:60px!important}'+
-      '#pdfExportHost .parts-table td{background:#ffffff!important}'+
+      '#pdfExportHost .parts-table{border-collapse:collapse!important}'+
+      '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important;background:#427aa1!important;color:#fff!important;border:1px solid #c4960a!important}'+
+      '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important;border:1px solid #c4960a!important;background:#ffffff!important}'+
       '#pdfExportHost .parts-table td:first-child{background:#fff7d6!important;color:#427aa1!important}'+
-      '#pdfExportHost .parts-table td input{background:#ffffff!important}'+
-      '#pdfExportHost .page-wrapper{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important}'+
-      '#pdfExportHost .page{background:#ffffff!important;box-shadow:none!important;border-radius:0!important}'+
-      '#pdfExportHost input,#pdfExportHost select,#pdfExportHost textarea{color:#000!important;background:#ffffff!important}'+
+      '#pdfExportHost .parts-table td input{font-size:11px!important;border-bottom:1px solid #c4960a!important;background:#ffffff!important;color:#000!important;width:100%!important}'+
+      '#pdfExportHost .parts-table .total-label{background:#fff7d6!important;color:#427aa1!important}'+
+      '#pdfExportHost .parts-table .total-val{background:#fffbf0!important;color:#c00!important}'+
+      '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:6px!important;margin-bottom:3px!important;background:#427aa1!important;color:#fff!important}'+
+      '#pdfExportHost .field label{color:#427aa1!important}'+
+      '#pdfExportHost .status-row{gap:6px!important;margin-bottom:3px!important}'+
+      '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
+      '#pdfExportHost .status-block label{font-size:11px!important}'+
+      '#pdfExportHost .radio-group{font-size:11px!important;gap:8px!important}'+
+      '#pdfExportHost .radio-group label{font-size:11px!important}'+
+      '#pdfExportHost .parts-table{font-size:11px!important;margin-bottom:4px!important}'+
+      '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important}'+
+      '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important}'+
+      '#pdfExportHost .parts-table td input{font-size:11px!important}'+
+      '#pdfExportHost .sig-section{margin-top:6px!important;margin-bottom:6px!important;gap:8px!important;flex:1!important}'+
+      '#pdfExportHost .sig-box{padding:5px 8px 8px!important}'+
+      '#pdfExportHost .sig-box .sig-title{font-size:13px!important;margin-bottom:4px!important}'+
+      '#pdfExportHost .sig-preview-wrap{height:130px!important}'+
+      '#pdfExportHost .sig-meta{font-size:11px!important;margin-top:3px!important}'+
+      '#pdfExportHost .sig-meta label{font-size:11px!important}'+
+      '#pdfExportHost .sig-meta input{font-size:11px!important}'+
+      '#pdfExportHost .footer{font-size:11px!important;padding-top:5px!important;margin-top:3px!important;line-height:1.6!important}'+
+      '#pdfExportHost .footer .company-name{font-size:13px!important}'+
+      '#pdfExportHost .footer .contact{font-size:11px!important}';
       '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
       '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
       '#pdfExportHost .parts-table{border-collapse:collapse!important}'+
