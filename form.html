@@ -501,18 +501,18 @@ body {
     <div class="field full-width"><label>ที่อยู่ :</label><input type="text" id="addressInput" style="min-width:350px;"></div>
   </div>
   <div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>
-  <div class="status-row">
-    <div class="status-block">
-      <label>สถานที่บริการ :</label>
-      <select style="border:none;border-bottom:1px solid #c4960a;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;">
+  <div class="form-row" style="align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:3px;">
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+      <label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานที่บริการ :</label>
+      <select style="border:none;border-bottom:1px solid #c4960a;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 4px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
         <option value="">-- เลือก --</option>
         <option>บริษัทลูกค้า</option>
         <option>บจก.คีแมค</option>
         <option>อื่นๆ</option>
       </select>
     </div>
-    <div class="status-block">
-      <label>สถานะ :</label>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานะ :</label>
       <div class="radio-group">
         <label><input type="radio" name="warranty" value="in" onchange="toggleWarranty(this)"> ในรับประกัน</label>
         <label><input type="radio" name="warranty" value="out" onchange="toggleWarranty(this)"> นอกรับประกัน</label>
@@ -527,11 +527,11 @@ body {
     <div class="field"><label>S/N :</label><input type="text"></div>
     <div class="field"><label>วันที่ซื้อ :</label><input type="date"></div>
   </div>
-  <div class="form-row">
-    <div class="field full-width" style="flex-direction:column;align-items:flex-start;gap:2px;">
-      <label style="white-space:nowrap;">รายละเอียด :</label>
-      <textarea id="detailTextarea" rows="5" style="width:100%;border:1.5px solid #ffd151;background:#fff;border-radius:3px;padding:4px 6px;font-family:'Sarabun',sans-serif;font-size:13px;resize:none;outline:none;line-height:1.45;"></textarea>
-    </div>
+  <div class="form-row" style="margin-top:1px;margin-bottom:2px;">
+    <label style="font-weight:600;color:#444;font-size:12px;white-space:nowrap;align-self:flex-start;padding-top:1px;">รายละเอียด :</label>
+  </div>
+  <div style="width:100%;margin-bottom:3px;">
+    <textarea id="detailTextarea" rows="5" style="width:100%;border:1.5px solid #ffd151;background:#fff;border-radius:3px;padding:4px 6px;font-family:'Sarabun',sans-serif;font-size:13px;resize:none;outline:none;line-height:1.45;"></textarea>
   </div>
   <div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>
   <table class="parts-table">
@@ -542,7 +542,7 @@ body {
         <th style="width:12%">รหัส</th>
         <th style="width:8%">จำนวน</th>
         <th style="width:8%">หน่วย</th>
-        <th style="width:20%">จำนวนเงิน (บาท)</th>
+        <th style="width:20%">ราคา</th>
       </tr>
     </thead>
     <tbody id="partsBody"></tbody>
@@ -556,8 +556,8 @@ body {
         <td class="total-val"><input type="text" id="s_vat" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
-        <td style="text-align:right;background:#e8f4fb;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
+        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #c4960a;background:#fff7d6;">รวมยอดสุทธิ</td>
+        <td style="text-align:right;background:#fff7d6;border:1px solid #c4960a;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
       </tr>
     </tfoot>
   </table>
@@ -791,7 +791,7 @@ function scalePage() {
     document.body.style.overflow = '';
   }
   if (window.innerWidth <= mobileThreshold) {
-    page.style.transformOrigin = 'top center';
+    page.style.transformOrigin = 'center center';
     page.style.transform = 'scale(' + scale + ')';
     wrapper.style.transform = '';
   } else {
