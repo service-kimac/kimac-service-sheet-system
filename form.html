@@ -302,15 +302,15 @@
 
 /* header layout */
 .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #427aa1; padding-bottom: 2px; margin-bottom: 3px; }
-.header-logo-wrap { display: flex; flex-direction: column; align-items: center; width: 110px; flex: 0 0 110px; }
+.header-logo-wrap { display: flex; flex-direction: column; align-items: center; }
 .header-logo { width: 110px; height: 80px; object-fit: contain; }
 .header-center { text-align: center; flex: 1; }
 .header-center h1 { font-size: 22px; font-weight: 700; color: #427aa1; letter-spacing: 2px; }
 .header-center p { font-size: 12px; color: #555; }
-.header-spacer { width: 110px; flex: 0 0 110px; }
+.header-spacer { width: 110px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 100%; overflow: visible; display: flex; justify-content: center; align-items: flex-start; margin: 0; padding: 12px 0; box-sizing: border-box; }
+.page-wrapper { width: 100%; transform-origin: top center; overflow: visible; display: flex; justify-content: center; align-items: flex-start; margin: 0; padding: 12px 0; box-sizing: border-box; }
 .page {
   width: 210mm;
   height: 297mm;
@@ -323,22 +323,22 @@
   overflow: hidden;
 }
 @media (max-width: 820px) {
-  html, body { overflow: hidden !important; height: 100% !important; }
-  .page-wrapper { justify-content: center; align-items: center; padding: 0; overflow: hidden; width: 100%; height: 100%; position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding-top: calc(58px + env(safe-area-inset-top)); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
-  .page { width: 210mm; max-width: none; flex: 0 0 auto; margin: 0; background: #fff; box-shadow: 0 6px 26px rgba(0,0,0,0.12); border-radius: 6px; }
+  body { overflow-x: hidden; }
+  .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: auto; }
+  .page { width: 210mm; max-width: none; aspect-ratio: 210 / 297; flex: 0 0 auto; margin: 0 auto; background: #fff; box-shadow: 0 6px 26px rgba(0,0,0,0.12); border-radius: 6px; }
   .ab-hist { background: linear-gradient(135deg,#05406a,#0b5f8a); color: #fff; border: 1px solid rgba(0,0,0,0.12); }
 }
-body.mobile-a4 { overflow: hidden !important; background: #f0f2f5; }
-body.mobile-a4 .page-wrapper { justify-content: center; align-items: center; padding-top: calc(58px + env(safe-area-inset-top)); padding-bottom: calc(72px + env(safe-area-inset-bottom)); overflow: hidden; }
+body.mobile-a4 { overflow-x: hidden; background: #f0f2f5; }
+body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: hidden; }
 body.mobile-a4 .page {
   width: 210mm;
   max-width: none;
-  height: 297mm;
+  aspect-ratio: 210 / 297;
+  height: auto;
   min-height: 297mm;
-  max-height: 297mm;
   box-shadow: 0 6px 26px rgba(0,0,0,0.12);
-  overflow: hidden;
-  margin: 0;
+  overflow: visible;
+  margin: 16px auto;
   background: #ffffff;
   border-radius: 6px;
 }
@@ -409,6 +409,11 @@ body.mobile-a4 .footer { margin-top: auto; }
 /* add row button */
 .btn-add-row { display: inline-block; margin-bottom: 3px; padding: 3px 14px; background: #427aa1; color: white; border: none; border-radius: 4px; font-family: 'Sarabun', sans-serif; font-size: 11px; cursor: pointer; font-weight: 600; }
 .btn-add-row:hover { background: #0e1c36; }
+
+body {
+  padding-top: calc(58px + env(safe-area-inset-top)) !important;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+}
 </style>
 </head>
 <body>
@@ -705,33 +710,48 @@ function scalePage() {
   var page = document.getElementById('page');
   if (!wrapper || !page) return;
   page.style.transform = 'none';
-  var pageNaturalW = 794;
-  var pageNaturalH = 1123;
+  wrapper.style.transform = 'none';
+  var pageNaturalW = page.offsetWidth || 794;
+  var pageNaturalH = page.offsetHeight || 1123;
+  var pageWidth = pageNaturalW;
+  var availableWidth = Math.max(80, window.innerWidth - 20);
   var mobileThreshold = 820;
   var scale;
   if (window.innerWidth <= mobileThreshold) {
     var topbar = document.querySelector('.topbar-c');
     var actbar = document.querySelector('.actbar');
-    var topH = topbar ? topbar.offsetHeight : 0;
-    var bottomH = actbar ? actbar.offsetHeight : 0;
-    var availW = Math.max(80, window.innerWidth - 8);
-    var availH = Math.max(120, window.innerHeight - topH - bottomH - 8);
-    scale = Math.min(availW / pageNaturalW, availH / pageNaturalH);
-    if (scale < 0.3) scale = 0.3;
-    if (scale > 1) scale = 1;
+    var topH = topbar? topbar.offsetHeight : 0;
+    var bottomH = actbar? actbar.offsetHeight : 0;
+    var availableHeight = Math.max(120, window.innerHeight - topH - bottomH - 16);
+    var availW = Math.max(80, window.innerWidth - 24);
+    var availH = availableHeight;
+    scale = Math.min(1, availW / pageNaturalW, availH / pageNaturalH);
+    if (scale < 0.4) scale = 0.4;
     document.body.classList.add('mobile-a4');
-    page.style.transformOrigin = 'center center';
-    page.style.transform = 'scale(' + scale + ')';
-    page.style.margin = '0';
+    wrapper.style.width = '100%';
+    wrapper.style.maxWidth = '100%';
+    wrapper.style.overflow = '';
+    wrapper.style.position = '';
+    wrapper.style.margin = '0 auto';
   } else {
-    var availableWidth = Math.max(80, window.innerWidth - 20);
-    scale = Math.min(1, availableWidth / pageNaturalW);
+    scale = Math.min(1, availableWidth / pageWidth);
     if (scale < 0.55) scale = 0.55;
     document.body.classList.remove('mobile-a4');
+    wrapper.style.width = '';
+    wrapper.style.transform = '';
+  }
+  if (window.innerWidth <= mobileThreshold) {
     page.style.transformOrigin = 'top center';
     page.style.transform = 'scale(' + scale + ')';
-    page.style.margin = '0 auto';
+    wrapper.style.transform = '';
+  } else {
+    page.style.transformOrigin = 'top center';
+    page.style.transform = 'scale(' + scale + ')';
+    wrapper.style.transform = '';
+    wrapper.style.overflow = '';
+    wrapper.style.maxWidth = '';
   }
+  page.style.margin = '0 auto';
   if (typeof adjustLayoutForSpace === 'function') adjustLayoutForSpace();
 }
 function _doScale() { scalePage(); }
@@ -1035,10 +1055,8 @@ async function exportPDF(){
       .topbar-c,.actbar,.btn-add-row,.btn-export,.sig-trigger-btn,.sig-clear-wrap,.toast-f,.btn-clear-sig{display:none!important;}
       /* Header */
       .header{display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:3px solid #427aa1!important;padding-bottom:2px!important;margin-bottom:3px!important;}
-      .header-logo{width:95px!important;height:70px!important;object-fit:contain!important;position:static!important;display:block!important;}
-      .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;width:95px!important;flex:0 0 95px!important;}
-      .header-spacer{width:95px!important;flex:0 0 95px!important;}
-      .header-center{text-align:center!important;flex:1!important;}
+      .header-logo{width:95px!important;height:70px!important;object-fit:contain!important;}
+      .header-spacer{width:95px!important;}
       .header-center h1{font-size:20px!important;font-weight:700!important;color:#427aa1!important;letter-spacing:1px!important;}
       .header-center p{font-size:12px!important;color:#555!important;}
       /* Service type */
@@ -1080,6 +1098,9 @@ async function exportPDF(){
       .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;}
       .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
       .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important;}
+      /* หยุด position:absolute จากกระทบ header-logo */
+      .header-logo{position:static!important;width:95px!important;height:70px!important;object-fit:contain!important;display:block!important;}
+      .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;}
       .sig-clear-wrap{display:none!important;min-height:0!important;}
       .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important;}
       .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important;}
@@ -1249,13 +1270,33 @@ async function exportPDF(){
       if(_isIOSNow||_isAndroidNow){
         try{
           var bl=pdf.output('blob');
-          var fn='exports/'+pdfName;
-          var up=await sb.storage.from('pdf-exports').upload(fn,bl,{contentType:'application/pdf',upsert:true});
-          if(up.error)throw up.error;
-          var pub=sb.storage.from('pdf-exports').getPublicUrl(fn);
-          var url=pub.data&&pub.data.publicUrl;if(!url)throw new Error('no url');
-          var w=window.open(url,'_blank');if(!w)window.location.href=url;
-        }catch(upErr){console.warn('upload:',upErr);toastF('❌ อัปโหลดไม่สำเร็จ: '+upErr.message,'err');}
+          // ลอง navigator.share (Files) ก่อน — ขึ้น share sheet ทันที
+          if(navigator.canShare && navigator.canShare({files:[new File([bl],pdfName,{type:'application/pdf'})]})){
+            var shareFile=new File([bl],pdfName,{type:'application/pdf'});
+            try{
+              await navigator.share({files:[shareFile],title:pdfName});
+            }catch(shareErr){
+              if(shareErr.name!=='AbortError'){
+                // share ไม่ได้ → fallback upload แล้วเปิด URL
+                throw shareErr;
+              }
+            }
+          } else {
+            // ไม่รองรับ share files → upload Supabase แล้วเปิด URL / share URL
+            var fn='exports/'+Date.now()+'_'+pdfName;
+            var up=await sb.storage.from('pdf-exports').upload(fn,bl,{contentType:'application/pdf',upsert:true});
+            if(up.error)throw up.error;
+            var pub=sb.storage.from('pdf-exports').getPublicUrl(fn);
+            var url=pub.data&&pub.data.publicUrl;if(!url)throw new Error('no url');
+            if(navigator.share){
+              try{ await navigator.share({title:pdfName,url:url}); }catch(e2){
+                if(e2.name!=='AbortError'){ var w=window.open(url,'_blank');if(!w)window.location.href=url; }
+              }
+            } else {
+              var w=window.open(url,'_blank');if(!w)window.location.href=url;
+            }
+          }
+        }catch(upErr){console.warn('mobile pdf:',upErr);toastF('❌ '+upErr.message,'err');}
       }else{pdf.save(pdfName);}
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
     }catch(err){
