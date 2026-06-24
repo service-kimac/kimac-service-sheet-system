@@ -104,8 +104,8 @@
     print-color-adjust: exact;
   }
   .page-wrapper {
-    width: auto !important;
-    max-width: 100% !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
     zoom: 1 !important;
     transform: none !important;
     margin: 0 !important;
@@ -113,10 +113,10 @@
     min-height: auto !important;
   }
   /* ✅ FIX4: ลบ overflow:hidden ออกจาก .page เพื่อกัน WebKit iOS ซ่อนเนื้อหาตอนพิมพ์
-     ✅ FIX3: เพิ่ม padding ด้านบน/ล่าง และให้ conteúdo ปรับได้ภายใน A4 */
+     ✅ FIX3: เพิ่ม padding ด้านบน/ล่าง และให้เนื้อหาอยู่ในกรอบ A4 ตรงๆ */
   .page {
-    width: auto !important;
-    max-width: 100% !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
     min-height: auto !important;
     overflow: visible !important;
     box-shadow: none !important;
@@ -124,6 +124,7 @@
     border-radius: 0 !important;
     /* ✅ FIX3: padding top/bottom เพิ่มขึ้นเพื่อเกลี่ยพื้นที่ให้เต็มหน้า A4 */
     padding: 7mm 7mm 6mm 7mm !important;
+    background: #ffffff !important;
     font-size: 12px !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
@@ -133,14 +134,16 @@
   .page-inner { flex: 1 !important; }
   /* print color/shadow fidelity */
   *, .page, .page * { box-sizing: border-box !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .page input, .page select, .page textarea { color: #000 !important; }
+  .page input, .page select, .page textarea { color: #000 !important; background: #ffffff !important; }
   .page input[type="text"], .page input[type="tel"], .page input[type="date"], .page input[type="time"], .page input[type="number"] {
     border: none !important;
     border-bottom: 1px solid #c4960a !important;
-    background: transparent !important;
+    background: #ffffff !important;
     line-height: 1.4 !important;
     padding: 1px 4px !important;
   }
+  .page .field input { background: #ffffff !important; }
+  .page .parts-table td input { background: #ffffff !important; }
   .page select {
     color: #000 !important;
     border: 1px solid #c4960a !important;
@@ -162,6 +165,8 @@
   .parts-table { border-collapse: collapse !important; }
   .parts-table, .parts-table th, .parts-table td { border: 1px solid #c4960a !important; }
   .parts-table th { background: #427aa1 !important; color: #fff !important; }
+  .parts-table td { background: #ffffff !important; }
+  .parts-table td:first-child { background: #fff7d6 !important; }
   .parts-table .total-label { background: #fff7d6 !important; color: #427aa1 !important; }
   .parts-table .total-val { background: #fffbf0 !important; color: #c00 !important; }
   .section-title { background: #427aa1 !important; color: #fff !important; }
@@ -183,7 +188,7 @@
   .form-row { margin-bottom: 3px !important; gap: 4px !important; }
   .field { gap: 3px !important; }
   .field label { font-size: 11px !important; }
-  .field input, .field select, .field textarea { font-size: 12px !important; padding: 1px 3px !important; }
+  .field input, .field select, .field textarea { font-size: 12px !important; padding: 1px 3px !important; background: #ffffff !important; color: #000 !important; }
 
   .service-type-bar { padding: 3px 6px !important; margin-bottom: 4px !important; font-size: 12px !important; }
   .service-type-bar select { font-size: 12px !important; }
@@ -1175,17 +1180,23 @@ async function exportPDF(){
       '#pdfExportHost .form-row{margin-bottom:3px!important;gap:4px!important}'+
       '#pdfExportHost .field{gap:3px!important}'+
       '#pdfExportHost .field label{font-size:11px!important}'+
-      '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important;padding:1px 3px!important}'+
-      '#pdfExportHost .field input,#pdfExportHost .parts-table td input,#pdfExportHost .field textarea{border-bottom:1px solid #c4960a!important;background:transparent!important}'+
-      '#pdfExportHost .field input[type="text"],#pdfExportHost .field input[type="tel"],#pdfExportHost .field input[type="date"],#pdfExportHost .field input[type="time"],#pdfExportHost .field input[type="number"]{line-height:1.4!important;padding:1px 4px!important;background:transparent!important}'+
+      '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important;padding:1px 3px!important;color:#000!important;background:#ffffff!important}'+
+      '#pdfExportHost .field input,#pdfExportHost .parts-table td input,#pdfExportHost .field textarea{border-bottom:1px solid #c4960a!important;background:#ffffff!important}'+
+      '#pdfExportHost .field input[type="text"],#pdfExportHost .field input[type="tel"],#pdfExportHost .field input[type="date"],#pdfExportHost .field input[type="time"],#pdfExportHost .field input[type="number"]{line-height:1.4!important;padding:1px 4px!important;background:#ffffff!important}'+
       '#pdfExportHost .field select{border:1px solid #c4960a!important;background:#ffffff!important;border-radius:4px!important;color:#000!important;padding:1px 4px!important;appearance:none!important;-webkit-appearance:none!important}'+
       '#pdfExportHost .field textarea{border:1px solid #c4960a!important;background:#ffffff!important;padding:4px!important;min-height:60px!important}'+
+      '#pdfExportHost .parts-table td{background:#ffffff!important}'+
+      '#pdfExportHost .parts-table td:first-child{background:#fff7d6!important;color:#427aa1!important}'+
+      '#pdfExportHost .parts-table td input{background:#ffffff!important}'+
+      '#pdfExportHost .page-wrapper{width:100%!important;max-width:100%!important;margin:0!important;padding:0!important}'+
+      '#pdfExportHost .page{background:#ffffff!important;box-shadow:none!important;border-radius:0!important}'+
+      '#pdfExportHost input,#pdfExportHost select,#pdfExportHost textarea{color:#000!important;background:#ffffff!important}'+
       '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
       '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
       '#pdfExportHost .parts-table{border-collapse:collapse!important}'+
       '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important;background:#427aa1!important;color:#fff!important;border:1px solid #c4960a!important}'+
-      '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important;border:1px solid #c4960a!important}'+
-      '#pdfExportHost .parts-table td input{font-size:11px!important;border-bottom:1px solid #c4960a!important;background:transparent!important}'+
+      '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important;border:1px solid #c4960a!important;background:#ffffff!important}'+
+      '#pdfExportHost .parts-table td input{font-size:11px!important;border-bottom:1px solid #c4960a!important;background:#ffffff!important;color:#000!important}'+
       '#pdfExportHost .parts-table .total-label{background:#fff7d6!important;color:#427aa1!important}'+
       '#pdfExportHost .parts-table .total-val{background:#fffbf0!important;color:#c00!important}'+
       '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:6px!important;margin-bottom:3px!important;background:#427aa1!important;color:#fff!important}'+
