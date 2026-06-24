@@ -512,7 +512,7 @@ body {
   <div class="status-bar-wrap" style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
       <label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานที่บริการ :</label>
-      <select style="border:none;border-bottom:1px solid #aaa;border-radius:0;background:#fff7d6;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
+      <select style="border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
         <option value="">-- เลือก --</option>
         <option>บริษัทลูกค้า</option>
         <option>บจก.คีแมค</option>
@@ -1266,7 +1266,7 @@ async function exportPDF(){
     if(_cloneStatusWrap){
       _cloneStatusWrap.style.cssText='background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:3px;';
       var _cloneLocSel = _cloneStatusWrap.querySelector('select');
-      if(_cloneLocSel) _cloneLocSel.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
+      if(_cloneLocSel) _cloneLocSel.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;';
     }
     // warrantyNo + warrantyLabel: แสดงเฉพาะตอนเลือก "ในรับประกัน"
     var _warrantyChecked = original.querySelector('input[name="warranty"]:checked');
