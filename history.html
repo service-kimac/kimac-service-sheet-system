@@ -1837,7 +1837,7 @@ async function renderJobPDF(job){
   if(_offscreen2) _offscreen2.parentNode && _offscreen2.parentNode.removeChild(_offscreen2);
   var host=document.createElement('div');
   host.id='_pdfHost';
-  host.style.cssText='position:absolute;top:0;left:0;width:'+A4W+'px;background:#fff;z-index:-9999;pointer-events:none;font-family:Sarabun,sans-serif;';
+  host.style.cssText='position:fixed;top:0;left:0;width:'+A4W+'px;background:#fff;z-index:-9999;pointer-events:none;font-family:Sarabun,sans-serif;opacity:0;';
   host.innerHTML=`
 <div class="page" id="page">
   <div class="page-inner">
@@ -2112,7 +2112,7 @@ async function renderJobPDF(job){
   clone.style.cssText='width:'+A4W+'px;min-height:auto;height:auto;box-shadow:none;margin:0;border-radius:0;padding:5mm 7mm 4mm 7mm;font-size:9.5pt;display:flex;flex-direction:column;background:#fff;';
 
   var exportHost=document.createElement('div');
-  exportHost.style.cssText='position:absolute;top:0;left:0;width:'+A4W+'px;background:#fff;z-index:-9998;pointer-events:none;overflow:visible;';
+  exportHost.style.cssText='position:fixed;top:0;left:0;width:'+A4W+'px;background:#fff;z-index:-9998;pointer-events:none;overflow:visible;opacity:0;';
   exportHost.appendChild(clone);
   document.body.appendChild(exportHost);
 
@@ -2164,11 +2164,9 @@ async function renderJobPDF(job){
   var renderH = Math.max(actualH + 8, 400);
 
   // ── 6. html2canvas ด้วย height จริง (ครอบ timeout กันค้างถ้าแท็บถูกพักทำงาน) ──
-  // บันทึก scroll position ก่อน render แล้วคืนค่าหลัง เพื่อกัน layout shift
-  var _savedSX=window.scrollX||window.pageXOffset||0;
-  var _savedSY=window.scrollY||window.pageYOffset||0;
-  var _savedOX=document.documentElement.style.overflowX;
-  document.documentElement.style.overflowX='hidden';
+  // ใช้ position:fixed ที่ top:0 left:0 กัน browser scroll หา element
+  // ต้องทำให้ opacity:1 ก่อน capture เพราะ html2canvas respect opacity
+  exportHost.style.opacity='1';
   var canvas = await _jpdfWithTimeout(html2canvas(clone,{
     scale:2,useCORS:true,letterRendering:true,
     backgroundColor:'#ffffff',
@@ -2177,8 +2175,7 @@ async function renderJobPDF(job){
     scrollX:0,scrollY:0,
     x:0,y:0
   }), 25000, 'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา)');
-  document.documentElement.style.overflowX=_savedOX;
-  if(_savedSX||_savedSY) window.scrollTo(_savedSX,_savedSY);
+  exportHost.style.opacity='0';
 
   // cleanup
   if(exportHost.parentNode) exportHost.parentNode.removeChild(exportHost);
