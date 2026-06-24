@@ -1563,13 +1563,12 @@ async function renderJobPDF(job){
     ]);
   }
 
-  // ── pdfCSS เหมือน form.html ──
+  // ── pdfCSS — ใช้ใน iframe isolated context ไม่ต้องมี scope prefix ──
   var pdfCSS=`
     html,body{width:${A4W}px!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important;display:block!important;overflow:visible!important;font-size:12px!important;font-family:'Sarabun',sans-serif!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-    .page{width:${A4W}px!important;height:${A4H}px!important;min-height:${A4H}px!important;max-height:${A4H}px!important;padding:7mm 7mm 6mm 7mm!important;background:#ffffff!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;box-shadow:none!important;border-radius:0!important;margin:auto!important;transform:none!important;zoom:1!important;font-size:12px!important;}
-    .page-wrapper{width:100%!important;padding:0!important;margin:0!important;display:flex!important;justify-content:center!important;align-items:center!important;transform:none!important;}
+    .page{width:${A4W}px!important;height:${A4H}px!important;min-height:${A4H}px!important;max-height:${A4H}px!important;padding:7mm 7mm 6mm 7mm!important;background:#ffffff!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;box-shadow:none!important;border-radius:0!important;margin:0!important;transform:none!important;font-size:12px!important;}
+    .page-wrapper{width:${A4W}px!important;padding:0!important;margin:0!important;}
     .page-inner{flex:1!important;display:flex!important;flex-direction:column!important;overflow:visible!important;}
-    .topbar-c,.actbar,.btn-add-row,.btn-export,.sig-trigger-btn,.sig-clear-wrap,.toast-f,.btn-clear-sig{display:none!important;}
     .header{display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:3px solid #427aa1!important;padding-bottom:2px!important;margin-bottom:3px!important;}
     .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;width:95px!important;flex:0 0 95px!important;}
     .header-logo{width:95px!important;height:70px!important;object-fit:contain!important;display:block!important;position:static!important;max-width:none!important;}
@@ -1580,20 +1579,16 @@ async function renderJobPDF(job){
     .service-type-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;gap:10px!important;font-size:12px!important;}
     .service-type-bar span{font-weight:600!important;color:#427aa1!important;}
     .service-type-bar span.svc-val-span{font-weight:400!important;color:#000!important;}
-    .other-input{border:none!important;border-bottom:1px solid #aaa!important;background:transparent!important;box-shadow:none!important;}
     .section-title{background:#427aa1!important;color:#ffffff!important;padding:3px 6px!important;font-weight:700!important;font-size:12px!important;border-radius:3px!important;margin-bottom:3px!important;margin-top:5px!important;}
     .form-row{display:flex!important;gap:4px!important;margin-bottom:3px!important;align-items:center!important;flex-wrap:wrap!important;}
     .field{display:flex!important;align-items:center!important;gap:3px!important;flex:1!important;}
     .field label{white-space:nowrap!important;color:#427aa1!important;font-weight:600!important;font-size:11px!important;}
     .field input,.field select,.field textarea{flex:1!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;outline:none!important;color:#000!important;min-width:60px!important;line-height:1.4!important;background:#ffffff!important;border:none!important;border-bottom:1px solid #ffd151!important;}
-    .field select{border-radius:0!important;appearance:none!important;-webkit-appearance:none!important;}
     .status-bar-wrap{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 8px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:10px!important;}
     .status-bar-wrap label{font-weight:600!important;color:#427aa1!important;font-size:12px!important;white-space:nowrap!important;}
-    .status-bar-wrap select,.status-bar-wrap span.loc-val-span{border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:2px 6px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;display:inline-block!important;}
+    .status-bar-wrap span.loc-val-span{border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:2px 6px!important;color:#222!important;display:inline-block!important;}
     .radio-group{display:flex!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important;}
     .radio-group label{display:flex!important;align-items:center!important;gap:4px!important;font-size:11px!important;font-weight:400!important;color:#333!important;}
-    .warranty-input{border:none!important;border-bottom:1px solid #aaa!important;background:transparent!important;box-shadow:none!important;}
-    .province-input{border:none!important;border-bottom:1px solid #aaa!important;background:transparent!important;box-shadow:none!important;}
     .detail-div-pdf{width:100%!important;border:1.5px solid #ffd151!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;overflow:visible!important;box-sizing:border-box!important;}
     .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important;}
     .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;}
@@ -1752,19 +1747,27 @@ async function renderJobPDF(job){
     +'</div>'
     +'</div></div>';
 
-  // ── สร้าง iframe ──
-  // ย้าย iframe ออกนอกหน้าจอทางซ้ายไกลมากๆ กัน render บนมือถือ
-  // ใช้ position:fixed กับ left ที่เป็น negative ขนาดใหญ่
-  // body.style.overflowX=hidden กัน scrollbar แนวนอน
+  // ── render ลง div ธรรมดา (ไม่ใช้ iframe กัน repaint topbar/navbar) ──
+  // ซ่อน fixed elements ชั่วคราวระหว่าง capture
+  var _fixedEls=document.querySelectorAll('.topbar,.bnav,.topbar-c,.actbar,[style*="position:fixed"]');
+  var _fixedVis=[];
+  _fixedEls.forEach(function(el){
+    _fixedVis.push(el.style.visibility);
+    el.style.visibility='hidden';
+  });
+
   var _savedBodyOX=document.body.style.overflowX;
   var _savedHtmlOX=document.documentElement.style.overflowX;
   document.body.style.overflowX='hidden';
   document.documentElement.style.overflowX='hidden';
 
+  // ใช้ iframe ใน isolated context (ไม่ inherit CSS หน้าหลัก)
+  // ซ่อนด้วย clip-path แทน visibility/opacity — browser ไม่ repaint fixed elements
   var iframeWrap=document.createElement('div');
-  iframeWrap.style.cssText='position:fixed;left:-'+(A4W+500)+'px;top:0;width:'+A4W+'px;height:'+A4H+'px;overflow:hidden;pointer-events:none;z-index:-1;';
+  iframeWrap.style.cssText='position:fixed;top:0;left:0;width:'+A4W+'px;height:'+A4H+'px;'
+    +'clip-path:inset(0 0 0 110%);pointer-events:none;z-index:-1;';
   var iframe=document.createElement('iframe');
-  iframe.style.cssText='position:absolute;left:0;top:0;width:'+A4W+'px;height:'+A4H+'px;border:none;background:#fff;';
+  iframe.style.cssText='position:absolute;top:0;left:0;width:'+A4W+'px;height:'+A4H+'px;border:none;background:#fff;';
   iframeWrap.appendChild(iframe);
   document.body.appendChild(iframeWrap);
 
@@ -1799,8 +1802,9 @@ async function renderJobPDF(job){
     }),30000,'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา)'
   );
 
-  // cleanup iframe + คืนค่า overflow
+  // cleanup + คืนค่า
   if(iframeWrap.parentNode) iframeWrap.parentNode.removeChild(iframeWrap);
+  _fixedEls.forEach(function(el,i){ el.style.visibility=_fixedVis[i]; });
   document.body.style.overflowX=_savedBodyOX;
   document.documentElement.style.overflowX=_savedHtmlOX;
 
