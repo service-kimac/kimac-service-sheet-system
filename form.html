@@ -1121,13 +1121,6 @@ async function exportPDF(){
     clone.style.zoom = '1';         // ⚠️ force zoom:1 กัน mobile browser zoom ส่งผลต่อ render
     clone.style.display = 'flex';
     clone.style.flexDirection = 'column';
-    clone.style.fontSize = '12px';  // ⚠️ base font-size คงที่ ไม่ขึ้นกับ browser zoom
-    // แก้ footer margin-top:auto → กัน gap ใต้ลายเซ็น
-    var _footer = clone.querySelector('.footer');
-    if(_footer){
-      // reset margin-top:auto → px เพราะใน PDF clone ไม่มี min-height จึง auto=0
-      _footer.style.marginTop = '8px';
-    }
     // reset min-height ของ clone page ให้เป็น auto สำหรับ PDF capture
     clone.style.minHeight = 'auto';
 
