@@ -91,8 +91,9 @@
     print-color-adjust: exact;
   }
   .page-wrapper {
-    width: 210mm !important;
-    max-width: 210mm !important;
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
     zoom: 1 !important;
     transform: none !important;
     margin: 0 auto !important;
@@ -100,12 +101,12 @@
     min-height: auto !important;
   }
   .page {
-    width: 210mm !important;
-    max-width: 210mm !important;
+    width: auto !important;
+    max-width: 100% !important;
     min-height: auto !important;
     overflow: visible !important;
     box-shadow: none !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     border-radius: 0 !important;
     padding: 7mm 7mm 6mm 7mm !important;
     background: #ffffff !important;
@@ -129,15 +130,17 @@
   .page .parts-table td input { background: #ffffff !important; }
   .page select {
     color: #000 !important;
-    border: 1px solid #c4960a !important;
+    border: none !important;
+    border-bottom: 1px solid #c4960a !important;
     background: #ffffff !important;
-    border-radius: 4px !important;
+    border-radius: 0 !important;
     padding: 1px 4px !important;
     appearance: none !important;
     -webkit-appearance: none !important;
   }
   .page textarea {
-    border: 1px solid #c4960a !important;
+    border: none !important;
+    border-bottom: 1px solid #c4960a !important;
     background: #ffffff !important;
     padding: 4px !important;
     min-height: 60px !important;
@@ -349,7 +352,7 @@ body.mobile-a4 .footer { margin-top: auto; }
 /* service type bar */
 .service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; margin-bottom: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; }
-.service-type-bar select { border: 1px solid #c4960a; border-radius: 4px; background: white; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
+.service-type-bar select { border: none; border-bottom: 1px solid #c4960a; border-radius: 0; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; }
 .other-input { border: none; border-bottom: 1px solid #aaa; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 200px; outline: none; display: none; }
 .other-input.show { display: inline-block; }
 
@@ -361,8 +364,8 @@ body.mobile-a4 .footer { margin-top: auto; }
 .field { display: flex; align-items: center; gap: 4px; flex: 1; }
 .field label { white-space: nowrap; color: #444; font-weight: 600; font-size: 12px; }
 .field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
-.field select { border: 1px solid #c4960a; border-radius: 4px; background: white; padding: 2px 4px; cursor: pointer; }
-.field textarea { resize: none; border: 1px solid #c4960a; border-radius: 4px; background: rgba(255,255,255,0.7); padding: 4px; width: 100%; font-size: 13px; line-height: 1.45; }
+.field select { border: none; border-bottom: 1px solid #c4960a; border-radius: 0; background: transparent; padding: 2px 4px; cursor: pointer; }
+.field textarea { resize: none; border: none; border-bottom: 1px solid #c4960a; background: transparent; padding: 4px 4px 4px 4px; width: 100%; font-size: 13px; line-height: 1.45; }
 .full-width { width: 100%; flex: unset; }
 
 /* status row */
@@ -478,7 +481,7 @@ body {
   <div class="status-row">
     <div class="status-block">
       <label>สถานที่บริการ :</label>
-      <select style="border:1px solid #bfa000;border-radius:4px;background:white;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;">
+      <select style="border:none;border-bottom:1px solid #c4960a;background:transparent;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;">
         <option value="">-- เลือก --</option>
         <option>บริษัทลูกค้า</option>
         <option>บจก.คีแมค</option>
@@ -629,8 +632,8 @@ window.addEventListener('afterprint', function() {
 });
 
 var _lastVW = window.innerWidth;
-window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); });
-try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); }); } } catch(e){}
+window.addEventListener('load', function(){ _lastVW = window.innerWidth; scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); if(typeof initConditionalFields==='function') initConditionalFields(); });
+try { if (document.fonts && document.fonts.ready) { document.fonts.ready.then(function(){ scalePage(); if(typeof adjustLayoutForSpace==='function') adjustLayoutForSpace(); if(typeof initConditionalFields==='function') initConditionalFields(); }); } } catch(e){}
 window.addEventListener('resize', function(){
   if (window.innerWidth !== _lastVW) {
     _lastVW = window.innerWidth;
@@ -794,6 +797,14 @@ function toggleFee(el) {
   const pi = document.getElementById('provinceInput');
   if (el.value === 'province') pi.classList.add('show');
   else pi.classList.remove('show');
+}
+function initConditionalFields() {
+  var st = document.getElementById('serviceTypeSelect');
+  if (st) toggleOtherService(st);
+  var wr = document.querySelector('input[name="warranty"]:checked');
+  if (wr) toggleWarranty(wr);
+  var fr = document.querySelector('input[name="feeType"]:checked');
+  if (fr) toggleFee(fr);
 }
 
 // --- Signature ---
@@ -1062,16 +1073,16 @@ async function exportPDF(){
       /* Service type */
       .service-type-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;gap:10px!important;font-size:12px!important;}
       .service-type-bar span{font-weight:600!important;color:#427aa1!important;}
-      .service-type-bar select{border:1px solid #c4960a!important;border-radius:4px!important;background:#ffffff!important;font-size:12px!important;padding:1px 4px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;}
+      .service-type-bar select{border:none!important;border-bottom:1px solid #c4960a!important;border-radius:0!important;background:transparent!important;font-size:12px!important;padding:1px 4px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;}
       /* Section titles */
       .section-title{background:#427aa1!important;color:#ffffff!important;padding:3px 6px!important;font-weight:700!important;font-size:12px!important;border-radius:3px!important;margin-bottom:3px!important;margin-top:5px!important;}
       /* Form rows */
       .form-row{display:flex!important;gap:4px!important;margin-bottom:3px!important;align-items:center!important;flex-wrap:wrap!important;}
       .field{display:flex!important;align-items:center!important;gap:3px!important;flex:1!important;}
       .field label{white-space:nowrap!important;color:#444!important;font-weight:600!important;font-size:11px!important;}
-      .field input,.field select{flex:1!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;outline:none!important;color:#000!important;min-width:60px!important;line-height:1.4!important;background:#ffffff!important;}
-      .field input{border:none!important;border-bottom:1px solid #c4960a!important;}
-      .field select{border:1px solid #c4960a!important;border-radius:4px!important;appearance:none!important;-webkit-appearance:none!important;}
+      .field input,.field select,.field textarea{flex:1!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;outline:none!important;color:#000!important;min-width:60px!important;line-height:1.4!important;background:#ffffff!important;border:none!important;border-bottom:1px solid #c4960a!important;}
+      .field select{border-radius:0!important;appearance:none!important;-webkit-appearance:none!important;}
+      .status-block select{border:none!important;border-bottom:1px solid #c4960a!important;border-radius:0!important;appearance:none!important;-webkit-appearance:none!important;}
       /* Status */
       .status-row{display:flex!important;gap:6px!important;align-items:flex-start!important;flex-wrap:wrap!important;margin-bottom:3px!important;}
       .status-block{display:flex!important;align-items:center!important;gap:8px!important;background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;flex-wrap:wrap!important;}
