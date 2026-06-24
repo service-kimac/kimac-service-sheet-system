@@ -966,7 +966,6 @@ function thaiBreakable(text){
 //      130px height, matching the reference PDF layout.
 //   5. adjustCloneSignatureHeights() removed — not needed with flex layout.
 //   6. All CSS values are px (never pt) to be device-independent.
-// ════════════════════════════════════════════════════════════════════════════
 async function exportPDF(){
   window.scrollTo(0, 0);
   var btn=document.getElementById('btnPDF');
@@ -978,451 +977,306 @@ async function exportPDF(){
     }
     if(btn)btn.textContent='⏳ กำลังสร้าง PDF...';
 
-    function _loadScript(url, checkFn, timeoutMs) {
-      return new Promise(function(resolve, reject) {
-        if (checkFn()) { resolve(); return; }
-        var s = document.createElement('script');
-        s.src = url;
-        document.head.appendChild(s);
-        var timer = setTimeout(function(){ reject(new Error('โหลดไลบรารีไม่สำเร็จ (หมดเวลา): ' + url)); }, timeoutMs || 20000);
-        s.onload = function() { clearTimeout(timer); resolve(); };
-        s.onerror = function() { clearTimeout(timer); reject(new Error('โหลดไลบรารีไม่สำเร็จ: ' + url)); };
+    function _loadScript(url,checkFn,timeoutMs){
+      return new Promise(function(resolve,reject){
+        if(checkFn()){resolve();return;}
+        var s=document.createElement('script');s.src=url;document.head.appendChild(s);
+        var timer=setTimeout(function(){reject(new Error('โหลดไลบรารีไม่สำเร็จ: '+url));},timeoutMs||20000);
+        s.onload=function(){clearTimeout(timer);resolve();};
+        s.onerror=function(){clearTimeout(timer);reject(new Error('โหลดไลบรารีไม่สำเร็จ: '+url));};
       });
     }
-    await _loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-      function(){ return !!window.html2canvas; }, 20000
-    );
-    await _loadScript(
-      'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-      function(){ return !!(window.jspdf && window.jspdf.jsPDF); }, 20000
-    );
+    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',function(){return !!window.html2canvas;},20000);
+    await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',function(){return !!(window.jspdf&&window.jspdf.jsPDF);},20000);
 
-    // ── Hardcoded A4 @ 96 dpi: 210mm × 297mm = 794px × 1123px ──────
-    // Never measure from DOM — device zoom/scaling must not affect this.
-    var A4_W_PX = 794;
-    var A4_H_PX = 1123;
+    function _pdfWait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+    function _pdfTimeout(p,ms,msg){return Promise.race([p,new Promise(function(_,rej){setTimeout(function(){rej(new Error(msg||'หมดเวลา'));},ms);})]);}
 
-    var original = document.getElementById('page');
-    var wrapper  = document.getElementById('pageWrapper');
-
-    // Save & temporarily clear transforms so the live page doesn't jump
-    var prevTransform        = original.style.transform;
-    var prevWrapperTransform = wrapper.style.transform;
-    original.style.transform = 'none';
-    wrapper.style.transform  = 'none';
-
-    // Hide interactive-only buttons on the live page during capture
-    document.querySelectorAll('.sig-trigger-btn').forEach(function(b){ b.style.display='none'; });
-    document.querySelectorAll('.btn-add-row').forEach(function(b){ b.style.display='none'; });
-    document.querySelectorAll('.btn-clear-sig').forEach(function(b){ b.style.display='none'; });
-    ['tech','cust'].forEach(function(t){
-      var img=document.getElementById(t+'SigImg');
-      if(img && img.src && img.src.indexOf('data:image')===0) img.style.display='block';
-    });
-
-    // Swap <textarea> → plain <div> (html2canvas renders textarea unreliably)
-    var textarea       = document.getElementById('detailTextarea');
-    var textareaValue  = textarea.value;
-    var textareaParent = textarea.parentNode;
-    var linePx=20, paddingPx=4;
-    var fiveLinesPx=(linePx*5)+(paddingPx*2);
-    var detailDiv=document.createElement('div');
-    detailDiv.style.cssText=[
-      'width:100%','border:1px solid #bfa000','border-radius:4px',
-      'background:rgba(255,255,255,0.7)','padding:'+paddingPx+'px',
-      'font-family:Sarabun,sans-serif','font-size:12px','line-height:'+linePx+'px',
-      'color:#222','white-space:pre-wrap','word-break:break-word',
-      'overflow-wrap:anywhere','min-height:'+fiveLinesPx+'px',
-      'overflow:visible','box-sizing:border-box'
-    ].join(';');
-    detailDiv.textContent = thaiBreakable(textareaValue);
-    textareaParent.replaceChild(detailDiv, textarea);
-
-    // Snapshot radio checked-state BEFORE cloning (appending clone to DOM
-    // steals the radio group, flipping the checked state on the original)
-    var radioCheckedSnapshot={};
-    original.querySelectorAll('input[type=radio]').forEach(function(r){
-      radioCheckedSnapshot[r.name+'|'+r.value]=r.checked;
-    });
-
-    // ── Build off-screen render host ─────────────────────────────────
-    var clone = original.cloneNode(true);
-    clone.id  = 'pageClone';
-    // Force exact A4 pixel size — no min-height, no transform, no zoom
-    clone.style.cssText = [
-      'position:static',
-      'width:'+A4_W_PX+'px',
-      'height:'+A4_H_PX+'px',
-      'min-height:'+A4_H_PX+'px',
-      'max-height:'+A4_H_PX+'px',
-      'box-shadow:none','margin:0',
-      'transform:none','zoom:1',
-      'display:flex','flex-direction:column',
-      'background:#ffffff','overflow:hidden',
-      'font-size:12px',
-      'padding:7mm 7mm 6mm 7mm',
-      'box-sizing:border-box'
-    ].join(';');
-
-    // Host div: position:fixed top:0 ensures html2canvas sees it at
-    // viewport origin regardless of body padding/scroll
-    var exportHost = document.createElement('div');
-    exportHost.id  = 'pdfExportHost';
-    exportHost.style.cssText = [
-      'position:fixed','left:0','top:0',
-      'width:'+A4_W_PX+'px',
-      'height:'+A4_H_PX+'px',
-      'overflow:hidden','background:#ffffff',
-      'z-index:99997','padding:0','margin:0',
-      'transform:none','zoom:1'
-    ].join(';');
-    document.body.appendChild(exportHost);
-    exportHost.appendChild(clone);
-
-    // Loading overlay (hides the host from the user during render)
-    var exportOverlay = document.createElement('div');
-    exportOverlay.id  = 'pdfExportOverlay';
-    exportOverlay.style.cssText = [
-      'position:fixed','left:0','top:0','width:100%','height:100%',
-      'background:#0e1c36','z-index:99998',
-      'display:flex','align-items:center','justify-content:center',
-      'flex-direction:column','gap:14px'
-    ].join(';');
-    exportOverlay.innerHTML =
-      '<div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.25);border-top-color:#ffd151;border-radius:50%;animation:pdfSpin .8s linear infinite"></div>'
-      +'<div style="color:#fff;font-family:\'Sarabun\',sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div>'
+    // ── Loading overlay ────────────────────────────────────────────
+    var exportOverlay=document.createElement('div');
+    exportOverlay.id='pdfExportOverlay';
+    exportOverlay.style.cssText='position:fixed;left:0;top:0;width:100%;height:100%;background:#0e1c36;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;';
+    exportOverlay.innerHTML='<div style="width:40px;height:40px;border:4px solid rgba(255,255,255,.25);border-top-color:#ffd151;border-radius:50%;animation:pdfSpin .8s linear infinite"></div>'
+      +'<div style="color:#fff;font-family:Sarabun,sans-serif;font-size:14px;font-weight:700">กำลังสร้าง PDF...</div>'
       +'<style>@keyframes pdfSpin{to{transform:rotate(360deg)}}</style>';
     document.body.appendChild(exportOverlay);
 
-    // ── Clone-scoped print CSS ────────────────────────────────────────
-    // All values in px (not pt) so rendering is device-independent.
-    // Built as an array to avoid the string-concatenation bug in the
-    // original where ';'' terminated the template early.
-    var cssRules = [
-      '#pdfExportHost{font-size:12px!important;background:#ffffff!important;transform:none!important;zoom:1!important}',
-      '#pdfExportHost *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}',
+    var A4_W_PX=794, A4_H_PX=1123;
+    var original=document.getElementById('page');
 
-      // Page container
-      '#pdfExportHost #pageClone{'
-        +'width:'+A4_W_PX+'px!important;max-width:'+A4_W_PX+'px!important;'
-        +'height:'+A4_H_PX+'px!important;min-height:'+A4_H_PX+'px!important;'
-        +'padding:7mm 7mm 6mm 7mm!important;'
-        +'background:#ffffff!important;overflow:hidden!important;'
-        +'display:flex!important;flex-direction:column!important;'
-        +'font-size:12px!important;transform:none!important;zoom:1!important'
-      +'}',
-      '#pdfExportHost .page-inner{flex:1!important;display:flex!important;flex-direction:column!important;overflow:visible!important}',
-
-      // Header
-      '#pdfExportHost .header{display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:3px solid #427aa1!important;padding-bottom:2px!important;margin-bottom:3px!important}',
-      '#pdfExportHost .header-logo{width:75px!important;height:55px!important;object-fit:contain!important}',
-      '#pdfExportHost .header-spacer{width:75px!important}',
-      '#pdfExportHost .header-center h1{font-size:20px!important;font-weight:700!important;color:#427aa1!important;letter-spacing:1px!important}',
-      '#pdfExportHost .header-center p{font-size:12px!important;color:#555!important}',
-
-      // Service type bar
-      '#pdfExportHost .service-type-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;gap:10px!important;font-size:12px!important}',
-      '#pdfExportHost .service-type-bar span{font-weight:600!important;color:#427aa1!important}',
-      '#pdfExportHost .service-type-bar select{border:1px solid #c4960a!important;border-radius:4px!important;background:#ffffff!important;font-size:12px!important;padding:1px 4px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important}',
-
-      // Section titles
-      '#pdfExportHost .section-title{background:#427aa1!important;color:#ffffff!important;padding:3px 6px!important;font-weight:700!important;font-size:12px!important;border-radius:3px!important;margin-bottom:3px!important;margin-top:5px!important}',
-
-      // Form rows & fields
-      '#pdfExportHost .form-row{display:flex!important;gap:4px!important;margin-bottom:3px!important;align-items:center!important;flex-wrap:wrap!important}',
-      '#pdfExportHost .field{display:flex!important;align-items:center!important;gap:3px!important;flex:1!important}',
-      '#pdfExportHost .field label{white-space:nowrap!important;color:#444!important;font-weight:600!important;font-size:11px!important}',
-      '#pdfExportHost .field input[type="text"],'
-      +'#pdfExportHost .field input[type="tel"],'
-      +'#pdfExportHost .field input[type="date"],'
-      +'#pdfExportHost .field input[type="time"],'
-      +'#pdfExportHost .field input[type="number"]{'
-        +'flex:1!important;border:none!important;border-bottom:1px solid #c4960a!important;'
-        +'background:#ffffff!important;font-family:Sarabun,sans-serif!important;'
-        +'font-size:12px!important;padding:1px 4px!important;outline:none!important;'
-        +'color:#000!important;min-width:60px!important;line-height:1.4!important'
-      +'}',
-      '#pdfExportHost .field select{flex:1!important;border:1px solid #c4960a!important;border-radius:4px!important;background:#ffffff!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;color:#000!important;appearance:none!important;-webkit-appearance:none!important}',
-
-      // Status row
-      '#pdfExportHost .status-row{display:flex!important;gap:6px!important;align-items:flex-start!important;flex-wrap:wrap!important;margin-bottom:3px!important}',
-      '#pdfExportHost .status-block{display:flex!important;align-items:center!important;gap:8px!important;background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;flex-wrap:wrap!important}',
-      '#pdfExportHost .status-block label{font-weight:600!important;color:#427aa1!important;font-size:11px!important;white-space:nowrap!important}',
-      '#pdfExportHost .radio-group{display:flex!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important}',
-      '#pdfExportHost .radio-group label{display:flex!important;align-items:center!important;gap:4px!important;font-size:11px!important;font-weight:400!important;color:#333!important}',
-
-      // Parts table
-      '#pdfExportHost .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important}',
-      '#pdfExportHost .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important}',
-      '#pdfExportHost .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#ffffff!important;font-size:11px!important}',
-      '#pdfExportHost .parts-table td:first-child{text-align:center!important;width:24px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important}',
-      '#pdfExportHost .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;text-align:center!important;color:#000!important}',
-      '#pdfExportHost .parts-table .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important}',
-      '#pdfExportHost .parts-table .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#cc0000!important;border:1px solid #c4960a!important;padding-right:6px!important}',
-      '#pdfExportHost #s_total{font-size:13px!important;font-weight:700!important;color:#1a3a6e!important}',
-
-      // Signature section — flex:1 fills remaining vertical space
-      '#pdfExportHost .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important}',
-      '#pdfExportHost .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important}',
-      '#pdfExportHost .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important}',
-      '#pdfExportHost .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important}',
-      '#pdfExportHost .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important}',
-      '#pdfExportHost .sig-trigger-btn{display:none!important}',
-      '#pdfExportHost .btn-clear-sig{display:none!important}',
-      '#pdfExportHost .sig-clear-wrap{min-height:0!important;display:none!important}',
-      '#pdfExportHost .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important}',
-      '#pdfExportHost .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important}',
-      '#pdfExportHost .sig-meta input{border:none!important;border-bottom:1px solid #c4960a!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;flex:1!important;outline:none!important;min-width:50px!important;color:#000!important}',
-
-      // Footer — margin-top:auto pushes it to the bottom of the flex page
-      '#pdfExportHost .footer{text-align:center!important;border-top:2px solid #427aa1!important;padding-top:3px!important;margin-top:auto!important;color:#427aa1!important;font-size:11px!important;line-height:1.5!important}',
-      '#pdfExportHost .footer .company-name{font-size:13px!important;font-weight:700!important;color:#427aa1!important}',
-      '#pdfExportHost .footer .contact{color:#444!important;font-size:11px!important}',
-
-      // Hide non-content elements in clone
-      '#pdfExportHost .btn-add-row{display:none!important}',
-      '#pdfExportHost .topbar-c{display:none!important}',
-      '#pdfExportHost .actbar{display:none!important}',
-      '#pdfExportHost .toast-f{display:none!important}'
-    ];
-
-    var exportCompactStyle = document.createElement('style');
-    exportCompactStyle.id = 'pdfExportCompactStyle';
-    exportCompactStyle.textContent = cssRules.join('\n');
-    document.head.appendChild(exportCompactStyle);
-
-    // ── Copy live field values into clone ─────────────────────────────
-    var srcEls = original.querySelectorAll('input, textarea, select');
-    var dstEls = clone.querySelectorAll('input, textarea, select');
-    srcEls.forEach(function(el, i) {
-      var d = dstEls[i]; if (!d) return;
-      if (el.tagName === 'SELECT') {
-        d.value = el.value;
-      } else if (el.type === 'radio') {
-        // Replace <input type=radio> with a rendered SVG circle so
-        // html2canvas always shows the correct checked/unchecked state
-        var checked = radioCheckedSnapshot[el.name+'|'+el.value];
-        var span = document.createElement('span');
-        span.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#ffffff;border:1px solid '+(checked?'#1a3a6e':'#777777')+';';
-        if (checked) {
-          var dot = document.createElement('span');
-          dot.style.cssText = 'width:6px;height:6px;border-radius:50%;background:#1a3a6e;display:block;';
-          span.appendChild(dot);
-        }
-        if (d.parentNode) d.parentNode.replaceChild(span, d);
-      } else if (el.type === 'checkbox') {
-        d.checked = el.checked;
-        if (el.checked) d.setAttribute('checked','checked');
-        else d.removeAttribute('checked');
-      } else {
-        d.value = el.value;
-        d.setAttribute('value', el.value);
-      }
+    // ── Snapshot ค่าทั้งหมดจาก form จริง ──────────────────────────
+    var radioSnap={};
+    original.querySelectorAll('input[type=radio]').forEach(function(r){
+      radioSnap[r.name+'|'+r.value]=r.checked;
     });
 
-    // Copy signature images
-    ['tech','cust'].forEach(function(t) {
-      var srcImg = original.querySelector('#'+t+'SigImg');
-      var dstImg = clone.querySelector('#'+t+'SigImg');
-      if (srcImg && dstImg && srcImg.src && srcImg.src.indexOf('data:image')===0) {
-        dstImg.src = srcImg.src;
-        dstImg.style.display = 'block';
-      }
-      var sb2 = clone.querySelector('#'+t+'SigBtn'); if (sb2) sb2.style.display='none';
-      var cb  = clone.querySelector('#'+t+'ClearBtn'); if (cb) cb.style.display='none';
+    // สร้าง HTML ที่จะ inject ลง iframe
+    // ดึง CSS ทั้งหมดจาก <style> ใน document ปัจจุบัน
+    var allCSS='';
+    document.querySelectorAll('style').forEach(function(s){
+      allCSS+=s.textContent+'\n';
     });
-    clone.querySelectorAll('.btn-add-row').forEach(function(b){ b.style.display='none'; });
-    clone.querySelectorAll('.sig-clear-wrap').forEach(function(el){ el.style.display='none'; });
+    // เพิ่ม CSS สำหรับ PDF (override @media print → ใช้ตรงๆ)
+    var pdfCSS=`
+      html,body{
+        width:${A4_W_PX}px!important;
+        min-width:0!important;
+        margin:0!important;
+        padding:0!important;
+        background:#fff!important;
+        display:block!important;
+        overflow:visible!important;
+        font-size:12px!important;
+        font-family:'Sarabun',sans-serif!important;
+        -webkit-print-color-adjust:exact!important;
+        print-color-adjust:exact!important;
+      }
+      .page{
+        width:${A4_W_PX}px!important;
+        height:${A4_H_PX}px!important;
+        min-height:${A4_H_PX}px!important;
+        max-height:${A4_H_PX}px!important;
+        padding:7mm 7mm 6mm 7mm!important;
+        background:#ffffff!important;
+        overflow:hidden!important;
+        display:flex!important;
+        flex-direction:column!important;
+        box-shadow:none!important;
+        border-radius:0!important;
+        margin:0!important;
+        transform:none!important;
+        zoom:1!important;
+        font-size:12px!important;
+      }
+      .page-wrapper{
+        width:${A4_W_PX}px!important;
+        padding:0!important;
+        margin:0!important;
+        display:block!important;
+        transform:none!important;
+      }
+      .page-inner{flex:1!important;display:flex!important;flex-direction:column!important;overflow:visible!important;}
+      .topbar-c,.actbar,.btn-add-row,.btn-export,.sig-trigger-btn,.sig-clear-wrap,.toast-f,.btn-clear-sig{display:none!important;}
+      /* Header */
+      .header{display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:3px solid #427aa1!important;padding-bottom:2px!important;margin-bottom:3px!important;}
+      .header-logo{width:75px!important;height:55px!important;object-fit:contain!important;}
+      .header-spacer{width:75px!important;}
+      .header-center h1{font-size:20px!important;font-weight:700!important;color:#427aa1!important;letter-spacing:1px!important;}
+      .header-center p{font-size:12px!important;color:#555!important;}
+      /* Service type */
+      .service-type-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;gap:10px!important;font-size:12px!important;}
+      .service-type-bar span{font-weight:600!important;color:#427aa1!important;}
+      .service-type-bar select{border:1px solid #c4960a!important;border-radius:4px!important;background:#ffffff!important;font-size:12px!important;padding:1px 4px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;}
+      /* Section titles */
+      .section-title{background:#427aa1!important;color:#ffffff!important;padding:3px 6px!important;font-weight:700!important;font-size:12px!important;border-radius:3px!important;margin-bottom:3px!important;margin-top:5px!important;}
+      /* Form rows */
+      .form-row{display:flex!important;gap:4px!important;margin-bottom:3px!important;align-items:center!important;flex-wrap:wrap!important;}
+      .field{display:flex!important;align-items:center!important;gap:3px!important;flex:1!important;}
+      .field label{white-space:nowrap!important;color:#444!important;font-weight:600!important;font-size:11px!important;}
+      .field input,.field select{flex:1!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;outline:none!important;color:#000!important;min-width:60px!important;line-height:1.4!important;background:#ffffff!important;}
+      .field input{border:none!important;border-bottom:1px solid #c4960a!important;}
+      .field select{border:1px solid #c4960a!important;border-radius:4px!important;appearance:none!important;-webkit-appearance:none!important;}
+      /* Status */
+      .status-row{display:flex!important;gap:6px!important;align-items:flex-start!important;flex-wrap:wrap!important;margin-bottom:3px!important;}
+      .status-block{display:flex!important;align-items:center!important;gap:8px!important;background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;flex-wrap:wrap!important;}
+      .status-block label{font-weight:600!important;color:#427aa1!important;font-size:11px!important;white-space:nowrap!important;}
+      .radio-group{display:flex!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important;}
+      .radio-group label{display:flex!important;align-items:center!important;gap:4px!important;font-size:11px!important;font-weight:400!important;color:#333!important;}
+      .status-block select{border:1px solid #bfa000!important;border-radius:4px!important;background:#ffffff!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:2px 6px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;}
+      /* detail div */
+      .detail-div-pdf{width:100%!important;border:1px solid #bfa000!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;overflow:visible!important;box-sizing:border-box!important;}
+      /* Parts table */
+      .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important;}
+      .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;}
+      .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#ffffff!important;font-size:11px!important;}
+      .parts-table td:first-child{text-align:center!important;width:24px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
+      .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;text-align:center!important;color:#000!important;}
+      .parts-table .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important;}
+      .parts-table .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#cc0000!important;border:1px solid #c4960a!important;padding-right:6px!important;}
+      #s_total{font-size:13px!important;font-weight:700!important;color:#1a3a6e!important;}
+      /* Fee row */
+      .fee-row-pdf{background:#f8f8f8!important;border:1px solid #d4c000!important;border-radius:0 0 4px 4px!important;padding:4px 8px!important;margin-bottom:4px!important;display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;font-size:12px!important;}
+      /* Signature */
+      .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important;}
+      .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important;}
+      .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;}
+      .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
+      .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important;}
+      .sig-clear-wrap{display:none!important;min-height:0!important;}
+      .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important;}
+      .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important;}
+      .sig-meta input{border:none!important;border-bottom:1px solid #c4960a!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;flex:1!important;outline:none!important;min-width:50px!important;color:#000!important;}
+      /* Footer */
+      .footer{text-align:center!important;border-top:2px solid #427aa1!important;padding-top:3px!important;margin-top:auto!important;color:#427aa1!important;font-size:11px!important;line-height:1.5!important;}
+      .footer .company-name{font-size:13px!important;font-weight:700!important;color:#427aa1!important;}
+      .footer .contact{color:#444!important;font-size:11px!important;}
+      /* Inputs/fields general */
+      input,select{font-family:Sarabun,sans-serif!important;color:#000!important;background:#ffffff!important;}
+      *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+    `;
 
-    // ── Cleanup helper ─────────────────────────────────────────────────
-    function cleanup2(){
-      if (detailDiv.parentNode) detailDiv.parentNode.replaceChild(textarea, detailDiv);
-      if (exportHost.parentNode)    exportHost.parentNode.removeChild(exportHost);
-      if (exportOverlay.parentNode) exportOverlay.parentNode.removeChild(exportOverlay);
-      if (exportCompactStyle.parentNode) exportCompactStyle.parentNode.removeChild(exportCompactStyle);
-      document.querySelectorAll('.sig-trigger-btn').forEach(function(b){
-        var t2=b.id.replace('SigBtn','');
-        var img=document.getElementById(t2+'SigImg');
-        if(!img||!img.src||img.src.indexOf('data:image')===-1) b.style.display='flex';
-      });
-      document.querySelectorAll('.btn-add-row').forEach(function(b){ b.style.display='inline-block'; });
-      ['tech','cust'].forEach(function(t){
-        var img=document.getElementById(t+'SigImg');
-        var cb=document.getElementById(t+'ClearBtn');
-        if(img && img.src && img.src.indexOf('data:image')===0 && img.style.display!=='none'){
-          if(cb){ cb.classList.add('show'); cb.style.display=''; }
-        } else {
-          if(cb){ cb.classList.remove('show'); }
-        }
-      });
-      original.style.transform = prevTransform;
-      wrapper.style.transform  = prevWrapperTransform;
-      if(typeof _doScale==='function') _doScale();
+    // ── สร้าง HTML สำหรับ PDF โดยใช้โครงสร้างเดิมของ .page ────────
+    // Clone .page ทั้งใบแล้วปรับ
+    var pageClone = original.cloneNode(true);
+    pageClone.id = '';
+    pageClone.className = 'page';
+    pageClone.style.cssText = '';
+
+    // Copy ค่า fields ทั้งหมด
+    var srcEls=original.querySelectorAll('input,textarea,select');
+    var dstEls=pageClone.querySelectorAll('input,textarea,select');
+    srcEls.forEach(function(el,i){
+      var d=dstEls[i]; if(!d)return;
+      if(el.tagName==='SELECT'){d.value=el.value;}
+      else if(el.type==='radio'){
+        var checked=radioSnap[el.name+'|'+el.value]||false;
+        // วาด radio circle แทน input จริง
+        var span=document.createElement('span');
+        span.style.cssText='display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1.5px solid '+(checked?'#1a3a6e':'#999')+';margin-right:3px;';
+        if(checked){var dot=document.createElement('span');dot.style.cssText='width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;';span.appendChild(dot);}
+        if(d.parentNode)d.parentNode.replaceChild(span,d);
+      }
+      else if(el.type==='checkbox'){d.checked=el.checked;}
+      else{d.value=el.value;d.setAttribute('value',el.value);}
+    });
+
+    // Copy ลายเซ็น
+    ['tech','cust'].forEach(function(t){
+      var si=original.querySelector('#'+t+'SigImg');
+      var di=pageClone.querySelector('#'+t+'SigImg');
+      if(si&&di&&si.src&&si.src.indexOf('data:image')===0){
+        di.src=si.src;di.style.display='block';
+      }
+      var sb2=pageClone.querySelector('#'+t+'SigBtn');if(sb2)sb2.style.display='none';
+      var cb=pageClone.querySelector('#'+t+'ClearBtn');if(cb)cb.style.display='none';
+    });
+
+    // แทน textarea ด้วย div
+    var ta=pageClone.querySelector('#detailTextarea');
+    if(ta){
+      var dd=document.createElement('div');
+      dd.className='detail-div-pdf';
+      dd.textContent=document.getElementById('detailTextarea').value;
+      ta.parentNode.replaceChild(dd,ta);
     }
 
-    // ── PDF filename ───────────────────────────────────────────────────
-    var co=(document.getElementById('companyName')&&document.getElementById('companyName').value||'').trim().replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_');
-    var dt=document.getElementById('serviceDate')&&document.getElementById('serviceDate').value||'';
-    var dateStr=dt?dt.replace(/-/g,''):'';
-    var pdfName='SERVICE_SHEET'+(co?'_'+co:'')+(dateStr?'_'+dateStr:'')+'.pdf';
+    // ซ่อนปุ่มที่ไม่ต้องการ
+    pageClone.querySelectorAll('.btn-add-row,.sig-trigger-btn,.btn-clear-sig,.sig-clear-wrap').forEach(function(el){el.style.display='none';});
 
-    // ── Timing helpers ─────────────────────────────────────────────────
-    function _pdfWait(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
-    function _pdfWithTimeout(promise,ms,msg){
-      return Promise.race([
-        promise,
-        new Promise(function(_,rej){ setTimeout(function(){ rej(new Error(msg||'หมดเวลา')); },ms); })
-      ]);
-    }
+    // ── สร้าง iframe ──────────────────────────────────────────────
+    var iframe=document.createElement('iframe');
+    iframe.style.cssText='position:fixed;left:0;top:0;width:'+A4_W_PX+'px;height:'+A4_H_PX+'px;border:none;z-index:99997;background:#fff;transform:none;zoom:1;';
+    document.body.appendChild(iframe);
 
-    // Wait for Sarabun font to load (prevents misaligned Thai glyphs)
+    var iDoc=iframe.contentDocument||iframe.contentWindow.document;
+    iDoc.open();
+    iDoc.write('<!DOCTYPE html><html><head>'
+      +'<meta charset="UTF-8">'
+      +'<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">'
+      +'<style>'+allCSS+'</style>'
+      +'<style id="pdfOverride">'+pdfCSS+'</style>'
+      +'</head><body style="margin:0;padding:0;background:#fff;font-family:Sarabun,sans-serif;">'
+      +'<div class="page-wrapper"><div id="pageInIframe" class="page"></div></div>'
+      +'</body></html>');
+    iDoc.close();
+
+    // inject pageClone content เข้า iframe
+    var iframePage=iDoc.getElementById('pageInIframe');
+    // Copy child nodes
+    Array.from(pageClone.childNodes).forEach(function(node){
+      iframePage.appendChild(iDoc.importNode(node,true));
+    });
+
+    // ── รอ font โหลด ──────────────────────────────────────────────
+    function _pdfWait2(ms){return new Promise(function(r){setTimeout(r,ms);});}
+    var _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    var _isMobile=_isIOS||/Android/.test(navigator.userAgent);
+
     try{
-      if(document.fonts&&document.fonts.ready){
-        await _pdfWithTimeout(document.fonts.ready,4000,'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
-        await _pdfWithTimeout(document.fonts.load('400 12px Sarabun'),4000,'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
-        await _pdfWithTimeout(document.fonts.load('700 12px Sarabun'),4000,'โหลดฟอนต์ไม่สำเร็จ (หมดเวลา)');
+      if(iframe.contentDocument.fonts&&iframe.contentDocument.fonts.ready){
+        await _pdfTimeout(iframe.contentDocument.fonts.ready,5000,'font timeout');
       }
     }catch(e){}
 
-    var _isIOS    = /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-    var _isMobile = _isIOS||/Android/.test(navigator.userAgent);
+    await _pdfWait2(_isMobile?500:150);
+    void iframePage.offsetHeight;
+    await _pdfWait2(_isMobile?300:80);
 
-    // Extra paint wait (iOS/Android need more time)
-    await _pdfWait(_isMobile ? 400 : 80);
-    void clone.offsetHeight; // force reflow
-    await _pdfWait(_isMobile ? 200 : 40);
-    void clone.offsetHeight;
+    var cleanup3=function(){
+      if(iframe.parentNode)iframe.parentNode.removeChild(iframe);
+      if(exportOverlay.parentNode)exportOverlay.parentNode.removeChild(exportOverlay);
+    };
 
     try{
       var J=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
-      if(!window.html2canvas||!J) throw new Error('โหลดไลบรารีไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+      if(!window.html2canvas||!J)throw new Error('โหลดไลบรารีไม่สำเร็จ');
 
-      function _canvasLooksBlank(cv){
-        try{
-          var ctx=cv.getContext('2d');
-          var cols=12,rows=16;
-          for(var r=0;r<rows;r++){
-            for(var c=0;c<cols;c++){
-              var x=Math.floor((c+0.5)*cv.width/cols);
-              var y=Math.floor((r+0.5)*cv.height/rows);
-              var d2=ctx.getImageData(x,y,1,1).data;
-              if(d2[0]<250||d2[1]<250||d2[2]<250) return false;
-            }
-          }
-          return true;
-        }catch(e){ return false; }
+      function _blank(cv){
+        try{var ctx=cv.getContext('2d');
+          for(var r=0;r<12;r++)for(var c=0;c<16;c++){
+            var px=ctx.getImageData(Math.floor((c+.5)*cv.width/16),Math.floor((r+.5)*cv.height/12),1,1).data;
+            if(px[0]<250||px[1]<250||px[2]<250)return false;
+          }return true;
+        }catch(e){return false;}
       }
 
-      async function _capture(){
-        // Reset device/browser zoom before capture so html2canvas renders
-        // at exactly 1:1 physical pixels, independent of viewport scaling
-        var _prevDocZoom  = document.documentElement.style.zoom||'';
-        var _prevBodyZoom = document.body.style.zoom||'';
-        if(_isMobile){
-          document.documentElement.style.zoom='1';
-          document.body.style.zoom='1';
-        }
+      var _renderScale=_isMobile?1:2;
+      var _origWarn=console.warn;
+      console.warn=function(){var m=arguments[0]?String(arguments[0]):'';if(m.indexOf('color')>-1||m.indexOf('parse')>-1||m.indexOf('unsupported')>-1)return;_origWarn.apply(console,arguments);};
 
-        // Suppress noisy html2canvas color-parse warnings on iOS WKWebView
-        var _origWarn=console.warn;
-        console.warn=function(){
-          var msg=arguments[0]?String(arguments[0]):'';
-          if(msg.indexOf('color')!==-1||msg.indexOf('parse')!==-1||msg.indexOf('unsupported')!==-1) return;
-          _origWarn.apply(console,arguments);
-        };
+      // จับภาพจาก iframePage โดยตรง
+      var canvas=await _pdfTimeout(
+        html2canvas(iframePage,{
+          scale:_renderScale,useCORS:true,allowTaint:true,letterRendering:true,
+          backgroundColor:'#ffffff',
+          width:A4_W_PX,height:A4_H_PX,
+          windowWidth:A4_W_PX,windowHeight:A4_H_PX,
+          scrollX:0,scrollY:0,x:0,y:0,logging:false,
+          ignoreElements:function(el){return el.tagName==='SCRIPT';}
+        }),30000,'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา)'
+      );
+      console.warn=_origWarn;
 
-        // Use scale:1 on mobile to stay within WebKit memory limits;
-        // scale:2 on desktop for sharper output
-        var _renderScale = _isMobile ? 1 : 2;
-        var _cvs;
-        try{
-          _cvs = await _pdfWithTimeout(
-            html2canvas(clone, {
-              scale          : _renderScale,
-              useCORS        : true,
-              allowTaint     : true,
-              letterRendering: true,
-              backgroundColor: '#ffffff',
-              width          : A4_W_PX,
-              height         : A4_H_PX,
-              windowWidth    : A4_W_PX,
-              windowHeight   : A4_H_PX,
-              scrollX        : 0,
-              scrollY        : 0,
-              x              : 0,
-              y              : 0,
-              logging        : false,
-              ignoreElements : function(el){
-                return el.tagName==='SCRIPT'||el.tagName==='STYLE';
-              }
-            }),
-            30000,'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา) กรุณาลองใหม่'
-          );
-        }finally{
-          console.warn=_origWarn;
-        }
-
-        if(_isMobile){
-          document.documentElement.style.zoom=_prevDocZoom;
-          document.body.style.zoom=_prevBodyZoom;
-        }
-        return _cvs;
+      if(canvas&&_blank(canvas)){await _pdfWait2(_isIOS?1500:500);
+        console.warn=function(){};
+        canvas=await _pdfTimeout(html2canvas(iframePage,{scale:_renderScale,useCORS:true,allowTaint:true,letterRendering:true,backgroundColor:'#ffffff',width:A4_W_PX,height:A4_H_PX,windowWidth:A4_W_PX,windowHeight:A4_H_PX,scrollX:0,scrollY:0,x:0,y:0,logging:false}),30000,'หมดเวลา');
+        console.warn=_origWarn;
       }
-
-      var canvas = await _capture();
-      // Retry once on blank canvas (iOS sometimes needs an extra paint frame)
-      if(canvas&&canvas.width>=10&&canvas.height>=10&&_canvasLooksBlank(canvas)){
-        await _pdfWait(_isIOS?1500:500);
-        canvas = await _capture();
-      }
-
-      if(!canvas||canvas.width<10||canvas.height<10)
-        throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
-      if(_canvasLooksBlank(canvas))
-        throw new Error('สร้าง PDF ไม่สำเร็จ (เนื้อหาว่างเปล่าผิดปกติ) กรุณาลองใหม่อีกครั้ง');
+      if(!canvas||canvas.width<10)throw new Error('สร้างภาพฟอร์มไม่สำเร็จ กรุณาลองใหม่');
+      if(_blank(canvas))throw new Error('สร้าง PDF ไม่สำเร็จ (ภาพว่างเปล่า) กรุณาลองใหม่');
 
       var imgData=canvas.toDataURL('image/jpeg',0.95);
-      if(!imgData||imgData.length<1000)
-        throw new Error('สร้างภาพฟอร์มไม่สำเร็จ (ข้อมูลภาพว่างเปล่า) กรุณาลองใหม่อีกครั้ง');
+      if(!imgData||imgData.length<1000)throw new Error('สร้างภาพฟอร์มไม่สำเร็จ');
 
-      // Always output as exactly 210×297mm A4
       var pdf=new J({unit:'mm',format:[210,297],orientation:'portrait',compress:true});
       pdf.addImage(imgData,'JPEG',0,0,210,297);
+      cleanup3();
 
-      cleanup2();
+      var co=(document.getElementById('companyName')&&document.getElementById('companyName').value||'').trim().replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_');
+      var dt=document.getElementById('serviceDate')&&document.getElementById('serviceDate').value||'';
+      var pdfName='SERVICE_SHEET'+(co?'_'+co:'')+(dt?'_'+dt.replace(/-/g,''):'')+'.pdf';
 
-      // Deliver PDF
       var _isIOSNow=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
       var _isAndroidNow=/Android/.test(navigator.userAgent);
       if(_isIOSNow||_isAndroidNow){
         try{
-          var _pdfBlob=pdf.output('blob');
-          var _ts=Date.now();
-          var _fileName='exports/'+_ts+'_'+pdfName;
-          var _up=await sb.storage.from('pdf-exports').upload(_fileName,_pdfBlob,{contentType:'application/pdf',upsert:true});
-          if(_up.error) throw _up.error;
-          var _pub=sb.storage.from('pdf-exports').getPublicUrl(_fileName);
-          var _url=_pub.data&&_pub.data.publicUrl;
-          if(!_url) throw new Error('no public url');
-          var _wa=window.open(_url,'_blank');
-          if(!_wa){ window.location.href=_url; }
-        }catch(upErr){
-          console.warn('upload failed:',upErr);
-          toastF('❌ อัปโหลดไม่สำเร็จ: '+upErr.message,'err');
-        }
-      }else{
-        pdf.save(pdfName);
-      }
+          var bl=pdf.output('blob');
+          var fn='exports/'+Date.now()+'_'+pdfName;
+          var up=await sb.storage.from('pdf-exports').upload(fn,bl,{contentType:'application/pdf',upsert:true});
+          if(up.error)throw up.error;
+          var pub=sb.storage.from('pdf-exports').getPublicUrl(fn);
+          var url=pub.data&&pub.data.publicUrl;if(!url)throw new Error('no url');
+          var w=window.open(url,'_blank');if(!w)window.location.href=url;
+        }catch(upErr){console.warn('upload:',upErr);toastF('❌ อัปโหลดไม่สำเร็จ: '+upErr.message,'err');}
+      }else{pdf.save(pdfName);}
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
     }catch(err){
-      console.error('PDF export error:',err);
-      toastF('❌ '+err.message,'err');
-      cleanup2();
+      console.error('PDF:',err);toastF('❌ '+err.message,'err');cleanup3();
     }
-  }catch(e){ console.error('PDF:',e); toastF('❌ '+e.message,'err'); }
+  }catch(e){console.error('PDF outer:',e);toastF('❌ '+e.message,'err');}
   if(btn){btn.textContent='📄 PDF/พิมพ์';btn.disabled=false;}
 }
+
 </script>
 
 <script id="LD2" type="text/plain">iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAIAAAAiOjnJAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAABPl0lEqVRk</script>
