@@ -136,24 +136,24 @@
   }
   .page-inner { flex: 1 !important; }
   *, .page, .page * { box-sizing: border-box !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .page input, .page select, .page textarea { color: #000 !important; background: #ffffff !important; }
+  .page input, .page select, .page textarea { color: #000 !important; background: transparent !important; }
   .page input[type="text"], .page input[type="tel"], .page input[type="date"], .page input[type="time"], .page input[type="number"],
   .page textarea,
   .page select {
     border: none !important;
-    border-bottom: none !important;
-    background: #ffffff !important;
+    border-bottom: 1px solid #aaa !important;
+    background: transparent !important;
     line-height: 1.4 !important;
     padding: 1px 4px !important;
     box-shadow: none !important;
   }
-  .page .field input { background: #ffffff !important; }
-  .page .parts-table td input { background: #ffffff !important; }
+  .page .field input { background: transparent !important; }
+  .page .parts-table td input { background: #ffffff !important; border-bottom: none !important; }
   .page select {
     color: #000 !important;
     border: none !important;
-    border-bottom: 1px solid #c4960a !important;
-    background: #ffffff !important;
+    border-bottom: 1px solid #aaa !important;
+    background: transparent !important;
     border-radius: 0 !important;
     padding: 1px 4px !important;
     appearance: none !important;
@@ -161,8 +161,7 @@
     box-shadow: none !important;
   }
   .page textarea {
-    border: none !important;
-    border-bottom: 1px solid #c4960a !important;
+    border: 1px solid #aaa !important;
     background: #ffffff !important;
     padding: 4px !important;
     min-height: 60px !important;
@@ -175,7 +174,10 @@
     box-shadow: none !important;
   }
   .service-type-bar { background: #fff7d6 !important; border: 1px solid #ffd151 !important; }
-  .status-block { background: #fff7d6 !important; border: 1px solid #ffd151 !important; }
+  .service-type-bar select { background: transparent !important; border: none !important; border-bottom: 1px solid #aaa !important; }
+  .status-bar-wrap { border: none !important; background: transparent !important; }
+  .status-bar-wrap select { background: transparent !important; border: none !important; border-bottom: 1px solid #aaa !important; }
+  .fee-bar-wrap { border: none !important; background: transparent !important; }
   .parts-table { border-collapse: collapse !important; }
   .parts-table, .parts-table th, .parts-table td { border: 1px solid #c4960a !important; }
   .parts-table th { background: #427aa1 !important; color: #fff !important; }
@@ -507,7 +509,7 @@ body {
     <div class="field full-width"><label>ที่อยู่ :</label><input type="text" id="addressInput" style="min-width:350px;"></div>
   </div>
   <div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>
-  <div style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
+  <div class="status-bar-wrap" style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
       <label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานที่บริการ :</label>
       <select style="border:none;border-bottom:1px solid #aaa;border-radius:0;background:#fff7d6;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
@@ -569,7 +571,7 @@ body {
   </table>
   <button class="btn-add-row" onclick="addRow()">+ เพิ่มแถว</button>
   <div class="section-title">ส่วนที่ 4 ประเภทค่าบริการ</div>
-  <div style="background:#fff;border:1px solid #ffd151;border-radius:4px;padding:4px 8px;margin-bottom:4px;">
+  <div class="fee-bar-wrap" style="background:#fff;border:1px solid #ffd151;border-radius:4px;padding:4px 8px;margin-bottom:4px;">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;white-space:nowrap;"><input type="radio" name="feeType" value="free" onchange="toggleFee(this)" style="accent-color:#1a3a6e;"> ฟรี</label>
       <label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;white-space:nowrap;"><input type="radio" name="feeType" value="bkk" onchange="toggleFee(this)" style="accent-color:#1a3a6e;"> กรุงเทพฯ/ปริมณฑล</label>
