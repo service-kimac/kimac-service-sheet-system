@@ -1147,10 +1147,8 @@ async function exportPDF(){
       .status-block label{font-weight:600!important;color:#427aa1!important;font-size:11px!important;white-space:nowrap!important;}
       .radio-group{display:flex!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important;}
       .radio-group label{display:flex!important;align-items:center!important;gap:4px!important;font-size:11px!important;font-weight:400!important;color:#333!important;}
-      .status-bar-wrap{border:none!important;background:transparent!important;padding:3px 0!important;}
       .status-bar-wrap select{border:none!important;border-bottom:1px solid #aaa!important;border-radius:0!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:2px 4px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;}
       .warranty-input{border:none!important;border-bottom:1px solid #aaa!important;background:transparent!important;box-shadow:none!important;}
-      .fee-bar-wrap{border:none!important;background:transparent!important;padding:4px 0!important;}
       .province-input{border:none!important;border-bottom:1px solid #aaa!important;background:transparent!important;box-shadow:none!important;}
       /* detail div */
       .detail-div-pdf{width:100%!important;border:1px solid #bfa000!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;overflow:visible!important;box-sizing:border-box!important;}
@@ -1244,6 +1242,27 @@ async function exportPDF(){
 
     // ซ่อนปุ่มที่ไม่ต้องการ
     pageClone.querySelectorAll('.btn-add-row,.sig-trigger-btn,.btn-clear-sig,.sig-clear-wrap').forEach(function(el){el.style.display='none';});
+
+    // ── 3 จุดนี้คงกรอบเหลืองเสมอใน PDF ──
+    // 1. งานบริการ select → กรอบเหลือง พื้นขาว
+    var _cloneSvcSelect = pageClone.querySelector('#serviceTypeSelect');
+    if(_cloneSvcSelect){
+      _cloneSvcSelect.style.cssText='border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
+    }
+
+    // 2. status-bar-wrap → กรอบเหลือง พื้นเหลืองอ่อน
+    var _cloneStatusWrap = pageClone.querySelector('.status-bar-wrap');
+    if(_cloneStatusWrap){
+      _cloneStatusWrap.style.cssText='background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:3px;';
+      var _cloneLocSel = _cloneStatusWrap.querySelector('select');
+      if(_cloneLocSel) _cloneLocSel.style.cssText='border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;appearance:none;-webkit-appearance:none;outline:none;';
+    }
+
+    // 3. fee-bar-wrap → กรอบเหลือง พื้นขาว
+    var _cloneFeeWrap = pageClone.querySelector('.fee-bar-wrap');
+    if(_cloneFeeWrap){
+      _cloneFeeWrap.style.cssText='background:#fff;border:1px solid #ffd151;border-radius:4px;padding:4px 8px;margin-bottom:4px;';
+    }
 
     // ── สร้าง iframe ──────────────────────────────────────────────
     var iframe=document.createElement('iframe');
