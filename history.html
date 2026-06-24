@@ -338,7 +338,21 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .pn{color:#e2e8f0}
 [data-theme="dark"] .pe{color:#94a3b8}
 [data-theme="dark"] .pr{background:#1e3a5c;color:#bfdbfe}
-/* ===== ฟอร์ม dispatch (ส่งงานให้ช่าง) — dark mode ===== */
+/* ปุ่มกลับ — หน้าถังขยะและหน้ารายงาน */
+[data-theme="dark"] .btn-back-trash,
+[data-theme="dark"] .btn-back-report {
+  background:#1e2d4a!important;
+  color:#9fc1ff!important;
+  border-color:#2a3650!important;
+}
+[data-theme="dark"] .btn-back-trash:active,
+[data-theme="dark"] .btn-back-report:active {
+  background:#2a3f60!important;
+}
+[data-theme="dark"] #pg-trash > div:first-child > div[style*="color:#1a3a6e"],
+[data-theme="dark"] #pg-report > div:first-child > div[style*="color:#1a3a6e"] {
+  color:#e2e8f0!important;
+}
 [data-theme="dark"] #pg-dispatch > div:first-of-type + div {
   background:#172033!important;border-color:#2a3650!important;
 }
@@ -460,6 +474,10 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 </div>
 <!-- REPORT PAGE -->
 <div id="pg-report" class="pg">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <button onclick="swPg('jobs')" class="btn-back-report" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
+    <div style="font-size:14px;font-weight:800;color:#1a3a6e">📊 รายงานยอด</div>
+  </div>
   <div class="rg">
     <div class="rc"><div class="rn" id="rTot">-</div><div class="rl">ใบงานทั้งหมด</div></div>
     <div class="rc"><div class="rn" id="rMon">-</div><div class="rl">เดือนนี้</div></div>
@@ -648,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- TRASH / RECOVERY PAGE -->
 <div id="pg-trash" class="pg">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-    <button onclick="swPg('settings')" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
+    <button onclick="swPg('settings')" class="btn-back-trash" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
     <div style="font-size:14px;font-weight:800;color:#1a3a6e">🗑️ ถังขยะ — กู้คืนเอกสาร</div>
   </div>
   <p style="font-size:12px;color:#888;margin-bottom:12px">ใบงานที่ลบจะมาอยู่ที่นี่ กด "กู้คืน" เพื่อนำกลับ หรือ "ลบถาวร" เพื่อลบออกอย่างถาวร (ไม่สามารถกู้คืนได้)</p>
