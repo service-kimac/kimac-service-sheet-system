@@ -1102,6 +1102,9 @@ async function exportPDF(){
       .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;}
       .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
       .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important;}
+      /* หยุด position:absolute จากกระทบ header-logo */
+      .header-logo{position:static!important;width:75px!important;height:55px!important;object-fit:contain!important;display:block!important;}
+      .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;}
       .sig-clear-wrap{display:none!important;min-height:0!important;}
       .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important;}
       .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important;}
@@ -1139,6 +1142,13 @@ async function exportPDF(){
       else if(el.type==='checkbox'){d.checked=el.checked;}
       else{d.value=el.value;d.setAttribute('value',el.value);}
     });
+
+    // ── Copy โลโก้ src จาก live img (JS ใน iframe ไม่ทำงาน) ──────
+    var liveLogo = document.getElementById('kimacLogo');
+    var cloneLogo = pageClone.querySelector('#kimacLogo');
+    if(liveLogo && cloneLogo && liveLogo.src && liveLogo.src.indexOf('data:')===0){
+      cloneLogo.src = liveLogo.src;
+    }
 
     // Copy ลายเซ็น
     ['tech','cust'].forEach(function(t){
