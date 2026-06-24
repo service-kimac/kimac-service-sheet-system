@@ -376,7 +376,7 @@ body.mobile-a4 .footer { margin-top: auto; }
 .parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; }
 .parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: center; }
 .parts-table td:first-child { text-align: center; width: 24px; background: #fff7d6; font-weight: 600; color: #427aa1; }
-.parts-table .price-cell input { text-align: right; }
+.parts-table .amount-cell input { text-align: right; }
 .parts-table .total-label { text-align: right; font-weight: 700; background: #fff7d6; color: #427aa1; padding-right: 8px; border: 1px solid #c4960a; }
 .parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
@@ -509,26 +509,25 @@ body {
     <thead>
       <tr>
         <th style="text-align:center;">ลำดับ</th>
-        <th style="text-align:center;width:28%">รายการอะไหล่</th>
+        <th style="text-align:center;width:36%">รายการอะไหล่</th>
         <th style="width:12%">รหัส</th>
         <th style="width:8%">จำนวน</th>
         <th style="width:8%">หน่วย</th>
-        <th style="width:14%">ราคา/หน่วย</th>
-        <th style="width:16%">ราคารวม</th>
+        <th style="width:20%">จำนวนเงิน (บาท)</th>
       </tr>
     </thead>
     <tbody id="partsBody"></tbody>
     <tfoot>
       <tr>
-        <td colspan="6" class="total-label">รวมยอด</td>
+        <td colspan="5" class="total-label">รวมยอด</td>
         <td class="total-val"><input type="text" id="s_sub" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="6" class="total-label">VAT 7%</td>
+        <td colspan="5" class="total-label">VAT 7%</td>
         <td class="total-val"><input type="text" id="s_vat" readonly placeholder="0.00"></td>
       </tr>
       <tr>
-        <td colspan="6" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
+        <td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #d4c000;background:#e8f4fb;">รวมยอดสุทธิ</td>
         <td style="text-align:right;background:#e8f4fb;border:1px solid #d4c000;padding-right:6px;"><input type="text" id="s_total" readonly placeholder="0.00" style="width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;"></td>
       </tr>
     </tfoot>
@@ -654,10 +653,9 @@ function buildRow(num) {
     <td>${num}</td>
     <td><input type="text" class="part-name" style="text-align:left;width:100%"></td>
     <td><input type="text" class="part-code" style="width:100%"></td>
-    <td><input type="number" class="part-qty" min="0" step="1" oninput="calcTotal()" style="width:100%;text-align:right"></td>
+    <td><input type="number" class="part-qty" min="0" step="1" style="width:100%;text-align:right"></td>
     <td><input type="text" class="part-unit" style="width:100%"></td>
-    <td class="price-cell"><input type="number" class="part-price" min="0" step="0.01" oninput="calcTotal()" style="width:100%;text-align:right"></td>
-    <td class="line-total-cell"><input type="text" class="part-line-total" readonly value="0.00" style="width:100%;text-align:right;background:transparent;border:none;color:#1a3a6e;font-weight:700"></td>
+    <td class="amount-cell"><input type="number" class="part-amount" min="0" step="0.01" oninput="calcTotal()" style="width:100%;text-align:right"></td>
   `;
   return tr;
 }
@@ -692,14 +690,18 @@ function calcTotal() {
   if (!tbody) return;
   let subtotal = 0;
   tbody.querySelectorAll('tr').forEach(function(tr) {
+    const amountEl = tr.querySelector('input.part-amount');
     const qtyEl = tr.querySelector('input.part-qty');
-    const priceEl = tr.querySelector('input.part-price');
-    const lineTotalEl = tr.querySelector('input.part-line-total');
-    const qty = parseFloat((qtyEl && qtyEl.value || '').replace(/,/g, '')) || 0;
-    const price = parseFloat((priceEl && priceEl.value || '').replace(/,/g, '')) || 0;
-    const lineTotal = qty * price;
-    subtotal += lineTotal;
-    if (lineTotalEl) lineTotalEl.value = formatNumber(lineTotal);
+    // if amount provided, use it; else try qty* (no unit-price now)
+    let amount = 0;
+    if (amountEl && amountEl.value !== '') {
+      amount = parseFloat((amountEl.value || '').toString().replace(/,/g, '')) || 0;
+    } else {
+      // fallback in case older data uses price fields
+      const qty = parseFloat((qtyEl && qtyEl.value || '').toString().replace(/,/g, '')) || 0;
+      amount = 0 * qty;
+    }
+    subtotal += amount;
   });
   const vat = subtotal * 0.07;
   const total = subtotal + vat;
@@ -1143,6 +1145,7 @@ async function exportPDF(){
       '#pdfExportHost .field{gap:3px!important}'+
       '#pdfExportHost .field label{font-size:11px!important}'+
       '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important;padding:1px 3px!important}'+
+      '#pdfExportHost .field input,#pdfExportHost .parts-table td input,#pdfExportHost .field textarea{border-bottom:1px solid #c4960a!important;background:transparent!important}'+
       '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important}'+
       '#pdfExportHost .service-type-bar select{font-size:12px!important}'+
       '#pdfExportHost .status-row{gap:6px!important;margin-bottom:3px!important}'+
@@ -1459,17 +1462,18 @@ function fillForm(j,pts){
           pts.forEach(function(p){
             rowCount++;var tr=buildRow(rowCount);tb.appendChild(tr);
             var nameInput = tr.querySelector('input.part-name');
-          var codeInput = tr.querySelector('input.part-code');
-          var qtyInput = tr.querySelector('input.part-qty');
-          var unitInput = tr.querySelector('input.part-unit');
-          var priceInput = tr.querySelector('input.part-price');
-          var lineTotalInput = tr.querySelector('input.part-line-total');
-          if (nameInput) nameInput.value = p.part_name || '';
-          if (codeInput) codeInput.value = p.part_code || '';
-          if (qtyInput) qtyInput.value = p.qty || '';
-          if (unitInput) unitInput.value = p.unit || '';
-          if (priceInput) priceInput.value = p.price || '';
-          if (lineTotalInput) lineTotalInput.value = formatNumber((parseFloat(p.qty) || 0) * (parseFloat(p.price) || 0));
+            var codeInput = tr.querySelector('input.part-code');
+            var qtyInput = tr.querySelector('input.part-qty');
+            var unitInput = tr.querySelector('input.part-unit');
+            var amountInput = tr.querySelector('input.part-amount');
+            if (nameInput) nameInput.value = p.part_name || '';
+            if (codeInput) codeInput.value = p.part_code || '';
+            if (qtyInput) qtyInput.value = p.qty || '';
+            if (unitInput) unitInput.value = p.unit || '';
+            // determine amount: prefer explicit line_total, then price*qty, then price
+            var a = parseFloat(p.line_total || p.price || 0) || 0;
+            if (!a && p.qty && p.price) a = (parseFloat(p.qty)||0) * (parseFloat(p.price)||0);
+            if (amountInput) amountInput.value = a ? a.toFixed(2) : '';
           });
           while(rowCount<5){rowCount++;document.getElementById('partsBody').appendChild(buildRow(rowCount));}
           calcTotal();
@@ -1500,10 +1504,10 @@ function getDraftData(){
     var partCodeEl = r.querySelector('input.part-code');
     var qtyEl = r.querySelector('input.part-qty');
     var unitEl = r.querySelector('input.part-unit');
-    var priceEl = r.querySelector('input.part-price');
+    var amountEl = r.querySelector('input.part-amount');
     parts.push({seq:i+1,
       part_name:(partNameEl&&partNameEl.value)||'',part_code:(partCodeEl&&partCodeEl.value)||'',
-      qty:(qtyEl&&qtyEl.value)||'',unit:(unitEl&&unitEl.value)||'',price:(priceEl&&priceEl.value)||''});
+      qty:(qtyEl&&qtyEl.value)||'',unit:(unitEl&&unitEl.value)||'',price:(amountEl&&amountEl.value)||''});
   });
   d.parts=parts;
   var cd=document.getElementById('custDept');d.cust_dept=cd&&cd.value||'';
@@ -1617,13 +1621,13 @@ function getFormData(){
     var codeEl=r.querySelector('input.part-code');
     var qtyEl=r.querySelector('input.part-qty');
     var unitEl=r.querySelector('input.part-unit');
-    var priceEl=r.querySelector('input.part-price');
+    var amtEl=r.querySelector('input.part-amount');
     var nm=(nameEl&&nameEl.value.trim())||'';
     if(!nm)return;
     var qty=parseFloat((qtyEl&&qtyEl.value||'').replace(/,/g,''))||1;
-    var price=parseFloat((priceEl&&priceEl.value||'').replace(/,/g,''))||0;
+    var amount=parseFloat((amtEl&&amtEl.value||'').replace(/,/g,''))||0;
     parts.push({seq:i+1,part_name:nm,part_code:codeEl&&codeEl.value||'',
-      qty:qty,unit:unitEl&&unitEl.value||'',price:price,line_total:qty*price});
+      qty:qty,unit:unitEl&&unitEl.value||'',price:amount,line_total:amount});
   });
   var txt=document.querySelectorAll('#page input[type="text"]');
   var tel=document.getElementById('contactPhone');
