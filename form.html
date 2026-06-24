@@ -104,19 +104,20 @@
     print-color-adjust: exact;
   }
   .page-wrapper {
-    width: 210mm !important;
+    width: auto !important;
+    max-width: 100% !important;
     zoom: 1 !important;
     transform: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    min-height: 297mm !important;
+    min-height: auto !important;
   }
   /* ✅ FIX4: ลบ overflow:hidden ออกจาก .page เพื่อกัน WebKit iOS ซ่อนเนื้อหาตอนพิมพ์
-     ✅ FIX3: เพิ่ม padding ด้านบน/ล่าง และขยาย min-height ให้เนื้อหาเต็ม A4 พอดี */
+     ✅ FIX3: เพิ่ม padding ด้านบน/ล่าง และให้ conteúdo ปรับได้ภายใน A4 */
   .page {
-    width: 210mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    width: auto !important;
+    max-width: 100% !important;
+    min-height: auto !important;
     overflow: visible !important;
     box-shadow: none !important;
     margin: 0 !important;
@@ -131,17 +132,40 @@
   }
   .page-inner { flex: 1 !important; }
   /* print color/shadow fidelity */
-  *, .page, .page * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .page input, .page select, .page textarea { border-bottom: 1px solid #c4960a !important; background: transparent !important; color: #000 !important; }
+  *, .page, .page * { box-sizing: border-box !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .page input, .page select, .page textarea { color: #000 !important; }
+  .page input[type="text"], .page input[type="tel"], .page input[type="date"], .page input[type="time"], .page input[type="number"] {
+    border: none !important;
+    border-bottom: 1px solid #c4960a !important;
+    background: transparent !important;
+    line-height: 1.4 !important;
+    padding: 1px 4px !important;
+  }
+  .page select {
+    color: #000 !important;
+    border: 1px solid #c4960a !important;
+    background: #ffffff !important;
+    border-radius: 4px !important;
+    padding: 1px 4px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+  }
+  .page textarea {
+    border: 1px solid #c4960a !important;
+    background: #ffffff !important;
+    padding: 4px !important;
+    min-height: 60px !important;
+  }
   .page input[type="radio"], .page input[type="checkbox"] { accent-color: #427aa1 !important; }
-  .page select { color: #000 !important; border: 1px solid #c4960a !important; background: #ffffff !important; }
-  .page textarea { background: transparent !important; }
-  .service-type-bar { background: #fff7d6 !important; border-color: #ffd151 !important; }
-  .status-block { background: #fff7d6 !important; border-color: #ffd151 !important; }
+  .service-type-bar { background: #fff7d6 !important; border: 1px solid #ffd151 !important; }
+  .status-block { background: #fff7d6 !important; border: 1px solid #ffd151 !important; }
+  .parts-table { border-collapse: collapse !important; }
+  .parts-table, .parts-table th, .parts-table td { border: 1px solid #c4960a !important; }
   .parts-table th { background: #427aa1 !important; color: #fff !important; }
   .parts-table .total-label { background: #fff7d6 !important; color: #427aa1 !important; }
   .parts-table .total-val { background: #fffbf0 !important; color: #c00 !important; }
   .section-title { background: #427aa1 !important; color: #fff !important; }
+  .service-type-bar span, .status-block label, .radio-group label, .field label { color: #427aa1 !important; }
   /* ✅ FIX3: footer ดันลงล่างสุดด้วย margin-top:auto */
   .footer { margin-top: auto !important; }
 
@@ -1153,8 +1177,19 @@ async function exportPDF(){
       '#pdfExportHost .field label{font-size:11px!important}'+
       '#pdfExportHost .field input,#pdfExportHost .field select,#pdfExportHost .field textarea{font-size:12px!important;padding:1px 3px!important}'+
       '#pdfExportHost .field input,#pdfExportHost .parts-table td input,#pdfExportHost .field textarea{border-bottom:1px solid #c4960a!important;background:transparent!important}'+
-      '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important}'+
-      '#pdfExportHost .service-type-bar select{font-size:12px!important}'+
+      '#pdfExportHost .field input[type="text"],#pdfExportHost .field input[type="tel"],#pdfExportHost .field input[type="date"],#pdfExportHost .field input[type="time"],#pdfExportHost .field input[type="number"]{line-height:1.4!important;padding:1px 4px!important;background:transparent!important}'+
+      '#pdfExportHost .field select{border:1px solid #c4960a!important;background:#ffffff!important;border-radius:4px!important;color:#000!important;padding:1px 4px!important;appearance:none!important;-webkit-appearance:none!important}'+
+      '#pdfExportHost .field textarea{border:1px solid #c4960a!important;background:#ffffff!important;padding:4px!important;min-height:60px!important}'+
+      '#pdfExportHost .service-type-bar{padding:3px 6px!important;margin-bottom:4px!important;font-size:12px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
+      '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important;background:#fff7d6!important;border:1px solid #ffd151!important}'+
+      '#pdfExportHost .parts-table{border-collapse:collapse!important}'+
+      '#pdfExportHost .parts-table th{font-size:11px!important;padding:3px 3px!important;background:#427aa1!important;color:#fff!important;border:1px solid #c4960a!important}'+
+      '#pdfExportHost .parts-table td{padding:3px 3px!important;font-size:11px!important;border:1px solid #c4960a!important}'+
+      '#pdfExportHost .parts-table td input{font-size:11px!important;border-bottom:1px solid #c4960a!important;background:transparent!important}'+
+      '#pdfExportHost .parts-table .total-label{background:#fff7d6!important;color:#427aa1!important}'+
+      '#pdfExportHost .parts-table .total-val{background:#fffbf0!important;color:#c00!important}'+
+      '#pdfExportHost .section-title{font-size:12px!important;padding:3px 6px!important;margin-top:6px!important;margin-bottom:3px!important;background:#427aa1!important;color:#fff!important}'+
+      '#pdfExportHost .field label{color:#427aa1!important}'+
       '#pdfExportHost .status-row{gap:6px!important;margin-bottom:3px!important}'+
       '#pdfExportHost .status-block{padding:3px 6px!important;font-size:11px!important}'+
       '#pdfExportHost .status-block label{font-size:11px!important}'+
