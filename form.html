@@ -341,8 +341,9 @@
   height: 297mm;
   min-height: 297mm;
   max-height: 297mm;
-  background: transparent;
-  box-shadow: none;
+  background: #ffffff;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.22), 0 1.5px 6px rgba(0,0,0,0.10);
+  border-radius: 2px;
   padding: 8mm 8mm 7mm 8mm; position: relative;
   display: flex; flex-direction: column;
   overflow: hidden;
@@ -350,7 +351,7 @@
 @media (max-width: 820px) {
   body { overflow-x: hidden; }
   .page-wrapper { justify-content: center; padding: 12px 10px; overflow-x: auto; }
-  .page { width: 210mm; max-width: none; aspect-ratio: 210 / 297; flex: 0 0 auto; margin: 0 auto; background: transparent; box-shadow: none; border-radius: 0; }
+  .page { width: 210mm; max-width: none; aspect-ratio: 210 / 297; flex: 0 0 auto; margin: 0 auto; background: #ffffff; box-shadow: 0 4px 32px rgba(0,0,0,0.22), 0 1.5px 6px rgba(0,0,0,0.10); border-radius: 2px; }
   .ab-hist { background: linear-gradient(135deg,#05406a,#0b5f8a); color: #fff; border: 1px solid rgba(0,0,0,0.12); }
 }
 body.mobile-a4 { overflow-x: hidden; background: #f0f2f5; }
@@ -361,11 +362,11 @@ body.mobile-a4 .page {
   aspect-ratio: 210 / 297;
   height: auto;
   min-height: 297mm;
-  box-shadow: none;
+  background: #ffffff;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.22), 0 1.5px 6px rgba(0,0,0,0.10);
+  border-radius: 2px;
   overflow: visible;
   margin: 16px auto;
-  background: transparent;
-  border-radius: 0;
 }
 body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 body.mobile-a4 .footer { margin-top: auto; }
@@ -397,9 +398,9 @@ body.mobile-a4 .footer { margin-top: auto; }
 .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; font-weight: 400; color: #333; }
 .radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #427aa1; cursor: pointer; }
-.warranty-input { border: none; border-bottom: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
+.warranty-input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; }
   .warranty-input.show { display: inline-block; }
-  .province-input { border: none; border-bottom: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
+  .province-input { border: none; border-bottom: 1px solid #c4960a; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 12px; width: 110px; outline: none; display: none; color: #222; }
 .province-input.show { display: inline-block; }
 
 /* parts table */
@@ -527,9 +528,9 @@ body {
     <div class="field"><label>วันที่ซื้อ :</label><input type="date"></div>
   </div>
   <div class="form-row">
-    <div class="field full-width" style="flex-direction:column;align-items:flex-start;gap:3px;">
-      <label>รายละเอียด :</label>
-      <textarea id="detailTextarea" rows="5" style="width:100%;"></textarea>
+    <div class="field full-width" style="flex-direction:column;align-items:flex-start;gap:2px;">
+      <label style="white-space:nowrap;">รายละเอียด :</label>
+      <textarea id="detailTextarea" rows="5" style="width:100%;border:1.5px solid #ffd151;background:#fff;border-radius:3px;padding:4px 6px;font-family:'Sarabun',sans-serif;font-size:13px;resize:none;outline:none;line-height:1.45;"></textarea>
     </div>
   </div>
   <div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>
@@ -562,7 +563,7 @@ body {
   </table>
   <button class="btn-add-row" onclick="addRow()">+ เพิ่มแถว</button>
   <div class="section-title">ส่วนที่ 4 ประเภทค่าบริการ</div>
-  <div style="background:#f8f8f8;border:1px solid #d4c000;border-radius:0 0 4px 4px;padding:4px 8px;margin-bottom:4px;">
+  <div style="padding:4px 2px;margin-bottom:4px;">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;white-space:nowrap;"><input type="radio" name="feeType" value="free" onchange="toggleFee(this)" style="accent-color:#1a3a6e;"> ฟรี</label>
       <label style="display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer;white-space:nowrap;"><input type="radio" name="feeType" value="bkk" onchange="toggleFee(this)" style="accent-color:#1a3a6e;"> กรุงเทพฯ/ปริมณฑล</label>
@@ -753,17 +754,41 @@ function scalePage() {
     scale = Math.min(1, availW / pageNaturalW, availH / pageNaturalH);
     if (scale < 0.4) scale = 0.4;
     document.body.classList.add('mobile-a4');
+    // Mobile: lock wrapper to viewport, no scroll
     wrapper.style.width = '100%';
     wrapper.style.maxWidth = '100%';
-    wrapper.style.overflow = '';
-    wrapper.style.position = '';
-    wrapper.style.margin = '0 auto';
+    wrapper.style.overflow = 'hidden';
+    wrapper.style.position = 'fixed';
+    wrapper.style.top = topH + 'px';
+    wrapper.style.left = '0';
+    wrapper.style.right = '0';
+    wrapper.style.bottom = bottomH + 'px';
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.justifyContent = 'center';
+    wrapper.style.margin = '0';
+    wrapper.style.padding = '0';
+    document.body.style.overflow = 'hidden';
   } else {
     scale = Math.min(1, availableWidth / pageWidth);
     if (scale < 0.55) scale = 0.55;
     document.body.classList.remove('mobile-a4');
+    // PC: allow scroll
     wrapper.style.width = '';
+    wrapper.style.maxWidth = '';
+    wrapper.style.overflow = '';
+    wrapper.style.position = '';
+    wrapper.style.top = '';
+    wrapper.style.left = '';
+    wrapper.style.right = '';
+    wrapper.style.bottom = '';
+    wrapper.style.display = '';
+    wrapper.style.alignItems = '';
+    wrapper.style.justifyContent = '';
+    wrapper.style.margin = '';
+    wrapper.style.padding = '';
     wrapper.style.transform = '';
+    document.body.style.overflow = '';
   }
   if (window.innerWidth <= mobileThreshold) {
     page.style.transformOrigin = 'top center';
