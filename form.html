@@ -18,8 +18,8 @@
   html {
     width: 100%;
     min-width: 0;
-    overflow: hidden;
-    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -27,16 +27,17 @@
     width: 100%;
     min-width: 0;
     margin: 0;
-    height: 100%;
+    min-height: 100vh;
     font-family: 'Sarabun', sans-serif;
     background: #fffaff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: calc(58px + env(safe-area-inset-top)) 0 calc(72px + env(safe-area-inset-bottom)) 0;
     font-size: 13px;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -309,7 +310,8 @@
 .header-spacer { width: 110px; flex: 0 0 110px; }
 
 /* page wrapper & A4 page */
-.page-wrapper { width: 100%; height: 100%; overflow: hidden; display: flex; justify-content: center; align-items: center; margin: 0; padding: 0; box-sizing: border-box; }
+/* desktop: เลื่อนขึ้นลงได้ / mobile: ล็อกกลางจอ */
+.page-wrapper { width: 100%; overflow: visible; display: flex; justify-content: center; align-items: flex-start; margin: 0; padding: 12px 0; box-sizing: border-box; }
 .page {
   width: 210mm;
   height: 297mm;
@@ -708,6 +710,7 @@ function scalePage() {
   var mobileThreshold = 820;
   var scale;
   if (window.innerWidth <= mobileThreshold) {
+    // มือถือ: ล็อกกลางจอ ไม่เลื่อน
     var topbar = document.querySelector('.topbar-c');
     var actbar = document.querySelector('.actbar');
     var topH = topbar ? topbar.offsetHeight : 0;
@@ -724,6 +727,7 @@ function scalePage() {
     page.style.transform = 'scale(' + scale + ')';
     page.style.margin = '0';
   } else {
+    // คอม: เลื่อนขึ้นลงได้ปกติ
     var availableWidth = Math.max(80, window.innerWidth - 20);
     scale = Math.min(1, availableWidth / pageNaturalW);
     if (scale < 0.55) scale = 0.55;
@@ -1082,11 +1086,12 @@ async function exportPDF(){
       #warrantyLabel{display:none!important;}
       /* Fee row */
       .fee-row-pdf{background:#f8f8f8!important;border:1px solid #d4c000!important;border-radius:0 0 4px 4px!important;padding:4px 8px!important;margin-bottom:4px!important;display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;font-size:12px!important;}
+
       /* Signature */
       .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:3px!important;flex:1!important;min-height:0!important;align-items:stretch!important;max-height:200px!important;}
-      .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:4px 8px 5px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important;min-height:0!important;}
-      .sig-box .sig-title{font-size:11px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:3px!important;}
-      .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:0!important;}
+      .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important;}
+      .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;}
+      .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
       .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important;}
       /* หยุด position:absolute จากกระทบ header-logo */
       .header-logo{position:static!important;width:95px!important;height:70px!important;object-fit:contain!important;display:block!important;}
@@ -1341,7 +1346,7 @@ function fillForm(j,pts){
       }
     }
 
-    var dis=document.querySelectorAll('#page input[type="date"]');
+        var dis=document.querySelectorAll('#page input[type="date"]');
         var _tsEl=document.getElementById('timeStart');
   var _teEl=document.getElementById('timeEnd');
         if(dis[0]&&j.service_date)dis[0].value=j.service_date;
@@ -1364,7 +1369,7 @@ function fillForm(j,pts){
     var _wl=document.getElementById('warrantyLabel');
     if(_wn){_wn.classList.remove('show');_wn.value='';}
     if(_wl){_wl.style.display='none';}
-    if(j.warranty_status){
+        if(j.warranty_status){
           var wr=document.querySelector('input[name="warranty"][value="'+j.warranty_status+'"]');
           if(wr){wr.checked=true;toggleWarranty(wr);}
           var wn=document.getElementById('warrantyNo');if(wn)wn.value=j.warranty_no||'';
@@ -1374,7 +1379,7 @@ function fillForm(j,pts){
     document.querySelectorAll('input[name="feeType"]').forEach(function(r){r.checked=false;});
     var _pi=document.getElementById('provinceInput');
     if(_pi){_pi.classList.remove('show');_pi.value='';}
-    if(j.fee_type){
+        if(j.fee_type){
           var fr=document.querySelector('input[name="feeType"][value="'+j.fee_type+'"]');
           if(fr){fr.checked=true;toggleFee(fr);}
           var pi=document.getElementById('provinceInput');if(pi)pi.value=j.province||'';
