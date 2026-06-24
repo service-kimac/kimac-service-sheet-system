@@ -1130,6 +1130,7 @@ async function exportPDF(){
       /* Service type */
       .service-type-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;gap:10px!important;font-size:12px!important;}
       .service-type-bar span{font-weight:600!important;color:#427aa1!important;}
+      .service-type-bar span.svc-val-span{font-weight:400!important;color:#000!important;}
       .service-type-bar select{border:none!important;border-bottom:1px solid #aaa!important;border-radius:0!important;background:transparent!important;font-size:12px!important;padding:1px 4px!important;color:#222!important;appearance:none!important;-webkit-appearance:none!important;}
       .other-input{border:none!important;border-bottom:1px solid #aaa!important;background:transparent!important;box-shadow:none!important;}
       /* Section titles */
@@ -1266,7 +1267,8 @@ async function exportPDF(){
     // หา span ที่แทน select ใน service-type-bar (span แรกคือ label "งานบริการ :" ส่วน span ที่สองคือ select ที่ถูกแทน)
     var _svcBarSpans = pageClone.querySelectorAll('.service-type-bar span');
     if(_svcBarSpans.length >= 2){
-      _svcBarSpans[1].style.cssText='display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#222;min-width:120px;';
+      _svcBarSpans[1].className = 'svc-val-span';
+      _svcBarSpans[1].style.cssText='display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#000 !important;min-width:120px;font-weight:400;';
     }
     // other-input: แสดงเฉพาะตอนเลือก "อื่นๆ"
     var _cloneOtherInput = pageClone.querySelector('#otherServiceInput');
@@ -1284,7 +1286,7 @@ async function exportPDF(){
       _cloneStatusWrap.style.cssText='background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:3px;';
       // span ที่แทน select (ลูก span ใน div แรกของ status-bar-wrap)
       var _locSpan = _cloneStatusWrap.querySelector('div > span');
-      if(_locSpan) _locSpan.style.cssText='display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#222;min-width:80px;';
+      if(_locSpan) _locSpan.style.cssText='display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 6px;color:#000;font-weight:400;min-width:80px;';
     }
     // warrantyNo + warrantyLabel: แสดงเฉพาะตอนเลือก "ในรับประกัน"
     var _warrantyChecked = original.querySelector('input[name="warranty"]:checked');
