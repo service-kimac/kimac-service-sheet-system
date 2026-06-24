@@ -415,7 +415,8 @@ body.mobile-a4 .footer { margin-top: auto; }
 .parts-table { width: 100%; border-collapse: collapse; margin-bottom: 3px; font-size: 12px; }
 .parts-table th { background: #427aa1; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; }
 .parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; }
-.parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: center; }
+.parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: left; }
+.parts-table .amount-cell input { text-align: right; }
 .parts-table td:first-child { text-align: center; width: 24px; background: #fff7d6; font-weight: 600; color: #427aa1; }
 .parts-table .amount-cell input { text-align: right; }
 .parts-table .total-label { text-align: right; font-weight: 700; background: #fff7d6; color: #427aa1; padding-right: 8px; border: 1px solid #c4960a; }
@@ -512,11 +513,11 @@ body {
   <div class="status-bar-wrap" style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
       <label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานที่บริการ :</label>
-      <select style="border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
+      <select id="serviceLocation" style="border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:'Sarabun',sans-serif;font-size:13px;padding:2px 6px;outline:none;cursor:pointer;color:#222;appearance:none;-webkit-appearance:none;">
         <option value="">-- เลือก --</option>
-        <option>บริษัทลูกค้า</option>
-        <option>บจก.คีแมค</option>
-        <option>อื่นๆ</option>
+        <option value="บริษัทลูกค้า">บริษัทลูกค้า</option>
+        <option value="บจก.คีแมค">บจก.คีแมค</option>
+        <option value="อื่นๆ">อื่นๆ</option>
       </select>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -680,7 +681,7 @@ function buildRow(num) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td>${num}</td>
-    <td><input type="text" class="part-name" style="text-align:left;width:100%"></td>
+    <td><input type="text" class="part-name" style="width:100%"></td>
     <td><input type="text" class="part-code" style="width:100%"></td>
     <td><input type="number" class="part-qty" min="0" step="1" style="width:100%;text-align:right"></td>
     <td><input type="text" class="part-unit" style="width:100%"></td>
@@ -1158,7 +1159,9 @@ async function exportPDF(){
       .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;}
       .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#ffffff!important;font-size:11px!important;}
       .parts-table td:first-child{text-align:center!important;width:24px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
-      .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;text-align:center!important;color:#000!important;}
+      .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;text-align:left!important;color:#000!important;}
+      .parts-table .amount-cell input{text-align:right!important;}
+      .parts-table input.part-qty{text-align:right!important;}
       .parts-table .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important;}
       .parts-table .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#cc0000!important;border:1px solid #c4960a!important;padding-right:6px!important;}
       #s_total{font-size:13px!important;font-weight:700!important;color:#1a3a6e!important;}
@@ -1528,7 +1531,7 @@ function fillForm(j,pts){
           while(rowCount<5){rowCount++;document.getElementById('partsBody').appendChild(buildRow(rowCount));}
           calcTotal();
         }
-    var sl=document.querySelector('.status-block select');if(sl&&j.service_location)sl.value=j.service_location;
+    var sl=document.getElementById('serviceLocation');if(sl&&j.service_location)sl.value=j.service_location;
   }catch(e){console.error('fillForm:',e);}
 }
 
@@ -1680,7 +1683,7 @@ function getFormData(){
     contact_name:document.getElementById('contactName')&&document.getElementById('contactName').value||'',
     position:document.getElementById('positionInput')&&document.getElementById('positionInput').value||'',phone:tel&&tel.value||'',
     address:(document.getElementById('addressInput')&&document.getElementById('addressInput').value)||'',
-    service_location:document.querySelector('.status-block select')&&document.querySelector('.status-block select').value||'',
+    service_location:document.getElementById('serviceLocation')&&document.getElementById('serviceLocation').value||'',
     warranty_status:warr&&warr.value||'',
     warranty_no:document.getElementById('warrantyNo')&&document.getElementById('warrantyNo').value||'',
     machine_name:txt[6]&&txt[6].value||'',machine_model:txt[7]&&txt[7].value||'',
