@@ -63,7 +63,7 @@
   .btn-export:hover { background: #0e1c36; }
   @page {
     size: A4 portrait;
-    margin: 0;
+    margin: 10mm 12mm;
   }
   @media print {
   .topbar-c, .actbar, .status-bar,
@@ -71,7 +71,7 @@
   .sig-trigger-btn, .sig-clear-wrap,
   .toast-f { display: none !important; }
 
-  @page { size: 210mm 297mm portrait; margin: 0; }
+  @page { size: A4 portrait; margin: 10mm 12mm; }
 
   /* ✅ FIX2+4: ล็อก html/body สำหรับพิมพ์
      - ใช้ overflow:visible แทน overflow:hidden กัน iOS Safari blank page
@@ -132,10 +132,16 @@
   .page-inner { flex: 1 !important; }
   /* print color/shadow fidelity */
   *, .page, .page * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .page input, .page select, .page textarea { border-bottom: 1px solid #c4960a !important; background: transparent !important; }
-  .page select { color: #000 !important; }
+  .page input, .page select, .page textarea { border-bottom: 1px solid #c4960a !important; background: transparent !important; color: #000 !important; }
+  .page input[type="radio"], .page input[type="checkbox"] { accent-color: #427aa1 !important; }
+  .page select { color: #000 !important; border: 1px solid #c4960a !important; background: #ffffff !important; }
   .page textarea { background: transparent !important; }
-  .service-type-bar, .status-block, .parts-table th, .parts-table .total-label, .parts-table .total-val { background: inherit !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .service-type-bar { background: #fff7d6 !important; border-color: #ffd151 !important; }
+  .status-block { background: #fff7d6 !important; border-color: #ffd151 !important; }
+  .parts-table th { background: #427aa1 !important; color: #fff !important; }
+  .parts-table .total-label { background: #fff7d6 !important; color: #427aa1 !important; }
+  .parts-table .total-val { background: #fffbf0 !important; color: #c00 !important; }
+  .section-title { background: #427aa1 !important; color: #fff !important; }
   /* ✅ FIX3: footer ดันลงล่างสุดด้วย margin-top:auto */
   .footer { margin-top: auto !important; }
 
@@ -168,6 +174,7 @@
   .parts-table th { font-size: 11px !important; padding: 3px 3px !important; }
   .parts-table td { padding: 3px 3px !important; font-size: 11px !important; }
   .parts-table td input { font-size: 11px !important; }
+  .parts-table, .parts-table th, .parts-table td { border-color: #c4960a !important; }
 
   .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; flex: 1 !important; }
   .sig-box { padding: 5px 8px 8px !important; }
