@@ -1535,39 +1535,29 @@ async function exportPDFBatch(){
   toast('✅ Export PDF สำเร็จ '+(total-errs)+'/'+total+' ใบงาน'+(errs?' ('+errs+' ใบผิดพลาด)':''),'ok');
 }
 
-// สร้าง PDF – inject form HTML เข้า body โดยตรง (เหมือน exportPDF ใน form.html) → html2canvas → jsPDF
-// ── PDF helper functions ──
+
+// ── PDF helpers ──
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escA(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
-function fmtDate(d){if(!d)return '';try{var dt=new Date(d);if(isNaN(dt))return d;return dt.toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'});}catch(e){return d||'';}}
+function fmtDate(d){
+  if(!d)return '';
+  try{var dt=new Date(d);if(isNaN(dt))return String(d);
+    return dt.toLocaleDateString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit'});}
+  catch(e){return String(d||'');}
+}
 
-async function renderJobPDF(job){
-  var parts=[];
-  try{
-    var rp=await sb.from('service_parts').select('*').eq('job_id',job.id).order('seq');
-    parts=rp.data||[];
-  }catch(e){}
-
-  // โหลด libraries
-  if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-  var J=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
-  if(!J){ await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); J=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF; }
-  if(!J) throw new Error('jsPDF ไม่พร้อม');
-
+async function _pdfSetupIframe(){
   var A4W=794, A4H=1123;
-  function _jpdfWait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
-  function _jpdfWithTimeout(promise, ms, msg){
-    return Promise.race([
-      promise,
-      new Promise(function(_, rej){ setTimeout(function(){ rej(new Error(msg || 'หมดเวลา')); }, ms); })
-    ]);
-  }
 
-  // ── pdfCSS — ใช้ใน iframe isolated context ไม่ต้องมี scope prefix ──
+  // ดึง logo
+  var logoSrc='';
+  var _lh=document.getElementById('kimacLogoHist');
+  if(_lh&&_lh.src&&_lh.src.indexOf('data:image')===0) logoSrc=_lh.src;
+  if(!logoSrc){var _lt=document.getElementById('logo');if(_lt&&_lt.src&&_lt.src.indexOf('data:image')===0) logoSrc=_lt.src;}
+
   var pdfCSS=`
-    html,body{width:${A4W}px!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important;display:block!important;overflow:visible!important;font-size:12px!important;font-family:'Sarabun',sans-serif!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-    .page{width:${A4W}px!important;height:${A4H}px!important;min-height:${A4H}px!important;max-height:${A4H}px!important;padding:7mm 7mm 6mm 7mm!important;background:#ffffff!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;box-shadow:none!important;border-radius:0!important;margin:0!important;transform:none!important;font-size:12px!important;}
-    .page-wrapper{width:${A4W}px!important;padding:0!important;margin:0!important;}
+    html,body{width:794px!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important;display:block!important;overflow:visible!important;font-size:12px!important;font-family:'Sarabun',sans-serif!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+    .page{width:794px!important;height:1123px!important;min-height:1123px!important;max-height:1123px!important;padding:7mm 7mm 6mm 7mm!important;background:#fff!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;box-shadow:none!important;border-radius:0!important;margin:0!important;transform:none!important;font-size:12px!important;}
     .page-inner{flex:1!important;display:flex!important;flex-direction:column!important;overflow:visible!important;}
     .header{display:flex!important;align-items:center!important;justify-content:space-between!important;border-bottom:3px solid #427aa1!important;padding-bottom:2px!important;margin-bottom:3px!important;}
     .header-logo-wrap{display:flex!important;flex-direction:column!important;align-items:center!important;width:95px!important;flex:0 0 95px!important;}
@@ -1578,242 +1568,239 @@ async function renderJobPDF(job){
     .header-center p{font-size:12px!important;color:#555!important;}
     .service-type-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 6px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;gap:10px!important;font-size:12px!important;}
     .service-type-bar span{font-weight:600!important;color:#427aa1!important;}
-    .service-type-bar span.svc-val-span{font-weight:400!important;color:#000!important;}
-    .section-title{background:#427aa1!important;color:#ffffff!important;padding:3px 6px!important;font-weight:700!important;font-size:12px!important;border-radius:3px!important;margin-bottom:3px!important;margin-top:5px!important;}
+    .svc-val-span{font-weight:400!important;color:#000!important;display:inline-block!important;border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;padding:2px 8px!important;min-width:120px!important;}
+    .section-title{background:#427aa1!important;color:#fff!important;padding:3px 6px!important;font-weight:700!important;font-size:12px!important;border-radius:3px!important;margin-bottom:3px!important;margin-top:5px!important;}
     .form-row{display:flex!important;gap:4px!important;margin-bottom:3px!important;align-items:center!important;flex-wrap:wrap!important;}
-    .field{display:flex!important;align-items:center!important;gap:3px!important;flex:1!important;}
-    .field label{white-space:nowrap!important;color:#427aa1!important;font-weight:600!important;font-size:11px!important;}
-    .field input,.field select,.field textarea{flex:1!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;outline:none!important;color:#000!important;min-width:60px!important;line-height:1.4!important;background:#ffffff!important;border:none!important;border-bottom:1px solid #ffd151!important;}
+    .field{display:flex!important;align-items:center!important;gap:3px!important;flex:1!important;min-width:0!important;}
+    .field label{white-space:nowrap!important;color:#427aa1!important;font-weight:600!important;font-size:11px!important;flex-shrink:0!important;}
+    .field input{flex:1!important;min-width:0!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:1px 4px!important;color:#000!important;background:#fff!important;border:none!important;border-bottom:1px solid #ffd151!important;outline:none!important;}
+    .full-w{width:100%!important;flex:unset!important;}
+    .full-w input{width:100%!important;}
     .status-bar-wrap{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 8px!important;margin-bottom:3px!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:10px!important;}
     .status-bar-wrap label{font-weight:600!important;color:#427aa1!important;font-size:12px!important;white-space:nowrap!important;}
-    .status-bar-wrap span.loc-val-span{border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;padding:2px 6px!important;color:#222!important;display:inline-block!important;}
+    .loc-val-span{border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-size:12px!important;padding:2px 6px!important;color:#222!important;display:inline-block!important;}
     .radio-group{display:flex!important;gap:10px!important;align-items:center!important;flex-wrap:wrap!important;}
     .radio-group label{display:flex!important;align-items:center!important;gap:4px!important;font-size:11px!important;font-weight:400!important;color:#333!important;}
-    .detail-div-pdf{width:100%!important;border:1.5px solid #ffd151!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;overflow:visible!important;box-sizing:border-box!important;}
-    .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important;}
-    .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;}
-    .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#ffffff!important;font-size:11px!important;}
-    .parts-table td:first-child{text-align:center!important;width:24px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
-    .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;color:#000!important;}
-    .parts-table .price-cell input{text-align:right!important;}
-    .parts-table input.part-qty{text-align:center!important;}
-    .parts-table .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important;}
-    .parts-table .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#cc0000!important;border:1px solid #c4960a!important;padding-right:6px!important;}
-    #s_total{font-size:13px!important;font-weight:700!important;color:#1a3a6e!important;}
-    .fee-bar-wrap{background:#fff!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:4px 8px!important;margin-bottom:4px!important;}
+    .detail-div-pdf{width:100%!important;border:1.5px solid #ffd151!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;box-sizing:border-box!important;}
+    .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important;table-layout:fixed!important;}
+    .parts-table th{background:#427aa1!important;color:#fff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;overflow:hidden!important;}
+    .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#fff!important;font-size:11px!important;overflow:hidden!important;}
+    .parts-table td:first-child{text-align:center!important;width:30px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
+    .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;color:#000!important;display:block!important;}
+    .price-cell input{text-align:right!important;}
+    .qty-cell input{text-align:center!important;}
+    .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important;}
+    .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#c00!important;border:1px solid #c4960a!important;padding-right:6px!important;}
+    .grand-total-label{text-align:right!important;font-weight:700!important;color:#1a3a6e!important;font-size:13px!important;padding:4px 8px!important;border:1px solid #c4960a!important;background:#fff7d6!important;}
+    .grand-total-val{text-align:right!important;background:#fff7d6!important;border:1px solid #c4960a!important;padding-right:6px!important;font-weight:700!important;color:#1a3a6e!important;font-size:14px!important;}
+    .fee-bar-wrap{background:#fff!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:4px 8px!important;margin-bottom:4px!important;display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;font-size:12px!important;}
+    .fee-bar-wrap label{display:flex!important;align-items:center!important;gap:3px!important;font-size:12px!important;white-space:nowrap!important;}
     .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important;}
-    .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important;}
+    .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#fff!important;text-align:center!important;display:flex!important;flex-direction:column!important;}
     .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;}
     .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
     .sig-preview-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important;position:absolute!important;top:0!important;left:0!important;}
-    .sig-clear-wrap{display:none!important;min-height:0!important;}
     .sig-meta{display:flex!important;gap:6px!important;margin-top:3px!important;font-size:11px!important;align-items:center!important;flex-wrap:wrap!important;}
     .sig-meta label{color:#555!important;font-size:11px!important;white-space:nowrap!important;}
-    .sig-meta input{border:none!important;border-bottom:1px solid #ffd151!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;flex:1!important;outline:none!important;min-width:50px!important;color:#000!important;}
+    .sig-meta span{flex:1!important;border-bottom:1px solid #ffd151!important;font-size:11px!important;padding:1px 4px!important;min-width:40px!important;display:inline-block!important;}
     .footer{text-align:center!important;border-top:2px solid #427aa1!important;padding-top:3px!important;margin-top:auto!important;color:#427aa1!important;font-size:11px!important;line-height:1.5!important;}
     .footer .company-name{font-size:13px!important;font-weight:700!important;color:#427aa1!important;}
     .footer .contact{color:#444!important;font-size:11px!important;}
-    input,select{font-family:Sarabun,sans-serif!important;color:#000!important;background:#ffffff!important;}
     *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   `;
 
-  // ── สร้าง HTML ของฟอร์ม ──
-  var logoBase64='';
-  var _logoHist=document.getElementById('kimacLogoHist');
-  if(_logoHist&&_logoHist.src&&_logoHist.src.indexOf('data:image')===0){
-    logoBase64=_logoHist.src.replace(/^data:image\/[a-z]+;base64,/,'');
-  } else {
-    // fallback: ดึง logo จาก topbar
-    var _logoTop=document.getElementById('logo');
-    if(_logoTop&&_logoTop.src&&_logoTop.src.indexOf('data:image')===0){
-      logoBase64=_logoTop.src.replace(/^data:image\/[a-z]+;base64,/,'');
-    }
-  }
-  var logoSrc=logoBase64?('data:image/jpeg;base64,'+logoBase64):'';
-
-  // ── สร้าง page HTML ──
-  function fmt(n){return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2});}
-  var stMap={install:'ติดตั้งเครื่องจักร',repair:'ซ่อมบำรุง',other:'อื่นๆ'};
-  var svcLabel=stMap[job.service_type]||job.service_type||'';
-  var otherSvc=(job.service_type==='other'&&job.other_service)?('<span style="display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:200px;padding:1px 4px;">'+escH(job.other_service||'')+'</span>'):'';
-
-  var warrantyHtml='';
-  if(job.warranty_status){
-    var wIn=job.warranty_status==='in';
-    var wOut=job.warranty_status==='out';
-    var wRadioIn='<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1.5px solid '+(wIn?'#1a3a6e':'#999')+';margin-right:3px;">'+(wIn?'<span style="width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;"></span>':'')+'</span>';
-    var wRadioOut='<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1.5px solid '+(wOut?'#1a3a6e':'#999')+';margin-right:3px;">'+(wOut?'<span style="width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;"></span>':'')+'</span>';
-    var wNoHtml=wIn&&job.warranty_no?('<span style="font-size:12px;color:#555;margin-left:4px;">เลขที่ :</span><span style="display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:160px;padding:1px 4px;">'+escH(job.warranty_no||'')+'</span>'):'';
-    warrantyHtml='<label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานะ :</label><div class=\'radio-group\'><label>'+wRadioIn+' ในรับประกัน</label><label>'+wRadioOut+' นอกรับประกัน</label></div>'+wNoHtml;
-  }else{
-    warrantyHtml='<label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานะ :</label><div class=\'radio-group\'><label><span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#fff;border:1.5px solid #999;margin-right:3px;"></span> ในรับประกัน</label><label><span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#fff;border:1.5px solid #999;margin-right:3px;"></span> นอกรับประกัน</label></div>';
-  }
-
-  var feeMap={free:'ฟรี',bkk:'กรุงเทพฯ/ปริมณฑล',province:'ต่างจังหวัด'};
-  function feeRadio(val){
-    var checked=job.fee_type===val;
-    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;box-sizing:border-box;vertical-align:middle;flex:0 0 auto;background:#fff;border:1.5px solid '+(checked?'#1a3a6e':'#999')+';margin-right:3px;">'+(checked?'<span style="width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;"></span>':'')+'</span>';
-  }
-  var provinceHtml=job.fee_type==='province'?('<span style="display:inline-block;border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Sarabun,sans-serif;font-size:12px;width:110px;padding:1px 4px;color:#222;">'+escH(job.province||'')+'</span>'):'';
-
-  // parts table rows
-  var partsRows='';
-  var sub=0;
-  for(var pi=0;pi<Math.max(5,parts.length);pi++){
-    var p=parts[pi]||{};
-    sub+=Number(p.qty||0)*Number(p.price||0);
-    partsRows+='<tr><td>'+(pi+1)+'</td>'
-      +'<td><input type="text" value="'+escA(p.part_name||'')+'" style="text-align:left;width:100%;"></td>'
-      +'<td><input type="text" value="'+escA(p.part_code||'')+'"></td>'
-      +'<td><input type="number" value="'+escA(String(p.qty||''))+'" style="text-align:center;width:100%;"></td>'
-      +'<td><input type="text" value="'+escA(p.unit||'')+'" style="text-align:center;width:100%;"></td>'
-      +'<td class="price-cell"><input type="text" value="'+escA(p.price?fmt(p.price):'')+'" style="text-align:right;width:100%;"></td>'
-      +'</tr>';
-  }
-  var vat=sub*0.07;
-  var net=sub+vat;
-
-  // signatures
-  function sigBox(title,imgData,name,date,dept){
-    var imgHtml=imgData?('<img style="width:100%;height:100%;object-fit:contain;display:block;position:absolute;top:0;left:0;" src="'+imgData+'">'):('');
-    var metaHtml='<div class="sig-meta"><label>'+escH(dept?'ชื่อ :':'ชื่อช่าง :')+'</label><span style="flex:1;border-bottom:1px solid #ffd151;font-size:11px;padding:1px 4px;">'+escH(name||'')+'</span>'+(dept?'<label>แผนก :</label><span style="flex:1;border-bottom:1px solid #ffd151;font-size:11px;padding:1px 4px;">'+escH(dept)+'</span>':'')+'<label>วันที่ :</label><span style="flex:1;border-bottom:1px solid #ffd151;font-size:11px;padding:1px 4px;">'+escH(date||'')+'</span></div>';
-    return '<div class="sig-box"><div class="sig-title">'+title+'</div><div class="sig-preview-wrap">'+imgHtml+'</div>'+metaHtml+'</div>';
-  }
-
-  var pageHTML='<div class="page-wrapper"><div class="page"><div class="page-inner">'
-    +'<div class="header">'
-    +'<div class="header-logo-wrap"><img class="header-logo" src="'+logoSrc+'" alt="KIMAC"></div>'
-    +'<div class="header-center"><h1>SERVICE SHEET</h1><p>ใบบันทึกงานบริการ</p></div>'
-    +'<div class="header-spacer"></div>'
-    +'</div>'
-    +'<div class="service-type-bar"><span>งานบริการ :</span>'
-    +'<span class="svc-val-span" style="display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;font-family:Sarabun,sans-serif;font-size:12px;padding:2px 8px;color:#000;min-width:120px;font-weight:400;">'+escH(svcLabel)+'</span>'
-    +otherSvc+'</div>'
-    +'<div class="section-title">ส่วนที่ 1 ข้อมูลลูกค้า</div>'
-    +'<div class="form-row">'
-    +'<div class="field"><label>วันที่บริการ :</label><input type="text" value="'+escA(fmtDate(job.service_date))+'"></div>'
-    +'<div class="field"><label>เวลาเริ่ม :</label><input type="text" value="'+escA(job.time_start||'')+'"></div>'
-    +'<div class="field"><label>เวลาจบงาน :</label><input type="text" value="'+escA(job.time_end||'')+'"></div>'
-    +'</div>'
-    +'<div class="form-row"><div class="field full-width" style="width:100%;flex:unset;"><label>บริษัท / ห้างฯ / ร้าน ลูกค้า :</label><input type="text" value="'+escA(job.company||'')+'" style="min-width:300px;"></div></div>'
-    +'<div class="form-row">'
-    +'<div class="field"><label>ติดต่อคุณ :</label><input type="text" value="'+escA(job.contact_name||'')+'"></div>'
-    +'<div class="field"><label>ตำแหน่ง :</label><input type="text" value="'+escA(job.position||'')+'"></div>'
-    +'<div class="field"><label>เบอร์โทร :</label><input type="text" value="'+escA(job.contact_phone||'')+'"></div>'
-    +'</div>'
-    +'<div class="form-row"><div class="field full-width" style="width:100%;flex:unset;"><label>ที่อยู่ :</label><input type="text" value="'+escA(job.address||'')+'" style="min-width:350px;"></div></div>'
-    +'<div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>'
-    +'<div class="status-bar-wrap">'
-    +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานที่บริการ :</label><span class="loc-val-span">'+escH(job.service_location||'')+'</span></div>'
-    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+warrantyHtml+'</div>'
-    +'</div>'
-    +'<div class="form-row" style="margin-top:4px;">'
-    +'<div class="field"><label>เครื่อง :</label><input type="text" value="'+escA(job.machine_name||'')+'"></div>'
-    +'<div class="field"><label>รุ่น :</label><input type="text" value="'+escA(job.machine_model||'')+'"></div>'
-    +'<div class="field"><label>S/N :</label><input type="text" value="'+escA(job.machine_sn||'')+'"></div>'
-    +'<div class="field"><label>วันที่ซื้อ :</label><input type="text" value="'+escA(fmtDate(job.purchase_date))+'"></div>'
-    +'</div>'
-    +'<div class="form-row" style="margin-bottom:2px;"><label style="font-weight:600;color:#444;font-size:12px;white-space:nowrap;">รายละเอียด :</label></div>'
-    +'<div class="detail-div-pdf">'+escH(job.machine_detail||'')+'</div>'
-    +'<div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
-    +'<table class="parts-table"><thead><tr>'
-    +'<th style="text-align:center;">ลำดับ</th>'
-    +'<th style="text-align:center;width:36%">รายการอะไหล่</th>'
-    +'<th style="width:12%">รหัส</th>'
-    +'<th style="width:8%">จำนวน</th>'
-    +'<th style="width:8%">หน่วย</th>'
-    +'<th style="width:20%">ราคา</th>'
-    +'</tr></thead><tbody>'+partsRows+'</tbody>'
-    +'<tfoot>'
-    +'<tr><td colspan="5" class="total-label">รวมยอด</td><td class="total-val"><input type="text" value="'+escA(fmt(sub))+'" readonly style="width:100%;border:none;background:transparent;font-family:Sarabun,sans-serif;font-size:11px;font-weight:700;color:#c00;text-align:right;outline:none;"></td></tr>'
-    +'<tr><td colspan="5" class="total-label">VAT 7%</td><td class="total-val"><input type="text" value="'+escA(fmt(vat))+'" readonly style="width:100%;border:none;background:transparent;font-family:Sarabun,sans-serif;font-size:11px;font-weight:700;color:#c00;text-align:right;outline:none;"></td></tr>'
-    +'<tr><td colspan="5" style="text-align:right;font-weight:700;color:#1a3a6e;font-size:13px;padding:4px 8px;border:1px solid #c4960a;background:#fff7d6;">รวมยอดสุทธิ</td><td style="text-align:right;background:#fff7d6;border:1px solid #c4960a;padding-right:6px;"><input type="text" value="'+escA(fmt(net))+'" readonly style="width:100%;border:none;background:transparent;font-family:Sarabun,sans-serif;font-size:14px;font-weight:700;color:#1a3a6e;text-align:right;outline:none;" id="s_total"></td></tr>'
-    +'</tfoot></table>'
-    +'<div class="section-title">ส่วนที่ 4 ประเภทค่าบริการ</div>'
-    +'<div class="fee-bar-wrap"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
-    +'<label style="display:flex;align-items:center;gap:3px;font-size:12px;white-space:nowrap;">'+feeRadio('free')+' ฟรี</label>'
-    +'<label style="display:flex;align-items:center;gap:3px;font-size:12px;white-space:nowrap;">'+feeRadio('bkk')+' กรุงเทพฯ/ปริมณฑล</label>'
-    +'<label style="display:flex;align-items:center;gap:3px;font-size:12px;white-space:nowrap;">'+feeRadio('province')+' ต่างจังหวัด '+provinceHtml+'</label>'
-    +'</div></div>'
-    +'<div class="section-title" style="clear:both;">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
-    +'<div class="sig-section">'
-    +sigBox('ลายเซ็นช่างผู้ให้บริการ',job.tech_sig_data,job.tech_name_sign||job.technician_name,job.tech_sign_date,'')
-    +sigBox('ลายเซ็นลูกค้า / ผู้ตรวจรับงาน',job.cust_sig_data,job.cust_name_sign,job.cust_sign_date,job.cust_dept)
-    +'</div>'
-    +'</div>'
-    +'<div class="footer"><div class="company-name">บริษัท คีแมค จำกัด</div>'
-    +'<div class="contact">298 ถนนสามวา แขวงบางชัน เขตคลองสามวา กรุงเทพมหานคร 10510</div>'
-    +'<div class="contact">โทร.02-956-8291-2 &nbsp; Line : @kimac &nbsp; www.kimacthailand.com</div>'
-    +'</div>'
-    +'</div></div>';
-
-  // ── render ลง div ธรรมดา (ไม่ใช้ iframe กัน repaint topbar/navbar) ──
-  // ซ่อน fixed elements ชั่วคราวระหว่าง capture
-  var _fixedEls=document.querySelectorAll('.topbar,.bnav,.topbar-c,.actbar,[style*="position:fixed"]');
-  var _fixedVis=[];
-  _fixedEls.forEach(function(el){
-    _fixedVis.push(el.style.visibility);
-    el.style.visibility='hidden';
-  });
-
-  var _savedBodyOX=document.body.style.overflowX;
-  var _savedHtmlOX=document.documentElement.style.overflowX;
-  document.body.style.overflowX='hidden';
-  document.documentElement.style.overflowX='hidden';
-
-  // ใช้ iframe ใน isolated context (ไม่ inherit CSS หน้าหลัก)
-  // ซ่อนด้วย clip-path แทน visibility/opacity — browser ไม่ repaint fixed elements
-  var iframeWrap=document.createElement('div');
-  iframeWrap.style.cssText='position:fixed;top:0;left:0;width:'+A4W+'px;height:'+A4H+'px;'
-    +'clip-path:inset(0 0 0 110%);pointer-events:none;z-index:-1;';
+  // สร้าง iframe ซ่อนอยู่นอกหน้าจอ ไม่กระพริบ
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;pointer-events:none;z-index:-9999;contain:strict;';
   var iframe=document.createElement('iframe');
-  iframe.style.cssText='position:absolute;top:0;left:0;width:'+A4W+'px;height:'+A4H+'px;border:none;background:#fff;';
-  iframeWrap.appendChild(iframe);
-  document.body.appendChild(iframeWrap);
+  iframe.style.cssText='position:absolute;top:0;left:0;width:794px;height:1123px;border:none;background:#fff;';
+  wrap.appendChild(iframe);
+  document.body.appendChild(wrap);
 
+  // เขียน skeleton HTML เข้า iframe (CSS + font ใส่ครั้งเดียว)
   var iDoc=iframe.contentDocument||iframe.contentWindow.document;
   iDoc.open();
-  iDoc.write('<!DOCTYPE html><html><head>'
-    +'<meta charset="UTF-8">'
+  iDoc.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'
     +'<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">'
     +'<style>'+pdfCSS+'</style>'
     +'</head><body style="margin:0;padding:0;background:#fff;font-family:Sarabun,sans-serif;">'
-    +pageHTML
+    +'<div id="pdfPage" class="page"><div class="page-inner" id="pdfInner"></div>'
+    +'<div class="footer"><div class="company-name">บริษัท คีแมค จำกัด</div>'
+    +'<div class="contact">298 ถนนสามวา แขวงบางชัน เขตคลองสามวา กรุงเทพมหานคร 10510</div>'
+    +'<div class="contact">โทร.02-956-8291-2 &nbsp; Line : @kimac &nbsp; www.kimacthailand.com</div>'
+    +'</div></div>'
     +'</body></html>');
   iDoc.close();
 
-  // รอ font + layout
-  try{
-    if(iDoc.fonts&&iDoc.fonts.ready) await _jpdfWithTimeout(iDoc.fonts.ready,5000,'font timeout');
-  }catch(e){}
-  await _jpdfWait(200);
-  var iframePage=iDoc.querySelector('.page');
-  if(iframePage) void iframePage.offsetHeight;
-  await _jpdfWait(100);
+  // รอ font โหลดครั้งเดียว
+  function _w(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  try{if(iDoc.fonts&&iDoc.fonts.ready)await Promise.race([iDoc.fonts.ready,_w(5000)]);}catch(e){}
+  await _w(200);
 
-  // ── html2canvas capture ──
-  var canvas=await _jpdfWithTimeout(
-    html2canvas(iframePage||iDoc.body,{
+  return {wrap:wrap,iframe:iframe,iDoc:iDoc,logoSrc:logoSrc,A4W:A4W,A4H:A4H,_w:_w};
+}
+
+function _pdfTeardownIframe(env){
+  if(env&&env.wrap&&env.wrap.parentNode) env.wrap.parentNode.removeChild(env.wrap);
+}
+
+async function _pdfRenderOne(env, job, parts, J){
+  var iDoc=env.iDoc, A4W=env.A4W, A4H=env.A4H, logoSrc=env.logoSrc;
+  function _w(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  function _t(p,ms,msg){return Promise.race([p,new Promise(function(_,rej){setTimeout(function(){rej(new Error(msg||'timeout'));},ms);})]);}
+
+  function fmt(n){return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2});}
+
+  // สร้าง HTML สำหรับ job นี้
+  var stMap={install:'ติดตั้งเครื่องจักร',repair:'ซ่อมบำรุง',other:'อื่นๆ'};
+  var svcLabel=stMap[job.service_type]||job.service_type||'';
+
+  function radio(checked){
+    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#fff;border:1.5px solid '+(checked?'#1a3a6e':'#999')+';margin-right:3px;vertical-align:middle;">'
+      +(checked?'<span style="width:7px;height:7px;border-radius:50%;background:#1a3a6e;display:block;"></span>':'')+'</span>';
+  }
+
+  // parts rows
+  var sub=0;
+  var partsHTML='';
+  for(var pi=0;pi<Math.max(5,parts.length);pi++){
+    var p=parts[pi]||{};
+    sub+=Number(p.qty||0)*Number(p.price||0);
+    partsHTML+='<tr>'
+      +'<td>'+(pi+1)+'</td>'
+      +'<td><input value="'+escA(p.part_name||'')+'" style="text-align:left;"></td>'
+      +'<td><input value="'+escA(p.part_code||'')+'"></td>'
+      +'<td class="qty-cell"><input value="'+escA(String(p.qty||''))+'"></td>'
+      +'<td class="qty-cell"><input value="'+escA(p.unit||'')+'"></td>'
+      +'<td class="price-cell"><input value="'+escA(p.price?fmt(p.price):'')+'" style="text-align:right;"></td>'
+      +'</tr>';
+  }
+  var vat=sub*0.07, net=sub+vat;
+
+  // warranty
+  var wIn=job.warranty_status==='in', wOut=job.warranty_status==='out';
+  var warrantyHTML='<label style="font-weight:600;color:#427aa1;font-size:12px;white-space:nowrap;">สถานะ :</label>'
+    +'<div class="radio-group">'
+    +'<label>'+radio(wIn)+' ในรับประกัน</label>'
+    +'<label>'+radio(wOut)+' นอกรับประกัน</label>'
+    +'</div>'
+    +(wIn&&job.warranty_no?'<span style="font-size:12px;color:#555;margin-left:4px;">เลขที่ :</span><span style="display:inline-block;border-bottom:1px solid #aaa;font-size:12px;width:140px;padding:1px 4px;">'+escH(job.warranty_no||'')+'</span>':'');
+
+  // fee
+  function feeR(val){return radio(job.fee_type===val);}
+  var feeHTML='<label>'+feeR('free')+' ฟรี</label>'
+    +'<label>'+feeR('bkk')+' กรุงเทพฯ/ปริมณฑล</label>'
+    +'<label>'+feeR('province')+' ต่างจังหวัด'
+    +(job.fee_type==='province'?'<span style="display:inline-block;border-bottom:1px solid #aaa;width:100px;padding:1px 4px;font-size:12px;"> '+escH(job.province||'')+'</span>':'')
+    +'</label>';
+
+  // sig box
+  function sigBox(title,imgSrc,name,date,dept){
+    return '<div class="sig-box"><div class="sig-title">'+title+'</div>'
+      +'<div class="sig-preview-wrap">'+(imgSrc?'<img class="sig-preview-img" src="'+imgSrc+'" alt="">':'')+'</div>'
+      +'<div class="sig-meta">'
+      +(dept?'<label>ชื่อ :</label><span>'+escH(name||'')+'</span><label>แผนก :</label><span>'+escH(dept||'')+'</span>':'<label>ชื่อช่าง :</label><span>'+escH(name||'')+'</span>')
+      +'<label>วันที่ :</label><span>'+escH(date||'')+'</span></div></div>';
+  }
+
+  var innerHTML=
+    // header
+    '<div class="header">'
+    +'<div class="header-logo-wrap">'+( logoSrc?'<img class="header-logo" src="'+logoSrc+'" alt="KIMAC">':'')+'</div>'
+    +'<div class="header-center"><h1>SERVICE SHEET</h1><p>ใบบันทึกงานบริการ</p></div>'
+    +'<div class="header-spacer"></div></div>'
+    // service type
+    +'<div class="service-type-bar"><span>งานบริการ :</span>'
+    +'<span class="svc-val-span">'+escH(svcLabel)+'</span></div>'
+    // s1
+    +'<div class="section-title">ส่วนที่ 1 ข้อมูลลูกค้า</div>'
+    +'<div class="form-row">'
+    +'<div class="field"><label>วันที่บริการ :</label><input value="'+escA(fmtDate(job.service_date))+'"></div>'
+    +'<div class="field"><label>เวลาเริ่ม :</label><input value="'+escA(job.time_start||'')+'"></div>'
+    +'<div class="field"><label>เวลาจบงาน :</label><input value="'+escA(job.time_end||'')+'"></div>'
+    +'</div>'
+    +'<div class="form-row"><div class="field full-w"><label>บริษัท / ห้างฯ / ร้าน ลูกค้า :</label><input value="'+escA(job.company||'')+'" style="min-width:300px;"></div></div>'
+    +'<div class="form-row">'
+    +'<div class="field"><label>ติดต่อคุณ :</label><input value="'+escA(job.contact_name||'')+'"></div>'
+    +'<div class="field"><label>ตำแหน่ง :</label><input value="'+escA(job.position||'')+'"></div>'
+    +'<div class="field"><label>เบอร์โทร :</label><input value="'+escA(job.contact_phone||'')+'"></div>'
+    +'</div>'
+    +'<div class="form-row"><div class="field full-w"><label>ที่อยู่ :</label><input value="'+escA(job.address||'')+'" style="min-width:350px;"></div></div>'
+    // s2
+    +'<div class="section-title">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>'
+    +'<div class="status-bar-wrap">'
+    +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;"><label>สถานที่บริการ :</label><span class="loc-val-span">'+escH(job.service_location||'')+'</span></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+warrantyHTML+'</div>'
+    +'</div>'
+    +'<div class="form-row">'
+    +'<div class="field"><label>เครื่อง :</label><input value="'+escA(job.machine_name||'')+'"></div>'
+    +'<div class="field"><label>รุ่น :</label><input value="'+escA(job.machine_model||'')+'"></div>'
+    +'<div class="field"><label>S/N :</label><input value="'+escA(job.machine_sn||'')+'"></div>'
+    +'<div class="field"><label>วันที่ซื้อ :</label><input value="'+escA(fmtDate(job.purchase_date))+'"></div>'
+    +'</div>'
+    +'<div class="form-row"><label style="font-weight:600;color:#444;font-size:12px;white-space:nowrap;">รายละเอียด :</label></div>'
+    +'<div class="detail-div-pdf">'+escH(job.machine_detail||'')+'</div>'
+    // s3
+    +'<div class="section-title">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
+    +'<table class="parts-table"><thead><tr>'
+    +'<th style="width:5%">ลำดับ</th><th style="width:36%">รายการอะไหล่</th>'
+    +'<th style="width:13%">รหัส</th><th style="width:8%">จำนวน</th>'
+    +'<th style="width:8%">หน่วย</th><th style="width:20%">ราคา</th>'
+    +'</tr></thead><tbody>'+partsHTML+'</tbody>'
+    +'<tfoot>'
+    +'<tr><td colspan="5" class="total-label">รวมยอด</td><td class="total-val"><input value="'+escA(fmt(sub))+'" style="text-align:right;font-weight:700;color:#c00;background:transparent;border:none;width:100%;outline:none;font-family:Sarabun,sans-serif;font-size:11px;" readonly></td></tr>'
+    +'<tr><td colspan="5" class="total-label">VAT 7%</td><td class="total-val"><input value="'+escA(fmt(vat))+'" style="text-align:right;font-weight:700;color:#c00;background:transparent;border:none;width:100%;outline:none;font-family:Sarabun,sans-serif;font-size:11px;" readonly></td></tr>'
+    +'<tr><td colspan="5" class="grand-total-label">รวมยอดสุทธิ</td><td class="grand-total-val"><input value="'+escA(fmt(net))+'" style="text-align:right;font-weight:700;color:#1a3a6e;background:transparent;border:none;width:100%;outline:none;font-family:Sarabun,sans-serif;font-size:14px;" readonly></td></tr>'
+    +'</tfoot></table>'
+    // s4
+    +'<div class="section-title">ส่วนที่ 4 ประเภทค่าบริการ</div>'
+    +'<div class="fee-bar-wrap">'+feeHTML+'</div>'
+    // s5
+    +'<div class="section-title">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
+    +'<div class="sig-section">'
+    +sigBox('ลายเซ็นช่างผู้ให้บริการ',job.tech_sig_data,job.tech_name_sign||job.technician_name,job.tech_sign_date,'')
+    +sigBox('ลายเซ็นลูกค้า / ผู้ตรวจรับงาน',job.cust_sig_data,job.cust_name_sign,job.cust_sign_date,job.cust_dept)
+    +'</div>';
+
+  // inject ลง iframe (เปลี่ยนแค่ content ไม่ reload iframe)
+  var pdfInner=iDoc.getElementById('pdfInner');
+  pdfInner.innerHTML=innerHTML;
+
+  // force layout
+  void iDoc.getElementById('pdfPage').offsetHeight;
+  await _w(80);
+
+  // capture
+  var pdfPage=iDoc.getElementById('pdfPage');
+  var canvas=await _t(
+    html2canvas(pdfPage,{
       scale:2,useCORS:true,allowTaint:true,letterRendering:true,
       backgroundColor:'#ffffff',
       width:A4W,height:A4H,
       windowWidth:A4W,windowHeight:A4H,
-      scrollX:0,scrollY:0,x:0,y:0,logging:false
-    }),30000,'สร้างภาพ PDF ไม่สำเร็จ (หมดเวลา)'
+      scrollX:0,scrollY:0,x:0,y:0,logging:false,
+      foreignObjectRendering:false
+    }),30000,'timeout'
   );
 
-  // cleanup + คืนค่า
-  if(iframeWrap.parentNode) iframeWrap.parentNode.removeChild(iframeWrap);
-  _fixedEls.forEach(function(el,i){ el.style.visibility=_fixedVis[i]; });
-  document.body.style.overflowX=_savedBodyOX;
-  document.documentElement.style.overflowX=_savedHtmlOX;
-
-  // ── jsPDF: addImage แบบ hardcode 210×297 เหมือน form.html ──
   var pdf=new J({unit:'mm',format:[210,297],orientation:'portrait',compress:true});
-  var imgData=canvas.toDataURL('image/jpeg',0.95);
-  pdf.addImage(imgData,'JPEG',0,0,210,297);
+  pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,210,297);
   return pdf.output('arraybuffer');
 }
+
+// legacy wrapper (ยังใช้อยู่ถ้ามีที่เรียกตรง)
+async function renderJobPDF(job){
+  var parts=[];
+  try{var rp=await sb.from('service_parts').select('*').eq('job_id',job.id).order('seq');parts=rp.data||[];}catch(e){}
+  if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  var J=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+  if(!J){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');J=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;}
+  if(!J) throw new Error('jsPDF ไม่พร้อม');
+  var env=await _pdfSetupIframe();
+  try{ return await _pdfRenderOne(env,job,parts,J); }
+  finally{ _pdfTeardownIframe(env); }
+}
+
 
 
 
