@@ -338,6 +338,64 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .pn{color:#e2e8f0}
 [data-theme="dark"] .pe{color:#94a3b8}
 [data-theme="dark"] .pr{background:#1e3a5c;color:#bfdbfe}
+/* ===== ฟอร์ม dispatch (ส่งงานให้ช่าง) — dark mode ===== */
+[data-theme="dark"] #pg-dispatch > div:first-of-type + div {
+  background:#172033!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] #pg-dispatch input,
+[data-theme="dark"] #pg-dispatch select,
+[data-theme="dark"] #pg-dispatch textarea {
+  background:#1a2332!important;border-color:#2a3650!important;
+  color:#e2e8f0!important;color-scheme:dark;
+}
+[data-theme="dark"] #pg-dispatch input::placeholder,
+[data-theme="dark"] #pg-dispatch textarea::placeholder {
+  color:#64748b!important;
+}
+[data-theme="dark"] #pg-dispatch input:focus,
+[data-theme="dark"] #pg-dispatch select:focus,
+[data-theme="dark"] #pg-dispatch textarea:focus {
+  border-color:#5a7fc9!important;background:#1e2d4a!important;
+}
+[data-theme="dark"] #pg-dispatch .ff label {
+  color:#9fc1ff!important;
+}
+[data-theme="dark"] #pg-dispatch > div:first-of-type + div > div[style*="background:#fff"],
+[data-theme="dark"] #pg-dispatch [style*="background:#fff"] {
+  background:#172033!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] #pg-dispatch [style*="color:#1a3a6e"],
+[data-theme="dark"] #pg-dispatch [style*="color:#0e1c36"] {
+  color:#e2e8f0!important;
+}
+/* ประวัติการส่งงาน dispatch */
+[data-theme="dark"] #dispatchHistory .card {
+  background:#172033!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] #dispatchHistory [style*="background:#fff"],
+[data-theme="dark"] #dispatchHistory [style*="background: #fff"] {
+  background:#172033!important;
+}
+[data-theme="dark"] #dispatchHistory [style*="color:#1a3a6e"],
+[data-theme="dark"] #dispatchHistory [style*="color:#0e1c36"],
+[data-theme="dark"] #dispatchHistory [style*="color:#427aa1"] {
+  color:#9fc1ff!important;
+}
+[data-theme="dark"] #dispatchHistory [style*="color:#555"],
+[data-theme="dark"] #dispatchHistory [style*="color:#4a5568"],
+[data-theme="dark"] #dispatchHistory [style*="color:#888"] {
+  color:#94a3b8!important;
+}
+[data-theme="dark"] #dispatchHistory [style*="border-bottom"] {
+  border-bottom-color:#2a3650!important;
+}
+/* กล่องรวม dispatch form card */
+[data-theme="dark"] #pg-dispatch > div + div[style*="background:#fff"] {
+  background:#172033!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] .dispatch-form-card {
+  background:#172033!important;border-color:#2a3650!important;
+}
 </style>
 </head>
 <body>
@@ -426,7 +484,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <div style="font-size:15px;font-weight:800;color:#1a3a6e">📤 ส่งงานให้ช่าง</div>
   </div>
   <!-- Form card -->
-  <div style="background:#fff;border-radius:14px;padding:18px;margin-bottom:12px;
+  <div class="dispatch-form-card" style="background:#fff;border-radius:14px;padding:18px;margin-bottom:12px;
     box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #dce5ff">
     <div class="ff"><label>ช่างที่รับงาน</label>
       <select id="dp-tech" style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
