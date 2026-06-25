@@ -1157,12 +1157,14 @@ async function loadJobs(){
     var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
     renderJobs();
     initCalendar();renderReport();
-    // โหลด dispatches สำหรับปฏิทิน
+    // โหลด dispatches สำหรับปฏิทิน — ใส่ timeout กัน hang
     try{
-      var dr=await sb.from('job_dispatches').select('service_date,dispatch_date,technician_name,tech_name,location,company,time_start');
-      if(dr.data) window.dispatches=dr.data;
+      var _drTimeout=new Promise(function(r){setTimeout(function(){r(null);},3000);});
+      var _drQuery=sb.from('job_dispatches').select('service_date,technician_name,time_start').limit(200);
+      var dr=await Promise.race([_drQuery,_drTimeout]);
+      if(dr&&dr.data) window.dispatches=dr.data;
       calRender();
-    }catch(e){}
+    }catch(e){console.log('dispatch calendar skip:',e);}
     updateMineBadge();
     if(document.getElementById('pg-mine')&&document.getElementById('pg-mine').classList.contains('on'))renderMine();
     // Check for both-signed jobs → notify admin
