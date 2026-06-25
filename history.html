@@ -338,49 +338,52 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .pn{color:#e2e8f0}
 [data-theme="dark"] .pe{color:#94a3b8}
 [data-theme="dark"] .pr{background:#1e3a5c;color:#bfdbfe}
-/* ── Calendar Sidebar ── */
-.cal-sidebar{width:260px;flex-shrink:0;position:sticky;top:12px;}
-.cal-card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.cal-header span{font-size:13px;font-weight:700;color:#1a3a6e;}
-.cal-nav{background:none;border:none;font-size:18px;color:#427aa1;cursor:pointer;padding:2px 8px;border-radius:6px;line-height:1;}
+.cal-sidebar{width:320px;flex-shrink:0;position:sticky;top:12px;}
+.cal-card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-header span{font-size:15px;font-weight:700;color:#1a3a6e;}
+.cal-nav{background:none;border:none;font-size:20px;color:#427aa1;cursor:pointer;padding:2px 10px;border-radius:6px;line-height:1;}
 .cal-nav:hover{background:#f0f4ff;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;}
-.cal-grid .cal-dow{color:#94a3b8;font-weight:600;padding:2px 0;font-size:10px;}
-.cal-grid .cal-day{padding:4px 2px;border-radius:6px;cursor:pointer;color:#374151;font-size:11px;position:relative;line-height:1.4;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;font-size:13px;}
+.cal-grid .cal-dow{color:#94a3b8;font-weight:600;padding:4px 0;font-size:11px;}
+.cal-grid .cal-day{padding:6px 2px;border-radius:8px;cursor:pointer;color:#374151;font-size:13px;position:relative;line-height:1.4;}
 .cal-day:hover{background:#f0f4ff;}
 .cal-day.has-job{color:#1a3a6e;font-weight:700;}
-.cal-day.has-job::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:#427aa1;margin:1px auto 0;}
+.cal-day.has-job::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#16a34a;margin:2px auto 0;}
 .cal-day.today{background:#1a3a6e;color:#fff!important;font-weight:700;}
-.cal-day.today::after{background:#ffd151!important;}
+.cal-day.today::after{background:#ef4444!important;}
 .cal-day.selected{background:#e0eaff;color:#1a3a6e;font-weight:700;}
 .cal-day.other-month{color:#cbd5e1;}
-.cal-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#888;flex-wrap:wrap;}
-.cal-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.cal-dot.has-job{background:#427aa1;}
-.cal-dot.today{background:#1a3a6e;}
-.cal-today-title{font-size:13px;font-weight:700;color:#1a3a6e;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
-.cal-count{background:#1a3a6e;color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700;}
-.cal-today-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;}
-.cal-job-item{background:#f8faff;border-radius:8px;padding:8px 10px;border-left:3px solid #427aa1;cursor:pointer;font-size:11px;}
+.cal-legend{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:11px;color:#888;flex-wrap:wrap;}
+.cal-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.cal-dot.has-job{background:#16a34a;}
+.cal-dot.today{background:#ef4444;}
+.cal-today-title{font-size:14px;font-weight:700;color:#1a3a6e;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.cal-count{background:#1a3a6e;color:#fff;font-size:11px;border-radius:10px;padding:1px 8px;font-weight:700;}
+.cal-today-list{display:flex;flex-direction:column;gap:7px;max-height:320px;overflow-y:auto;}
+.cal-job-item{background:#f8faff;border-radius:8px;padding:9px 12px;border-left:3px solid #427aa1;cursor:pointer;font-size:12px;}
 .cal-job-item:hover{background:#e8f0ff;}
-.cal-job-item .cji-no{font-weight:700;color:#1a3a6e;font-size:11px;}
-.cal-job-item .cji-co{color:#555;margin-top:1px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.cal-job-item .cji-time{color:#427aa1;font-size:10px;margin-top:2px;}
-.cal-empty{color:#aaa;font-size:12px;text-align:center;padding:16px 0;}
+.cal-job-item .cji-no{font-weight:700;color:#1a3a6e;font-size:12px;}
+.cal-job-item .cji-co{color:#555;margin-top:2px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-job-item .cji-time{color:#427aa1;font-size:11px;margin-top:3px;}
+.cal-empty{color:#aaa;font-size:13px;text-align:center;padding:20px 0;}
 .cal-toggle-btn{display:none;position:fixed;bottom:80px;right:16px;background:#1a3a6e;color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:200;}
 /* Mobile */
+.cal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:299;}
+.cal-backdrop.show{display:block;}
+.cal-close-btn{display:none;position:absolute;top:10px;right:12px;background:none;border:none;font-size:24px;color:#94a3b8;cursor:pointer;padding:4px 8px;line-height:1;z-index:10;}
 @media(max-width:700px){
-  .cal-sidebar{display:none;position:fixed;top:0;right:0;width:90vw;max-width:320px;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:16px;box-shadow:-4px 0 20px rgba(0,0,0,.2);border-radius:16px 0 0 16px;}
+  .cal-sidebar{display:none;position:fixed;top:0;right:0;width:92vw;max-width:360px;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:20px 16px 40px;box-shadow:-4px 0 24px rgba(0,0,0,.2);border-radius:16px 0 0 16px;}
   .cal-sidebar.mobile-open{display:block!important;}
   .cal-toggle-btn{display:flex!important;align-items:center;gap:6px;}
+  .cal-close-btn{display:block!important;}
   #pg-jobs>div:first-child{flex-direction:column;}
 }
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
 [data-theme="dark"] .cal-header span{color:#e2e8f0;}
 [data-theme="dark"] .cal-day{color:#cbd5e1;}
 [data-theme="dark"] .cal-day.has-job{color:#93c5fd;}
-[data-theme="dark"] .cal-day.has-job::after{background:#93c5fd;}
+[data-theme="dark"] .cal-day.has-job::after{background:#4ade80;}
 [data-theme="dark"] .cal-day:hover{background:#1e2d4a;}
 [data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
 [data-theme="dark"] .cal-day.other-month{color:#475569;}
@@ -484,8 +487,8 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 </div>
 
 <!-- JOBS PAGE -->
-<div id="pg-jobs" class="pg on" style="max-width:1200px!important;">
-  <div style="display:flex;gap:16px;align-items:flex-start;">
+<div id="pg-jobs" class="pg on" style="max-width:1160px!important;">
+  <div style="display:flex;gap:20px;align-items:flex-start;justify-content:center;">
     <!-- Main jobs column -->
     <div style="flex:1;min-width:0;">
   <div class="filter-bar" id="filterBar">
@@ -521,6 +524,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 
     <!-- Calendar Sidebar -->
     <div id="calSidebar" class="cal-sidebar">
+      <button class="cal-close-btn" onclick="toggleCalSidebar()" title="ปิด">×</button>
       <!-- Mini Calendar -->
       <div class="cal-card">
         <div class="cal-header">
@@ -544,6 +548,8 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 
   <!-- Mobile calendar toggle -->
   <button id="calToggleBtn" class="cal-toggle-btn" onclick="toggleCalSidebar()">📅 ปฏิทิน</button>
+  <!-- Backdrop -->
+  <div id="calBackdrop" class="cal-backdrop" onclick="toggleCalSidebar()"></div>
 </div>
 <!-- MY JOBS PAGE -->
 <div id="pg-mine" class="pg">
@@ -1727,7 +1733,9 @@ function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calRender();
 
 function toggleCalSidebar(){
   var sb=document.getElementById('calSidebar');
+  var bd=document.getElementById('calBackdrop');
   if(sb) sb.classList.toggle('mobile-open');
+  if(bd) bd.classList.toggle('show');
 }
 
 // init calendar หลัง jobs โหลด
