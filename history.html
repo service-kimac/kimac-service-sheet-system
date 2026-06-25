@@ -1482,10 +1482,14 @@ async function exportPDFBatch(){
   toast('⏳ กำลังเตรียมข้อมูล...','info');
   try{
     if(typeof JSZip==='undefined') await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
-    if(typeof jsPDF==='undefined'&&!(window.jspdf&&window.jspdf.jsPDF)){
+    if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    if(!(window.jspdf&&window.jspdf.jsPDF)&&typeof jsPDF==='undefined'){
       await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
     }
   }catch(e){toast('❌ โหลด library ไม่สำเร็จ: '+e.message,'err');return;}
+
+  var J=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+  if(!J){toast('❌ jsPDF โหลดไม่สำเร็จ','err');return;}
 
   // จัดกลุ่มตามปี → เดือน
   var groups={};
@@ -1527,6 +1531,7 @@ async function exportPDFBatch(){
         document.getElementById('pdfExportSub').textContent='⏳ สร้าง PDF '+done+'/'+total+'...';
       }catch(e){
         console.error('PDF error job',job.id,e);
+        if(errs===0) toast('⚠️ PDF error: '+e.message,'err');
         errs++;
         done++;
         document.getElementById('pdfExportSub').textContent='⏳ สร้าง PDF '+done+'/'+total+'...';
