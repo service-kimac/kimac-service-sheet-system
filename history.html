@@ -517,7 +517,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   </div>
   <div class="bar" id="mainBar">
     <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
-    <select class="fsel" id="filterTechInline" onchange="renderJobsFromInline()" style="display:none"><option value="">ทุกคน</option></select>
     <select class="fsel" id="fs" onchange="renderJobs()">
       <option value="">ทุกสถานะ</option>
       <option value="draft">กำลังดำเนินการ</option>
@@ -1072,9 +1071,7 @@ async function init(){
     // Show bell for ALL roles
     var _bw=document.getElementById('notifBellWrap'); if(_bw)_bw.style.display='block';
     if(role==='admin'){
-      // Admin: show inline tech filter in the main bar (single row), hide old filterBar
-      var _fb=document.getElementById('filterBar'); if(_fb)_fb.style.display='none';
-      var _fti=document.getElementById('filterTechInline'); if(_fti)_fti.style.display='';
+      document.getElementById('filterBar').classList.add('show');
       var _ts=document.getElementById('trashSetting'); if(_ts)_ts.style.display='block';
       var _ads=document.getElementById('adminDispatchSection'); if(_ads)_ads.style.display='block';
       var _nm=document.getElementById('nav-mine'); if(_nm)_nm.style.display='none';
@@ -1159,22 +1156,13 @@ async function loadJobs(){
       if(da!==db)return db<da?-1:1; // เรียงวันที่ใหม่ → เก่า (รูปแบบ YYYY-MM-DD เทียบแบบ string ได้ตรงกับวันที่จริง)
       return (b.created_at||'')<(a.created_at||'')?-1:1; // วันเดียวกัน → สร้างล่าสุดอยู่บนสุด
     });
-    // Update tech filter (both old filterBar and inline)
+    // Update tech filter
     const sel=document.getElementById('filterTech');
-    const selInline=document.getElementById('filterTechInline');
     const techs=[...new Set(jobs.map(j=>j.technician_name).filter(Boolean))].sort();
-    // Rebuild filterTech (old filterBar)
     const prevVal=sel.value;
     sel.innerHTML='<option value="">ทุกคน</option>';
     techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
     if(prevVal&&techs.includes(prevVal)) sel.value=prevVal;
-    // Rebuild filterTechInline
-    if(selInline){
-      const prevValInline=selInline.value;
-      selInline.innerHTML='<option value="">ทุกคน</option>';
-      techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;selInline.appendChild(o);});
-      if(prevValInline&&techs.includes(prevValInline)) selInline.value=prevValInline;
-    }
     updateStats();
     clearTimeout(_ltimer);
     var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
@@ -1210,19 +1198,13 @@ function updateStats(){
 }
 
 function renderJobsFromInline(){
-  // Sync inline filter value to the old filterTech select
-  var inline=document.getElementById('filterTechInline');
-  var old=document.getElementById('filterTech');
-  if(inline&&old) old.value=inline.value;
   renderJobs();
 }
 
 function renderJobs(){
   const q=(document.getElementById('sq').value||'').toLowerCase();
   const st=document.getElementById('fs').value;
-  // Use inline filter if visible, otherwise filterTech
-  const inlineSel=document.getElementById('filterTechInline');
-  const tech=(inlineSel&&inlineSel.style.display!=='none')?(inlineSel.value||''):(document.getElementById('filterTech').value);
+  const tech=document.getElementById('filterTech').value;
   const isAdmin=CP?.role==='admin';
   let jj=jobs;
   if(q)jj=jj.filter(j=>(j.job_no||'').toLowerCase().includes(q)||(j.company||'').toLowerCase().includes(q)||(j.technician_name||'').toLowerCase().includes(q));
