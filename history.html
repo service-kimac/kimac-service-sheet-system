@@ -1601,10 +1601,10 @@ async function _pdfSetupIframe(){
 #_pdfHost .fw{width:100%!important;flex:unset!important;display:flex!important;align-items:baseline!important;gap:2px!important;}
 #_pdfHost .fw b{white-space:nowrap!important;color:#427aa1!important;font-weight:600!important;font-size:11px!important;flex-shrink:0!important;}
 #_pdfHost .fw span{flex:1!important;border-bottom:1px solid #ffd151!important;font-size:12px!important;padding:0 3px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;display:inline-block!important;}
-#_pdfHost .stat-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 8px!important;margin-bottom:2px!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important;}
+#_pdfHost .stat-bar{background:#fff7d6!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:3px 8px!important;margin-bottom:2px!important;display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:8px!important;}
 #_pdfHost .stat-bar b{font-weight:600!important;color:#427aa1!important;font-size:11px!important;white-space:nowrap!important;}
-#_pdfHost .loc-val{border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-size:11px!important;padding:1px 5px!important;color:#222!important;display:inline-block!important;}
-#_pdfHost .rg{display:flex!important;gap:8px!important;align-items:center!important;flex-wrap:wrap!important;}
+#_pdfHost .loc-val{border:1px solid #ffd151!important;border-radius:4px!important;background:#fff!important;font-size:11px!important;padding:1px 5px!important;color:#222!important;display:inline-block!important;white-space:nowrap!important;}
+#_pdfHost .rg{display:flex!important;gap:6px!important;align-items:center!important;flex-wrap:nowrap!important;}
 #_pdfHost .rg label{display:flex!important;align-items:center!important;gap:3px!important;font-size:11px!important;color:#333!important;white-space:nowrap!important;}
 #_pdfHost .detail-box{width:100%!important;border:1.5px solid #ffd151!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-size:12px!important;line-height:18px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;min-height:90px!important;box-sizing:border-box!important;}
 #_pdfHost table.pt{width:100%!important;border-collapse:collapse!important;margin-bottom:2px!important;font-size:11px!important;table-layout:fixed!important;}
@@ -1794,7 +1794,8 @@ async function _pdfRenderOne(env, job, parts, J){
       backgroundColor:'#ffffff',
       width:A4W,height:A4H,
       windowWidth:A4W,windowHeight:A4H,
-      scrollX:A4W,scrollY:0,
+      scrollX:-pageEl.getBoundingClientRect().left,
+      scrollY:-pageEl.getBoundingClientRect().top,
       x:0,y:0,logging:false
     }),30000,'timeout'
   );
