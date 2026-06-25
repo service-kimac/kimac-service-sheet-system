@@ -51,6 +51,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .fb-select option{color:#1a1a2e;background:#fff}
 .pg{display:none;padding:12px;max-width:800px;margin:0 auto}
 .pg.on{display:block}
+#pg-jobs{max-width:1160px!important;padding:12px 20px!important;}
 .bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .btn-cal{padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;
   background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;
@@ -369,8 +370,8 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-empty{color:#aaa;font-size:13px;text-align:center;padding:20px 0;}
 .cal-toggle-btn{display:none;position:fixed;bottom:80px;right:16px;background:#1a3a6e;color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:200;}
 /* Mobile */
-.cal-mob-header{display:none;align-items:center;justify-content:space-between;padding:14px 16px;background:#1a3a6e;color:#fff;position:sticky;top:0;z-index:10;}
-.cal-back-btn{background:none;border:none;color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:8px;}
+.cal-mob-header{display:none;align-items:center;justify-content:space-between;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));background:#1a3a6e;color:#fff;position:sticky;top:0;z-index:10;}
+.cal-back-btn{background:none;border:none;color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:4px;}
 .cal-back-btn:active{background:rgba(255,255,255,.15);}
 .cal-mob-title{font-size:15px;font-weight:700;color:#fff;}
 .cal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:299;}
@@ -379,12 +380,13 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-toggle-btn{display:none;position:fixed;bottom:80px;right:16px;background:#1a3a6e;color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:200;}
 @media(max-width:700px){
   .cal-mob-header{display:flex!important;}
-  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;box-shadow:none;border-radius:0;}
+  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;border-radius:0;}
   .cal-sidebar.mobile-open{display:block!important;}
   .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
   .cal-sidebar .cal-card{margin-bottom:2px;}
   .cal-toggle-btn{display:flex!important;align-items:center;gap:6px;}
   #pg-jobs>div:first-child{flex-direction:column;}
+  [data-theme="dark"] .cal-sidebar{background:#0f172a;}
 }
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
 [data-theme="dark"] .cal-header span{color:#e2e8f0;}
@@ -494,7 +496,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 </div>
 
 <!-- JOBS PAGE -->
-<div id="pg-jobs" class="pg on" style="max-width:1160px!important;">
+<div id="pg-jobs" class="pg on">
   <div style="display:flex;gap:20px;align-items:flex-start;justify-content:center;">
     <!-- Main jobs column -->
     <div style="flex:1;min-width:0;">
