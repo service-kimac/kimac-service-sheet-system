@@ -517,7 +517,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   </div>
   <div class="bar" id="mainBar">
     <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
-    <select class="fsel" id="filterTechInline" onchange="renderJobsFromInline()" style="display:none"></select>
+    <select class="fsel" id="filterTechInline" onchange="renderJobsFromInline()" style="display:none"><option value="">ทุกคน</option></select>
     <select class="fsel" id="fs" onchange="renderJobs()">
       <option value="">ทุกสถานะ</option>
       <option value="draft">กำลังดำเนินการ</option>
@@ -1162,18 +1162,18 @@ async function loadJobs(){
     // Update tech filter (both old filterBar and inline)
     const sel=document.getElementById('filterTech');
     const selInline=document.getElementById('filterTechInline');
-    const existing=[...sel.options].map(o=>o.value).filter(Boolean);
-    const techs=[...new Set(jobs.map(j=>j.technician_name).filter(Boolean))];
-    techs.forEach(t=>{
-      if(!existing.includes(t)){
-        const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);
-        if(selInline){const o2=document.createElement('option');o2.value=t;o2.textContent=t;selInline.appendChild(o2);}
-      }
-    });
-    // Sync inline if it has only default option
-    if(selInline && selInline.options.length<=1 && techs.length){
+    const techs=[...new Set(jobs.map(j=>j.technician_name).filter(Boolean))].sort();
+    // Rebuild filterTech (old filterBar)
+    const prevVal=sel.value;
+    sel.innerHTML='<option value="">ทุกคน</option>';
+    techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
+    if(prevVal&&techs.includes(prevVal)) sel.value=prevVal;
+    // Rebuild filterTechInline
+    if(selInline){
+      const prevValInline=selInline.value;
       selInline.innerHTML='<option value="">ทุกคน</option>';
       techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;selInline.appendChild(o);});
+      if(prevValInline&&techs.includes(prevValInline)) selInline.value=prevValInline;
     }
     updateStats();
     clearTimeout(_ltimer);
