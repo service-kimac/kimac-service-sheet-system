@@ -1651,10 +1651,10 @@ async function _pdfRenderOne(env, job, parts, J){
   }
 
   function field(label,value,extra){
-    return '<td style="white-space:nowrap;font-size:11px;padding:0 8px 0 0;vertical-align:bottom;'+(extra||'')+'">'
-      +'<span style="color:#427aa1;font-weight:600;">'+label+'</span>'
-      +'<span style="font-size:12px;color:#000;font-weight:400;border-bottom:1px solid #ffd151;display:inline-block;min-width:40px;padding:0 2px;">'+escH(value||'')+'</span>'
-      +'</td>';
+    return '<td style="white-space:nowrap;font-size:11px;padding:0 0 0 0;vertical-align:bottom;width:1%;'+(extra||'')+'">'
+      +'<span style="color:#427aa1;font-weight:600;white-space:nowrap;">'+label+'</span>'
+      +'</td>'
+      +'<td style="border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 8px 0 2px;vertical-align:bottom;">'+escH(value||'')+'</td>';
   }
 
   var pageHTML='<div style="width:794px;height:1123px;padding:22px 22px 18px 22px;background:#fff;display:flex;flex-direction:column;box-sizing:border-box;font-family:Sarabun,sans-serif;font-size:12px;color:#000;-webkit-print-color-adjust:exact;">'
