@@ -1157,14 +1157,6 @@ async function loadJobs(){
     var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
     renderJobs();
     initCalendar();renderReport();
-    // โหลด dispatches สำหรับปฏิทิน — ใส่ timeout กัน hang
-    try{
-      var _drTimeout=new Promise(function(r){setTimeout(function(){r(null);},3000);});
-      var _drQuery=sb.from('job_dispatches').select('service_date,technician_name,time_start').limit(200);
-      var dr=await Promise.race([_drQuery,_drTimeout]);
-      if(dr&&dr.data) window.dispatches=dr.data;
-      calRender();
-    }catch(e){console.log('dispatch calendar skip:',e);}
     updateMineBadge();
     if(document.getElementById('pg-mine')&&document.getElementById('pg-mine').classList.contains('on'))renderMine();
     // Check for both-signed jobs → notify admin
@@ -1731,17 +1723,12 @@ function calRender(){
 
 function calSelectDay(ymd){
   if(calSelectedDate===ymd){
-    // กดซ้ำ = ยกเลิก filter
     calSelectedDate=null;
-    clearCalFilter();
   } else {
     calSelectedDate=ymd;
-    // filter รายการใบงานตามวันที่
-    applyCalFilter(ymd);
   }
   calRender();
   calRenderToday(calSelectedDate);
-  // ปิด sidebar mobile
   if(window.innerWidth<=700) toggleCalSidebar();
 }
 
@@ -1750,9 +1737,6 @@ function applyCalFilter(ymd){
   var fdTo=document.getElementById('fdTo');
   if(fdFrom) fdFrom.value=ymd;
   if(fdTo) fdTo.value=ymd;
-  // update badge
-  var badge=document.querySelector('#btnCal .cal-badge');
-  if(badge) badge.textContent='●';
   renderJobs();
 }
 
@@ -1761,8 +1745,6 @@ function clearCalFilter(){
   var fdTo=document.getElementById('fdTo');
   if(fdFrom) fdFrom.value='';
   if(fdTo) fdTo.value='';
-  var badge=document.querySelector('#btnCal .cal-badge');
-  if(badge) badge.textContent='';
   renderJobs();
 }
 
