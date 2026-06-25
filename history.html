@@ -1579,7 +1579,7 @@ async function _pdfSetupIframe(){
   if(old) old.parentNode.removeChild(old);
 
   var css=`
-#_pdfHost{display:block!important;position:fixed!important;top:0!important;left:-794px!important;width:794px!important;background:#fff!important;font-family:'Sarabun',sans-serif!important;font-size:12px!important;color:#000!important;line-height:1.4!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;z-index:-9998!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;}
+#_pdfHost{display:block!important;position:fixed!important;top:0!important;left:0!important;width:794px!important;background:#fff!important;font-family:'Sarabun',sans-serif!important;font-size:12px!important;color:#000!important;line-height:1.4!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;z-index:-9998!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;opacity:0!important;pointer-events:none!important;}
 #_pdfHost *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;font-family:'Sarabun',sans-serif!important;}
 #_pdfHost .page{width:794px!important;height:1123px!important;padding:22px 22px 18px 22px!important;background:#fff!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;}
 #_pdfHost .page-inner{flex:1!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;min-height:0!important;}
@@ -1698,10 +1698,11 @@ async function _pdfRenderOne(env, job, parts, J){
   var vat=sub*0.07, net=sub+vat;
 
   var wIn=job.warranty_status==='in', wOut=job.warranty_status==='out';
-  var wHTML='<b>สถานะ :</b><div class="rg">'
+  var wHTML='<b style="font-weight:600;color:#427aa1;font-size:11px;white-space:nowrap;">สถานะ :</b>'
+    +'<div class="rg">'
     +'<label>'+radio(wIn)+' ในรับประกัน</label>'
     +'<label>'+radio(wOut)+' นอกรับประกัน</label>'
-    +(wIn&&job.warranty_no?'<span style="font-size:11px;margin-left:2px;">เลขที่ : <span style="border-bottom:1px solid #aaa;padding:0 4px;">'+escH(job.warranty_no)+'</span></span>':'')
+    +(wIn&&job.warranty_no?'<span style="font-size:11px;white-space:nowrap;">เลขที่ : <span style="border-bottom:1px solid #aaa;padding:0 4px;">'+escH(job.warranty_no)+'</span></span>':'')
     +'</div>';
 
   function feeR(val){return radio(job.fee_type===val);}
@@ -1741,8 +1742,8 @@ async function _pdfRenderOne(env, job, parts, J){
     +'<div class="fw" style="margin-top:2px;"><b>ที่อยู่ :</b><span>'+escH(job.address||'')+'</span></div>'
     +'<span class="sec">ส่วนที่ 2 ข้อมูลเครื่องจักร</span>'
     +'<div class="stat-bar">'
-    +'<div style="display:flex;align-items:center;gap:5px;"><b>สถานที่บริการ :</b><span class="loc-val">'+escH(job.service_location||'')+'</span></div>'
-    +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">'+wHTML+'</div>'
+    +'<div style="display:flex;align-items:center;gap:5px;flex-shrink:0;"><b style="font-weight:600;color:#427aa1;font-size:11px;white-space:nowrap;">สถานที่บริการ :</b><span class="loc-val">'+escH(job.service_location||'')+'</span></div>'
+    +'<div style="display:flex;align-items:center;gap:5px;flex-wrap:nowrap;flex-shrink:0;">'+wHTML+'</div>'
     +'</div>'
     +'<div class="frow">'
     +'<div class="f"><b>เครื่อง :</b><span>'+escH(job.machine_name||'')+'</span></div>'
@@ -1788,17 +1789,19 @@ async function _pdfRenderOne(env, job, parts, J){
   void pageEl.offsetHeight;
   await _w(50);
 
+  // เปิด opacity ชั่วคราวเพื่อให้ html2canvas capture ได้ถูกต้อง
+  host.style.setProperty('opacity','1','important');
   var canvas=await _t(
     html2canvas(pageEl,{
       scale:2,useCORS:true,allowTaint:true,letterRendering:true,
       backgroundColor:'#ffffff',
       width:A4W,height:A4H,
       windowWidth:A4W,windowHeight:A4H,
-      scrollX:-pageEl.getBoundingClientRect().left,
-      scrollY:-pageEl.getBoundingClientRect().top,
+      scrollX:0,scrollY:0,
       x:0,y:0,logging:false
     }),30000,'timeout'
   );
+  host.style.setProperty('opacity','0','important');
 
   var pdf=new J({unit:'mm',format:[210,297],orientation:'portrait',compress:true});
   var imgData=canvas.toDataURL('image/jpeg',0.95);
