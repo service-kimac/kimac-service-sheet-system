@@ -338,7 +338,59 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .pn{color:#e2e8f0}
 [data-theme="dark"] .pe{color:#94a3b8}
 [data-theme="dark"] .pr{background:#1e3a5c;color:#bfdbfe}
-/* ปุ่มกลับ — หน้าถังขยะและหน้ารายงาน */
+/* ── Calendar Sidebar ── */
+.cal-sidebar{width:260px;flex-shrink:0;position:sticky;top:12px;}
+.cal-card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-header span{font-size:13px;font-weight:700;color:#1a3a6e;}
+.cal-nav{background:none;border:none;font-size:18px;color:#427aa1;cursor:pointer;padding:2px 8px;border-radius:6px;line-height:1;}
+.cal-nav:hover{background:#f0f4ff;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;}
+.cal-grid .cal-dow{color:#94a3b8;font-weight:600;padding:2px 0;font-size:10px;}
+.cal-grid .cal-day{padding:4px 2px;border-radius:6px;cursor:pointer;color:#374151;font-size:11px;position:relative;line-height:1.4;}
+.cal-day:hover{background:#f0f4ff;}
+.cal-day.has-job{color:#1a3a6e;font-weight:700;}
+.cal-day.has-job::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:#427aa1;margin:1px auto 0;}
+.cal-day.today{background:#1a3a6e;color:#fff!important;font-weight:700;}
+.cal-day.today::after{background:#ffd151!important;}
+.cal-day.selected{background:#e0eaff;color:#1a3a6e;font-weight:700;}
+.cal-day.other-month{color:#cbd5e1;}
+.cal-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#888;flex-wrap:wrap;}
+.cal-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.cal-dot.has-job{background:#427aa1;}
+.cal-dot.today{background:#1a3a6e;}
+.cal-today-title{font-size:13px;font-weight:700;color:#1a3a6e;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.cal-count{background:#1a3a6e;color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700;}
+.cal-today-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;}
+.cal-job-item{background:#f8faff;border-radius:8px;padding:8px 10px;border-left:3px solid #427aa1;cursor:pointer;font-size:11px;}
+.cal-job-item:hover{background:#e8f0ff;}
+.cal-job-item .cji-no{font-weight:700;color:#1a3a6e;font-size:11px;}
+.cal-job-item .cji-co{color:#555;margin-top:1px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cal-job-item .cji-time{color:#427aa1;font-size:10px;margin-top:2px;}
+.cal-empty{color:#aaa;font-size:12px;text-align:center;padding:16px 0;}
+.cal-toggle-btn{display:none;position:fixed;bottom:80px;right:16px;background:#1a3a6e;color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:200;}
+/* Mobile */
+@media(max-width:700px){
+  .cal-sidebar{display:none;position:fixed;top:0;right:0;width:90vw;max-width:320px;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:16px;box-shadow:-4px 0 20px rgba(0,0,0,.2);border-radius:16px 0 0 16px;}
+  .cal-sidebar.mobile-open{display:block!important;}
+  .cal-toggle-btn{display:flex!important;align-items:center;gap:6px;}
+  #pg-jobs>div:first-child{flex-direction:column;}
+}
+[data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
+[data-theme="dark"] .cal-header span{color:#e2e8f0;}
+[data-theme="dark"] .cal-day{color:#cbd5e1;}
+[data-theme="dark"] .cal-day.has-job{color:#93c5fd;}
+[data-theme="dark"] .cal-day.has-job::after{background:#93c5fd;}
+[data-theme="dark"] .cal-day:hover{background:#1e2d4a;}
+[data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
+[data-theme="dark"] .cal-day.other-month{color:#475569;}
+[data-theme="dark"] .cal-today-title{color:#e2e8f0;}
+[data-theme="dark"] .cal-job-item{background:#1a2332;border-left-color:#5a7fc9;}
+[data-theme="dark"] .cal-job-item:hover{background:#1e2d4a;}
+[data-theme="dark"] .cal-job-item .cji-no{color:#93c5fd;}
+[data-theme="dark"] .cal-job-item .cji-co{color:#94a3b8;}
+[data-theme="dark"] .cal-toggle-btn{background:#1e3a5c;}
+</style>
 [data-theme="dark"] .btn-back-trash,
 [data-theme="dark"] .btn-back-report {
   background:#1e2d4a!important;
@@ -433,7 +485,10 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 </div>
 
 <!-- JOBS PAGE -->
-<div id="pg-jobs" class="pg on">
+<div id="pg-jobs" class="pg on" style="max-width:1200px!important;">
+  <div style="display:flex;gap:16px;align-items:flex-start;">
+    <!-- Main jobs column -->
+    <div style="flex:1;min-width:0;">
   <div class="filter-bar" id="filterBar">
     <span class="fb-label">👤 รายบุคคล:</span>
     <select class="fb-select" id="filterTech" onchange="renderJobs()">
@@ -463,6 +518,33 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <button class="btn-refresh" onclick="location.reload()" title="รีเฟรช หากรายการโหลดไม่ขึ้นหรือค้าง">🔄</button>
   </div>
   <div id="list"><div class="ld" id="listLoadingMsg"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...<div id="loadRetryBtn" style="display:none;margin-top:16px"><button onclick="location.reload()" style="padding:10px 24px;background:#1a3a6e;color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer">🔄 โหลดใหม่</button><div style="font-size:12px;color:#94a3b8;margin-top:6px">การเชื่อมต่ออาจช้า กรุณาลองใหม่</div></div></div></div>
+    </div><!-- end main column -->
+
+    <!-- Calendar Sidebar -->
+    <div id="calSidebar" class="cal-sidebar">
+      <!-- Mini Calendar -->
+      <div class="cal-card">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="calPrev()">‹</button>
+          <span id="calMonthLabel"></span>
+          <button class="cal-nav" onclick="calNext()">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+          <span class="cal-dot has-job"></span><span>มีใบงาน</span>
+          <span class="cal-dot today"></span><span>วันนี้</span>
+        </div>
+      </div>
+      <!-- Today's jobs -->
+      <div class="cal-card" style="margin-top:10px;">
+        <div class="cal-today-title">📋 งานวันนี้ <span id="todayCount" class="cal-count">0</span></div>
+        <div id="todayList" class="cal-today-list"></div>
+      </div>
+    </div>
+  </div><!-- end flex wrapper -->
+
+  <!-- Mobile calendar toggle -->
+  <button id="calToggleBtn" class="cal-toggle-btn" onclick="toggleCalSidebar()">📅 ปฏิทิน</button>
 </div>
 <!-- MY JOBS PAGE -->
 <div id="pg-mine" class="pg">
@@ -1048,7 +1130,7 @@ async function loadJobs(){
     clearTimeout(_ltimer);
     var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
     renderJobs();
-    renderReport();
+    initCalendar();renderReport();
     updateMineBadge();
     if(document.getElementById('pg-mine')&&document.getElementById('pg-mine').classList.contains('on'))renderMine();
     // Check for both-signed jobs → notify admin
@@ -1553,7 +1635,114 @@ async function exportPDFBatch(){
 }
 
 
-// ── PDF helpers ──
+// ── Calendar Sidebar ──
+var calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+var calSelectedDate=null;
+
+function calRender(){
+  var now=new Date(), todayY=now.getFullYear(), todayM=now.getMonth(), todayD=now.getDate();
+  var label=new Date(calYear,calMonth,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  var el=document.getElementById('calMonthLabel');
+  if(el) el.textContent=label;
+
+  // หา dates ที่มีงาน
+  var jobDates={};
+  (jobs||[]).forEach(function(j){
+    var d=(j.service_date||j.created_at||'').slice(0,10);
+    if(d) jobDates[d]=(jobDates[d]||0)+1;
+  });
+
+  var grid=document.getElementById('calGrid');
+  if(!grid) return;
+  var dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  var html=dows.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
+
+  var first=new Date(calYear,calMonth,1).getDay();
+  var days=new Date(calYear,calMonth+1,0).getDate();
+  var prevDays=new Date(calYear,calMonth,0).getDate();
+
+  for(var i=0;i<first;i++){
+    var pd=prevDays-first+i+1;
+    html+='<div class="cal-day other-month">'+pd+'</div>';
+  }
+  for(var d=1;d<=days;d++){
+    var ymd=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cls='cal-day';
+    if(calYear===todayY&&calMonth===todayM&&d===todayD) cls+=' today';
+    if(jobDates[ymd]) cls+=' has-job';
+    if(calSelectedDate===ymd) cls+=' selected';
+    html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'+d+'</div>';
+  }
+  var total=first+days, rem=total%7?7-(total%7):0;
+  for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
+  grid.innerHTML=html;
+
+  calRenderToday();
+}
+
+function calSelectDay(ymd){
+  calSelectedDate=(calSelectedDate===ymd)?null:ymd;
+  calRender();
+  calRenderToday(ymd);
+}
+
+function calRenderToday(filterDate){
+  var now=new Date();
+  var todayYmd=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var target=filterDate||todayYmd;
+  var titleEl=document.getElementById('calMonthLabel');
+  var listEl=document.getElementById('todayList');
+  var countEl=document.getElementById('todayCount');
+  if(!listEl) return;
+
+  // อัพเดท title
+  var titleCard=listEl.closest('.cal-card');
+  if(titleCard){
+    var t=titleCard.querySelector('.cal-today-title');
+    if(t){
+      var label=target===todayYmd?'📋 งานวันนี้':'📋 งาน '+new Date(target+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+      t.innerHTML=label+' <span id="todayCount" class="cal-count">0</span>';
+    }
+  }
+
+  var filtered=(jobs||[]).filter(function(j){
+    return (j.service_date||j.created_at||'').slice(0,10)===target;
+  }).sort(function(a,b){return (a.time_start||'').localeCompare(b.time_start||'');});
+
+  var countEl2=document.getElementById('todayCount');
+  if(countEl2) countEl2.textContent=filtered.length;
+
+  if(!filtered.length){
+    listEl.innerHTML='<div class="cal-empty">'+(target===todayYmd?'ไม่มีใบงานวันนี้':'ไม่มีใบงานวันนี้')+'</div>';
+    return;
+  }
+  listEl.innerHTML=filtered.map(function(j){
+    var stMap={draft:'กำลังดำเนินการ',completed:'เสร็จสิ้น'};
+    var timeStr=j.time_start?(j.time_start+(j.time_end?' – '+j.time_end:'')):'';
+    return '<div class="cal-job-item" onclick="openJobDetail(\''+j.id+'\')"><div class="cji-no">'+escH(j.job_no||'#'+j.id)+'</div><div class="cji-co">'+escH(j.company||'-')+'</div>'+(timeStr?'<div class="cji-time">🕐 '+timeStr+'</div>':'')+'</div>';
+  }).join('');
+}
+
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}calRender();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calRender();}
+
+function toggleCalSidebar(){
+  var sb=document.getElementById('calSidebar');
+  if(sb) sb.classList.toggle('mobile-open');
+}
+
+// init calendar หลัง jobs โหลด
+function initCalendar(){
+  calRender();
+  // re-render ทุกครั้งที่ jobs เปลี่ยน
+}
+
+function openJobDetail(id){
+  var j=(jobs||[]).find(function(x){return x.id===id;});
+  if(j) localStorage.setItem('kjid',id), location.href='form.html';
+}
+
+
 function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escA(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
 function fmtDate(d){
