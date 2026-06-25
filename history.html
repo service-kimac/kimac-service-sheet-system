@@ -1579,7 +1579,7 @@ async function _pdfSetupIframe(){
   if(old) old.parentNode.removeChild(old);
 
   var css=`
-#_pdfHost{display:block!important;position:fixed!important;top:0!important;left:0!important;width:794px!important;background:#fff!important;font-family:'Sarabun',sans-serif!important;font-size:12px!important;color:#000!important;line-height:1.4!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;z-index:-9998!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;}
+#_pdfHost{display:block!important;position:fixed!important;top:0!important;left:0!important;width:794px!important;background:#fff!important;font-family:'Sarabun',sans-serif!important;font-size:12px!important;color:#000!important;line-height:1.4!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;z-index:-9998!important;margin:0!important;padding:0!important;border:none!important;box-shadow:none!important;transform:translateX(-900px)!important;}
 #_pdfHost *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;font-family:'Sarabun',sans-serif!important;}
 #_pdfHost .page{width:794px!important;height:1123px!important;padding:22px 22px 18px 22px!important;background:#fff!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;}
 #_pdfHost .page-inner{flex:1!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;min-height:0!important;}
@@ -1786,17 +1786,11 @@ async function _pdfRenderOne(env, job, parts, J){
 
   var pageEl=host.querySelector('.page');
   void pageEl.offsetHeight;
-  await _w(80);
+  await _w(50);
 
-  // ซ่อนทุก element ในหน้าชั่วคราว เหลือแต่ host
-  var prevVis=[];
-  var bodyChildren=Array.from(document.body.children);
-  bodyChildren.forEach(function(el){
-    if(el.id!=='_pdfHost'){
-      prevVis.push(el.style.visibility);
-      el.style.visibility='hidden';
-    }
-  });
+  // reset transform ชั่วคราวให้ html2canvas capture ถูกต้อง
+  host.style.setProperty('transform','none','important');
+  await _w(30);
 
   var canvas=await _t(
     html2canvas(pageEl,{
@@ -1809,10 +1803,8 @@ async function _pdfRenderOne(env, job, parts, J){
     }),30000,'timeout'
   );
 
-  // คืนค่า visibility
-  bodyChildren.forEach(function(el,i){
-    if(el.id!=='_pdfHost') el.style.visibility=prevVis[i];
-  });
+  // ซ่อนกลับ
+  host.style.setProperty('transform','translateX(-900px)','important');
 
   var pdf=new J({unit:'mm',format:[210,297],orientation:'portrait',compress:true});
   pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,210,297);
