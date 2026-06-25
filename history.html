@@ -369,14 +369,21 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-empty{color:#aaa;font-size:13px;text-align:center;padding:20px 0;}
 .cal-toggle-btn{display:none;position:fixed;bottom:80px;right:16px;background:#1a3a6e;color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:200;}
 /* Mobile */
+.cal-mob-header{display:none;align-items:center;justify-content:space-between;padding:14px 16px;background:#1a3a6e;color:#fff;position:sticky;top:0;z-index:10;}
+.cal-back-btn{background:none;border:none;color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;padding:4px 8px;border-radius:8px;}
+.cal-back-btn:active{background:rgba(255,255,255,.15);}
+.cal-mob-title{font-size:15px;font-weight:700;color:#fff;}
 .cal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:299;}
 .cal-backdrop.show{display:block;}
-.cal-close-btn{display:none;position:absolute;top:10px;right:12px;background:none;border:none;font-size:24px;color:#94a3b8;cursor:pointer;padding:4px 8px;line-height:1;z-index:10;}
+.cal-close-btn{display:none;}
+.cal-toggle-btn{display:none;position:fixed;bottom:80px;right:16px;background:#1a3a6e;color:#fff;border:none;border-radius:20px;padding:10px 18px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:200;}
 @media(max-width:700px){
-  .cal-sidebar{display:none;position:fixed;top:0;right:0;width:92vw;max-width:360px;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:20px 16px 40px;box-shadow:-4px 0 24px rgba(0,0,0,.2);border-radius:16px 0 0 16px;}
+  .cal-mob-header{display:flex!important;}
+  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;box-shadow:none;border-radius:0;}
   .cal-sidebar.mobile-open{display:block!important;}
+  .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
+  .cal-sidebar .cal-card{margin-bottom:2px;}
   .cal-toggle-btn{display:flex!important;align-items:center;gap:6px;}
-  .cal-close-btn{display:block!important;}
   #pg-jobs>div:first-child{flex-direction:column;}
 }
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
@@ -524,7 +531,13 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 
     <!-- Calendar Sidebar -->
     <div id="calSidebar" class="cal-sidebar">
-      <button class="cal-close-btn" onclick="toggleCalSidebar()" title="ปิด">×</button>
+      <!-- Mobile header -->
+      <div class="cal-mob-header">
+        <button onclick="toggleCalSidebar()" class="cal-back-btn">‹ กลับ</button>
+        <span class="cal-mob-title">📅 ปฏิทิน</span>
+        <span style="width:60px;"></span>
+      </div>
+      <div style="padding:12px 12px 0;">&ZeroWidthSpace;
       <!-- Mini Calendar -->
       <div class="cal-card">
         <div class="cal-header">
@@ -543,7 +556,8 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
         <div class="cal-today-title">📋 งานวันนี้ <span id="todayCount" class="cal-count">0</span></div>
         <div id="todayList" class="cal-today-list"></div>
       </div>
-    </div>
+      </div><!-- end mobile padding -->
+    </div><!-- end cal sidebar -->
   </div><!-- end flex wrapper -->
 
   <!-- Mobile calendar toggle -->
