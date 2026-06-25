@@ -2572,7 +2572,7 @@ function loadDispatchPage() {
   // Populate tech selector on the dispatch page
   const sel = document.getElementById('dp-tech');
   if (sel && profiles.length) {
-    sel.innerHTML = profiles.map(p =>
+    sel.innerHTML = '<option value="">-- เลือกช่าง --</option>' + profiles.map(p =>
       `<option value="${p.id}">${p.full_name || p.id}${p.position ? ' · ' + p.position : ''}</option>`
     ).join('');
   }
@@ -2641,8 +2641,8 @@ async function saveDispatch() {
   const maps = document.getElementById('dp-maps').value.trim();
   const note = document.getElementById('dp-note').value.trim();
 
+  if (!techId) { toast('กรุณาเลือกช่างที่รับงาน', 'err'); return; }
   if (!date || !place) { toast('กรุณากรอกวันที่และสถานที่', 'err'); return; }
-
   const techProfile = profiles.find(p => p.id === techId);
   const dispatch = {
     id: Date.now(),
