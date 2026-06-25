@@ -571,6 +571,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 </div>
 <!-- Floating calendar button (mobile only) -->
 <button id="calFloatBtn" onclick="toggleCalSidebar()" style="display:flex;position:fixed;bottom:100px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a3a6e;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;">📅</button>
+<style>#calFloatBtn{display:none!important;}@media(max-width:700px){#calFloatBtn{display:flex!important;}}</style>
 <!-- MY JOBS PAGE -->
 <div id="pg-mine" class="pg">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -1472,11 +1473,10 @@ function swPg(name){
   if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
   if(name==='dispatch'){loadDispatchPage();}
   if(name==='trash')loadTrash();
-  // แสดง/ซ่อนปุ่มปฏิทินลอย ตามหน้าที่กำหนด
+  // แสดงปุ่มปฏิทินลอย เฉพาะมือถือ และหน้าประวัติเท่านั้น
   const calBtn=document.getElementById('calFloatBtn');
-  if(calBtn){
-    const showCal=['jobs','mine','team','settings'];
-    calBtn.style.display=showCal.includes(name)?'flex':'none';
+  if(calBtn&&window.innerWidth<=700){
+    calBtn.style.setProperty('display', name==='jobs'?'flex':'none', 'important');
   }
 }
 
