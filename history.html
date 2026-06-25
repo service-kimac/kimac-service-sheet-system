@@ -2141,7 +2141,7 @@ async function sendSigCompletePushToAdmin(job) {
   try {
     if (Notification && Notification.permission === 'granted' && CP && CP.role === 'admin') {
       if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready;
+        const reg = await Promise.race([navigator.serviceWorker.ready, new Promise((_,r)=>setTimeout(()=>r(new Error('sw timeout')),3000))]);
         await reg.showNotification('✅ เซ็นใบงานครบแล้ว', {
           body: '📄 ' + (job.job_no || '-') + ' · ' + (job.company || '-') + '\n🔧 ช่าง: ' + (job.technician_name || '-'),
           tag: 'sig_complete_' + job.id,
@@ -2790,8 +2790,8 @@ async function enablePush(){
     const perm=await Notification.requestPermission();
     if(perm!=='granted'){ toast('❌ ไม่ได้อนุญาตแจ้งเตือน','err'); refreshPushStatus(); return; }
     await navigator.serviceWorker.register('sw.js').catch(()=>{});
-    const reg=await navigator.serviceWorker.ready;
-    let sub=await reg.pushManager.getSubscription();
+    const reg=await Promise.race([navigator.serviceWorker.ready, new Promise((_,r)=>setTimeout(()=>r(new Error('sw timeout')),5000))]);
+    let sub=await Promise.race([reg.pushManager.getSubscription(), new Promise((_,r)=>setTimeout(()=>r(null),3000))]);
     if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC)});
     const j=sub.toJSON();
     const{error}=await sb.from('push_subscriptions').upsert(
@@ -2815,9 +2815,9 @@ async function onPushToggle(cb){
 async function disablePush(){
   try{
     if('serviceWorker' in navigator){
-      const reg=await navigator.serviceWorker.getRegistration();
+      const reg=await Promise.race([navigator.serviceWorker.getRegistration(), new Promise((_,r)=>setTimeout(()=>r(null),3000))]);
       if(reg){
-        const sub=await reg.pushManager.getSubscription();
+        const sub=await Promise.race([reg.pushManager.getSubscription(), new Promise((_,r)=>setTimeout(()=>r(null),3000))]);
         if(sub){
           try{ await sb.from('push_subscriptions').delete().eq('endpoint',sub.endpoint); }catch(_){}
           await sub.unsubscribe();
