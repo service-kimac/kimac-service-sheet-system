@@ -1650,28 +1650,25 @@ async function _pdfRenderOne(env, job, parts, J){
       +'</div>';
   }
 
-  // field/fieldLast: เลียนแบบ .field ใน form.html — label nowrap, value flex:1 border-bottom
-  var fR='<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">';
-  var fL='<div style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;">';
   function field(label,value){
-    return fR
+    return '<div style="display:flex;align-items:baseline;gap:4px;flex:1;min-width:0;">'
       +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;">'+label+'</span>'
-      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;display:block;">'+escH(value||'')+'</span>'
+      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;min-height:16px;display:block;">'+escH(value||'')+'</span>'
       +'</div>';
   }
   function fieldLast(label,value){
-    return fL
+    return '<div style="display:flex;align-items:baseline;gap:4px;flex:1;min-width:0;">'
       +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;">'+label+'</span>'
-      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;display:block;">'+escH(value||'')+'</span>'
+      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;min-height:16px;display:block;">'+escH(value||'')+'</span>'
       +'</div>';
   }
   function fieldRow(fields){
-    return '<div style="display:flex;gap:6px;margin-bottom:2px;align-items:center;">'+fields+'</div>';
+    return '<div style="display:flex;gap:6px;margin-bottom:2px;align-items:flex-end;">'+fields+'</div>';
   }
   function fieldRowFull(label,value){
-    return '<div style="display:flex;gap:4px;margin-bottom:2px;align-items:center;">'
+    return '<div style="display:flex;gap:4px;margin-bottom:2px;align-items:baseline;">'
       +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;">'+label+'</span>'
-      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;display:block;">'+escH(value||'')+'</span>'
+      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-height:16px;display:block;">'+escH(value||'')+'</span>'
       +'</div>';
   }
 
