@@ -1789,10 +1789,23 @@ async function _pdfRenderOne(env, job, parts, J){
   void pageEl.offsetHeight;
   await _w(50);
 
-  // เปิด opacity ชั่วคราวเพื่อให้ html2canvas capture ได้ถูกต้อง
-  host.style.setProperty('opacity','1','important');
+  // clone pageEl ออกมา render แบบ off-screen จริงๆ
+  // วิธีนี้ html2canvas capture จาก clone ที่ position:fixed top:0 left:0
+  // โดยไม่ต้องเปิด opacity ของ host (กัน flicker)
+  // สร้าง offscreen container จริงๆ — position:absolute ไกลออกไป
+  // แต่ html2canvas ใช้ useCORS + allowTaint บน element โดยตรง
+  // วิธี: วาง clone ที่ top:0 left:0 แต่ wrap ใน div ที่ clip ด้วย overflow:hidden w:0 h:0
+  var clipWrap=document.createElement('div');
+  clipWrap.style.cssText='position:fixed;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:-1;contain:strict;';
+  var clone=pageEl.cloneNode(true);
+  clone.style.cssText='position:absolute;top:0;left:0;width:'+A4W+'px;height:'+A4H+'px;background:#fff;margin:0;padding:22px 22px 18px 22px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;font-family:Sarabun,sans-serif;font-size:12px;';
+  clipWrap.appendChild(clone);
+  document.body.appendChild(clipWrap);
+  void clone.offsetHeight;
+  await _w(50);
+
   var canvas=await _t(
-    html2canvas(pageEl,{
+    html2canvas(clone,{
       scale:2,useCORS:true,allowTaint:true,letterRendering:true,
       backgroundColor:'#ffffff',
       width:A4W,height:A4H,
@@ -1801,7 +1814,7 @@ async function _pdfRenderOne(env, job, parts, J){
       x:0,y:0,logging:false
     }),30000,'timeout'
   );
-  host.style.setProperty('opacity','0','important');
+  if(clipWrap.parentNode) clipWrap.parentNode.removeChild(clipWrap);
 
   var pdf=new J({unit:'mm',format:[210,297],orientation:'portrait',compress:true});
   var imgData=canvas.toDataURL('image/jpeg',0.95);
