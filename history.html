@@ -620,10 +620,9 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   <!-- Form card -->
   <div class="dispatch-form-card" style="background:#fff;border-radius:14px;padding:18px;margin-bottom:12px;
     box-shadow:0 2px 8px rgba(0,0,0,.06);border:1.5px solid #dce5ff">
-    <div class="ff"><label>ช่างที่รับงาน</label>
-      <select id="dp-tech" style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
-        font-family:'Sarabun',sans-serif;font-size:14px;color:#1a1a2e;background:#f8faff;
-        outline:none;-webkit-appearance:none"></select>
+    <div class="ff"><label>ช่างที่รับงาน <span style="font-size:11px;color:#888;font-weight:400">(เลือกได้หลายคน)</span></label>
+      <div id="dp-tech-list" style="border:2px solid #dce5ff;border-radius:10px;background:#f8faff;max-height:180px;overflow-y:auto;padding:6px 4px;"></div>
+      <input type="hidden" id="dp-tech">
     </div>
     <div class="ff"><label>วันที่ออกงาน</label>
       <input type="date" id="dp-date" style="width:100%;padding:11px 13px;border:2px solid #dce5ff;border-radius:10px;
@@ -2569,18 +2568,28 @@ function closeDispatch() {
 }
 
 function loadDispatchPage() {
-  // Populate tech selector on the dispatch page
-  const sel = document.getElementById('dp-tech');
-  if (sel && profiles.length) {
-    sel.innerHTML = '<option value="">-- เลือกช่าง --</option>' + profiles.map(p =>
-      `<option value="${p.id}">${p.full_name || p.id}${p.position ? ' · ' + p.position : ''}</option>`
-    ).join('');
+  const list = document.getElementById('dp-tech-list');
+  if (list && profiles.length) {
+    list.innerHTML = profiles.map(p => {
+      const nm = p.full_name || p.id;
+      const pos = p.position ? ' · ' + p.position : '';
+      return `<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;">
+        <input type="checkbox" class="dp-tech-chk" value="${p.id}" data-name="${nm}" style="width:17px;height:17px;accent-color:#1a3a6e;flex-shrink:0;cursor:pointer">
+        <span>${nm}<span style="color:#888;font-size:12px;">${pos}</span></span>
+      </label>`;
+    }).join('');
+    // ปุ่มเลือกทั้งหมด/ล้าง
+    list.insertAdjacentHTML('beforebegin', `<div style="display:flex;gap:8px;margin-bottom:6px;">
+      <button type="button" onclick="dpSelectAll()" style="font-size:11px;font-weight:700;color:#1a3a6e;background:#e8f0ff;border:1px solid #c7d7ff;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Sarabun',sans-serif;">เลือกทั้งหมด</button>
+      <button type="button" onclick="dpClearAll()" style="font-size:11px;font-weight:700;color:#64748b;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Sarabun',sans-serif;">ล้าง</button>
+    </div>`);
   }
-  // Default date = today
   const dateEl = document.getElementById('dp-date');
   if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
   renderDispatchHistory();
 }
+function dpSelectAll(){ document.querySelectorAll('.dp-tech-chk').forEach(c=>c.checked=true); }
+function dpClearAll(){ document.querySelectorAll('.dp-tech-chk').forEach(c=>c.checked=false); }
 
 function deleteDispatch(dispatchId) {
   try {
@@ -2634,77 +2643,83 @@ function renderDispatchHistory() {
 }
 
 async function saveDispatch() {
-  const techId = document.getElementById('dp-tech').value;
+  const checked = [...document.querySelectorAll('.dp-tech-chk:checked')];
   const date = document.getElementById('dp-date').value;
   const time = document.getElementById('dp-time').value;
   const place = document.getElementById('dp-place').value.trim();
   const maps = document.getElementById('dp-maps').value.trim();
   const note = document.getElementById('dp-note').value.trim();
 
-  if (!techId) { toast('กรุณาเลือกช่างที่รับงาน', 'err'); return; }
+  if (!checked.length) { toast('กรุณาเลือกช่างอย่างน้อย 1 คน', 'err'); return; }
   if (!date || !place) { toast('กรุณากรอกวันที่และสถานที่', 'err'); return; }
-  const techProfile = profiles.find(p => p.id === techId);
-  const dispatch = {
-    id: Date.now(),
-    created_at: new Date().toISOString(),
-    created_by: CP ? (CP.full_name || CU.email) : 'Admin',
-    technician_id: techId,
-    technician_name: techProfile ? (techProfile.full_name || techId) : techId,
-    date_of_work: date,
-    time_of_work: time || null,
-    location: place,
-    maps_url: maps || null,
-    note: note || null
-  };
 
-  // Save to localStorage
-  try {
-    const list = JSON.parse(localStorage.getItem(DISPATCH_KEY) || '[]');
-    list.unshift(dispatch);
-    localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.slice(0, 200)));
-  } catch(e) {}
+  const createdBy = CP ? (CP.full_name || CU.email) : 'Admin';
+  let savedCount = 0, errCount = 0;
 
-  // เก็บลง Supabase — สำคัญมาก: หน้าต่างแจ้งเตือนในแอปของช่าง (popup) อ่านจากตารางนี้โดยตรง
-  // ถ้า insert ตรงนี้ล้มเหลว ช่างจะไม่เห็นการแจ้งเตือนเลยไม่ว่าจะในแอปหรือ push
-  var _dispatchSaved = false;
-  try {
-    const insRes = await sb.from('job_dispatches').insert({
-      technician_id: dispatch.technician_id,
-      technician_name: dispatch.technician_name,
-      date_of_work: dispatch.date_of_work,
-      time_of_work: dispatch.time_of_work,
-      location: dispatch.location,
-      maps_url: dispatch.maps_url,
-      note: dispatch.note,
-      created_by: dispatch.created_by
-    });
-    if (insRes.error) throw insRes.error;
-    _dispatchSaved = true;
-  } catch(e) { console.warn('saveDispatch Supabase:', e); }
+  for (const chk of checked) {
+    const techId = chk.value;
+    const techProfile = profiles.find(p => p.id === techId);
+    const techName = techProfile ? (techProfile.full_name || techId) : techId;
+    const dispatch = {
+      id: Date.now() + Math.random(),
+      created_at: new Date().toISOString(),
+      created_by: createdBy,
+      technician_id: techId,
+      technician_name: techName,
+      date_of_work: date,
+      time_of_work: time || null,
+      location: place,
+      maps_url: maps || null,
+      note: note || null
+    };
 
-  // Try to send push notification to technician
-  try {
-    await sb.functions.invoke('notify-push', {body: {
-      user_id: techId,
-      title: '📤 มีงานใหม่จากแอดมิน',
-      body: (place || '') + (date ? ' · ' + date : '') + (time ? ' เวลา ' + time : ''),
-      data: { type: 'dispatch', dispatch_id: dispatch.id }
-    }});
-  } catch(e) { console.warn('dispatch push (optional):', e); }
+    // Save to localStorage
+    try {
+      const list = JSON.parse(localStorage.getItem(DISPATCH_KEY) || '[]');
+      list.unshift(dispatch);
+      localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.slice(0, 200)));
+    } catch(e) {}
 
-  if (_dispatchSaved) {
-    toast('✅ ส่งงานให้ ' + dispatch.technician_name + ' แล้ว', 'ok');
-  } else {
-    toast('⚠️ บันทึกในเครื่องแล้ว แต่ส่งขึ้นระบบไม่สำเร็จ ช่างอาจไม่เห็นแจ้งเตือน', 'err');
+    // Save to Supabase
+    try {
+      const insRes = await sb.from('job_dispatches').insert({
+        technician_id: dispatch.technician_id,
+        technician_name: dispatch.technician_name,
+        date_of_work: dispatch.date_of_work,
+        time_of_work: dispatch.time_of_work,
+        location: dispatch.location,
+        maps_url: dispatch.maps_url,
+        note: dispatch.note,
+        created_by: dispatch.created_by
+      });
+      if (insRes.error) throw insRes.error;
+      savedCount++;
+    } catch(e) { console.warn('saveDispatch Supabase:', e); errCount++; }
+
+    // Push notification
+    try {
+      await sb.functions.invoke('notify-push', {body: {
+        user_id: techId,
+        title: '📤 มีงานใหม่จากแอดมิน',
+        body: (place || '') + (date ? ' · ' + date : '') + (time ? ' เวลา ' + time : ''),
+        data: { type: 'dispatch', dispatch_id: dispatch.id }
+      }});
+    } catch(e) { console.warn('dispatch push (optional):', e); }
+
+    pushDispatchToTech(dispatch);
   }
 
-  // Inject into tech's local notif store and show popup (same-device or same-user)
-  pushDispatchToTech(dispatch);
+  if (errCount === 0) {
+    toast('✅ ส่งงานให้ ' + savedCount + ' คนแล้ว', 'ok');
+  } else if (savedCount > 0) {
+    toast('⚠️ ส่งสำเร็จ ' + savedCount + '/' + checked.length + ' คน', 'err');
+  } else {
+    toast('⚠️ บันทึกในเครื่องแล้ว แต่ส่งขึ้นระบบไม่สำเร็จ', 'err');
+  }
 
   closeDispatch();
-  // Clear form fields
+  dpClearAll();
   ['dp-time','dp-place','dp-maps','dp-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  // Refresh dispatch history on the page
   renderDispatchHistory();
 }
 
