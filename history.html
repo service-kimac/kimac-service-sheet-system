@@ -1089,11 +1089,12 @@ async function init(){
 async function clearOSNotifications(){
   try{
     if(!('serviceWorker' in navigator)) return;
-    const reg = await navigator.serviceWorker.getRegistration();
-    if(!reg || !reg.getNotifications) return;
-    const list = await reg.getNotifications();
-    list.forEach(n => n.close());
-  }catch(e){ /* เงียบไว้ ไม่กระทบการทำงานหลัก */ }
+    const _to=new Promise(r=>setTimeout(r,2000));
+    const reg=await Promise.race([navigator.serviceWorker.getRegistration(),_to]);
+    if(!reg||!reg.getNotifications) return;
+    const list=await Promise.race([reg.getNotifications(),new Promise(r=>setTimeout(()=>r([]),2000))]);
+    list.forEach(n=>n.close());
+  }catch(e){}
 }
 
 // ===== รีเฟรชอัตโนมัติเมื่อกลับเข้าแอป (จากพื้นหลัง/เปิดจากไอคอนหน้าจอโฮม) =====
@@ -2763,9 +2764,10 @@ async function rebindPushToCurrentUser(){
     if(!CU)return;
     if(!('serviceWorker' in navigator)||!('PushManager' in window))return;
     if(Notification.permission!=='granted')return;
-    const reg=await navigator.serviceWorker.getRegistration();
+    const _to=new Promise((_,r)=>setTimeout(()=>r(new Error('sw timeout')),3000));
+    const reg=await Promise.race([navigator.serviceWorker.getRegistration(),_to]);
     if(!reg)return;
-    const sub=await reg.pushManager.getSubscription();
+    const sub=await Promise.race([reg.pushManager.getSubscription(),new Promise((_,r)=>setTimeout(()=>r(new Error('sub timeout')),3000))]);
     if(!sub)return;
     const j=sub.toJSON();
     await sb.from('push_subscriptions').upsert(
@@ -2835,8 +2837,9 @@ async function refreshPushStatus(){
     return;
   }
   try{
-    const reg=await navigator.serviceWorker.ready;
-    const sub=await reg.pushManager.getSubscription();
+    const _to=new Promise((_,r)=>setTimeout(()=>r(new Error('sw ready timeout')),4000));
+    const reg=await Promise.race([navigator.serviceWorker.ready,_to]);
+    const sub=await Promise.race([reg.pushManager.getSubscription(),new Promise((_,r)=>setTimeout(()=>r(null),3000))]);
     const on=!!(sub&&Notification.permission==='granted');
     el.textContent=on?'✅ เปิดอยู่ บนอุปกรณ์นี้':'แตะสวิตช์เพื่ออนุญาตแจ้งเตือนบนอุปกรณ์นี้';
     if(cb){cb.disabled=false;cb.checked=on;}
