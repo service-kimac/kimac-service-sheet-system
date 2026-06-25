@@ -1583,16 +1583,18 @@ async function _pdfSetupIframe(){
     .radio-group label{display:flex!important;align-items:center!important;gap:4px!important;font-size:11px!important;font-weight:400!important;color:#333!important;}
     .detail-div-pdf{width:100%!important;border:1.5px solid #ffd151!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;box-sizing:border-box!important;}
     .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important;table-layout:fixed!important;}
-    .parts-table th{background:#427aa1!important;color:#fff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;overflow:hidden!important;}
-    .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#fff!important;font-size:11px!important;overflow:hidden!important;}
-    .parts-table td:first-child{text-align:center!important;width:30px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
-    .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;color:#000!important;display:block!important;}
-    .price-cell input{text-align:right!important;}
-    .qty-cell input{text-align:center!important;}
-    .total-label{text-align:right!important;font-weight:700!important;background:#fff7d6!important;color:#427aa1!important;padding-right:8px!important;border:1px solid #c4960a!important;}
-    .total-val{text-align:right!important;background:#fffbf0!important;font-weight:700!important;color:#c00!important;border:1px solid #c4960a!important;padding-right:6px!important;}
-    .grand-total-label{text-align:right!important;font-weight:700!important;color:#1a3a6e!important;font-size:13px!important;padding:4px 8px!important;border:1px solid #c4960a!important;background:#fff7d6!important;}
-    .grand-total-val{text-align:right!important;background:#fff7d6!important;border:1px solid #c4960a!important;padding-right:6px!important;font-weight:700!important;color:#1a3a6e!important;font-size:14px!important;}
+    .parts-table th{background:#427aa1!important;color:#fff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;white-space:nowrap!important;overflow:hidden!important;}
+    .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#fff!important;font-size:11px!important;overflow:hidden!important;white-space:nowrap!important;}
+    .parts-table td:first-child{text-align:center!important;width:5%!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
+    .parts-table td:nth-child(2){width:35%!important;white-space:normal!important;}
+    .parts-table td:nth-child(3){width:13%!important;}
+    .parts-table td:nth-child(4){width:8%!important;}
+    .parts-table td:nth-child(5){width:8%!important;}
+    .parts-table td:nth-child(6){width:18%!important;}
+    .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;color:#000!important;padding:0!important;margin:0!important;display:block!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+    .price-cell input,.qty-cell input{text-align:center!important;}
+    .parts-table .price-cell{text-align:right!important;}
+    .parts-table .price-cell input{text-align:right!important;}
     .fee-bar-wrap{background:#fff!important;border:1px solid #ffd151!important;border-radius:4px!important;padding:4px 8px!important;margin-bottom:4px!important;display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;font-size:12px!important;}
     .fee-bar-wrap label{display:flex!important;align-items:center!important;gap:3px!important;font-size:12px!important;white-space:nowrap!important;}
     .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important;}
@@ -1609,9 +1611,12 @@ async function _pdfSetupIframe(){
     *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   `;
 
-  // สร้าง iframe ซ่อนอยู่นอกหน้าจอ ไม่กระพริบ
+  // สร้าง iframe — position:absolute ไกลออกนอกหน้าจอ ไม่ใช้ fixed (กัน repaint บน iOS)
+  // overflow:hidden บน body ป้องกัน scrollbar แนวนอน
+  var _savedOX=document.documentElement.style.overflowX;
+  document.documentElement.style.overflowX='hidden';
   var wrap=document.createElement('div');
-  wrap.style.cssText='position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;pointer-events:none;z-index:-9999;contain:strict;';
+  wrap.style.cssText='position:absolute;top:-9999px;left:-9999px;width:794px;height:1123px;pointer-events:none;z-index:-9999;';
   var iframe=document.createElement('iframe');
   iframe.style.cssText='position:absolute;top:0;left:0;width:794px;height:1123px;border:none;background:#fff;';
   wrap.appendChild(iframe);
@@ -1637,11 +1642,12 @@ async function _pdfSetupIframe(){
   try{if(iDoc.fonts&&iDoc.fonts.ready)await Promise.race([iDoc.fonts.ready,_w(5000)]);}catch(e){}
   await _w(200);
 
-  return {wrap:wrap,iframe:iframe,iDoc:iDoc,logoSrc:logoSrc,A4W:A4W,A4H:A4H,_w:_w};
+  return {wrap:wrap,iframe:iframe,iDoc:iDoc,logoSrc:logoSrc,A4W:A4W,A4H:A4H,_w:_w,_savedOX:_savedOX};
 }
 
 function _pdfTeardownIframe(env){
   if(env&&env.wrap&&env.wrap.parentNode) env.wrap.parentNode.removeChild(env.wrap);
+  if(env&&env._savedOX!==undefined) document.documentElement.style.overflowX=env._savedOX;
 }
 
 async function _pdfRenderOne(env, job, parts, J){
@@ -1768,10 +1774,12 @@ async function _pdfRenderOne(env, job, parts, J){
 
   // force layout
   void iDoc.getElementById('pdfPage').offsetHeight;
-  await _w(80);
+  await _w(100);
 
-  // capture
+  // capture — ต้องใช้ window ของ iframe และ scroll = 0
   var pdfPage=iDoc.getElementById('pdfPage');
+  var iWin=env.iframe.contentWindow;
+  if(iWin) iWin.scrollTo(0,0);
   var canvas=await _t(
     html2canvas(pdfPage,{
       scale:2,useCORS:true,allowTaint:true,letterRendering:true,
@@ -1779,7 +1787,12 @@ async function _pdfRenderOne(env, job, parts, J){
       width:A4W,height:A4H,
       windowWidth:A4W,windowHeight:A4H,
       scrollX:0,scrollY:0,x:0,y:0,logging:false,
-      foreignObjectRendering:false
+      foreignObjectRendering:false,
+      onclone:function(clonedDoc){
+        // ตรวจสอบว่า cloned page มีขนาดถูกต้อง
+        var cp=clonedDoc.getElementById('pdfPage');
+        if(cp){cp.style.width=A4W+'px';cp.style.height=A4H+'px';cp.style.overflow='hidden';}
+      }
     }),30000,'timeout'
   );
 
