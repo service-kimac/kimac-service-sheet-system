@@ -2070,29 +2070,8 @@ function calRenderToday(filterDate){
   }).join('');
   listEl.innerHTML=html;
 }
-  (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)jobDates[d]=(jobDates[d]||0)+1;});
-  var grid=document.getElementById('calGrid');
-  if(!grid)return;
-  var dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
-  var html=dows.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
-  var first=new Date(calYear,calMonth,1).getDay();
-  var days=new Date(calYear,calMonth+1,0).getDate();
-  var prevDays=new Date(calYear,calMonth,0).getDate();
-  for(var i=0;i<first;i++) html+='<div class="cal-day other-month">'+(prevDays-first+i+1)+'</div>';
-  for(var d=1;d<=days;d++){
-    var ymd=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    var cls='cal-day';
-    if(calYear===todayY&&calMonth===todayM&&d===todayD) cls+=' today';
-    if(jobDates[ymd]) cls+=' has-job';
-    if(calSelectedDate===ymd) cls+=' selected';
-    html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'+d+'</div>';
-  }
-  var rem=(first+days)%7?7-(first+days)%7:0;
-  for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
-  grid.innerHTML=html;
-  calRenderToday(calSelectedDate);
-}
-
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}calRender();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calRender();}
 
 function toggleCalSidebar(){
   var sb=document.getElementById('calSidebar');
