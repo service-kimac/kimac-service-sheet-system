@@ -65,6 +65,8 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-day:hover{background:#f0f4ff;}
 .cal-day.has-job{color:#1a3a6e;font-weight:700;}
 .cal-day.has-job::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#16a34a;margin:2px auto 0;}
+.cal-day.has-dispatch::after{background:#f59e0b!important;}
+.cal-day.has-job.has-dispatch::after{background:linear-gradient(to right,#16a34a 50%,#f59e0b 50%);}
 .cal-day.today{background:#1a3a6e;color:#fff!important;font-weight:700;}
 .cal-day.today::after{background:#ef4444!important;}
 .cal-day.selected{background:#e0eaff;color:#1a3a6e;font-weight:700;}
@@ -72,13 +74,17 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#888;flex-wrap:wrap;}
 .cal-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .cal-dot.has-job{background:#16a34a;}
+.cal-dot.has-dispatch{background:#f59e0b;}
 .cal-dot.today{background:#ef4444;}
 .cal-today-title{font-size:13px;font-weight:700;color:#1a3a6e;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .cal-count{background:#1a3a6e;color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700;}
 .cal-today-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;}
 .cal-job-item{background:#f8faff;border-radius:8px;padding:8px 10px;border-left:3px solid #427aa1;cursor:pointer;font-size:11px;}
+.cal-job-item.cal-dispatch-item{border-left-color:#f59e0b;background:#fffbeb;}
 .cal-job-item:hover{background:#e8f0ff;}
+.cal-job-item.cal-dispatch-item:hover{background:#fef3c7;}
 .cal-job-item .cji-no{font-weight:700;color:#1a3a6e;font-size:11px;}
+.cal-job-item.cal-dispatch-item .cji-no{color:#92400e;}
 .cal-job-item .cji-co{color:#555;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cal-job-item .cji-time{color:#427aa1;font-size:10px;margin-top:2px;}
 .cal-empty{color:#aaa;font-size:12px;text-align:center;padding:16px 0;}
@@ -97,6 +103,11 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
   #pg-jobs>div:first-child{flex-direction:column;}
 }
+/* Desktop: calendar flush right, job list centered */
+@media(min-width:701px){
+  #pg-jobs>div:first-child{justify-content:center;}
+  #calSidebar{margin-left:20px;}
+}
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
 [data-theme="dark"] .cal-header span{color:#e2e8f0;}
 [data-theme="dark"] .cal-day{color:#cbd5e1;}
@@ -110,6 +121,8 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .cal-job-item:hover{background:#1e2d4a;}
 [data-theme="dark"] .cal-job-item .cji-no{color:#93c5fd;}
 [data-theme="dark"] .cal-job-item .cji-co{color:#94a3b8;}
+[data-theme="dark"] .cal-job-item.cal-dispatch-item{background:#2a1f00;border-left-color:#d97706;}
+[data-theme="dark"] .cal-job-item.cal-dispatch-item .cji-no{color:#fbbf24;}
 .bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .btn-cal{padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;
   background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;
@@ -502,8 +515,9 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
       <option value="">ทุกคน</option>
     </select>
   </div>
-  <div class="bar">
+  <div class="bar" id="mainBar">
     <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
+    <select class="fsel" id="filterTechInline" onchange="renderJobsFromInline()" style="display:none"></select>
     <select class="fsel" id="fs" onchange="renderJobs()">
       <option value="">ทุกสถานะ</option>
       <option value="draft">กำลังดำเนินการ</option>
@@ -544,6 +558,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
           <div class="cal-grid" id="calGrid"></div>
           <div class="cal-legend">
             <span class="cal-dot has-job"></span><span>มีใบงาน</span>
+            <span class="cal-dot has-dispatch"></span><span>งานแอดมินส่ง</span>
             <span class="cal-dot today"></span><span>วันนี้</span>
           </div>
         </div>
@@ -557,7 +572,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   <div id="calBackdrop" class="cal-backdrop" onclick="toggleCalSidebar()"></div>
 </div>
 <!-- Floating calendar button (mobile only) -->
-<button id="calFloatBtn" onclick="toggleCalSidebar()" style="display:none;position:fixed;bottom:80px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a3a6e;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;">📅</button>
+<button id="calFloatBtn" onclick="toggleCalSidebar()" style="display:none;position:fixed;bottom:100px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a3a6e;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;">📅</button>
 <!-- MY JOBS PAGE -->
 <div id="pg-mine" class="pg">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -589,6 +604,14 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <div style="font-size:14px;font-weight:800;color:#1a3a6e">👥 ทีมงานทั้งหมด</div>
   </div>
   <div id="teamList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
+</div>
+<!-- MEMBER JOBS PAGE -->
+<div id="pg-member-jobs" class="pg">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <button onclick="swPg('team')" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
+    <div style="font-size:14px;font-weight:800;color:#1a3a6e" id="memberJobsTitle">📋 ใบงาน</div>
+  </div>
+  <div id="memberJobsList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
 </div>
 <!-- DISPATCH PAGE (Admin only) -->
 <div id="pg-dispatch" class="pg">
@@ -686,7 +709,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   <div class="ss">
     <div class="sh">📋 ข้อมูล</div>
     <div class="sr" onclick="exportXLSX()">
-      <div><div class="sl">Export Excel (.xlsx)</div><div class="ssub">สรุปใบงานทั้งหมด</div></div>
+      <div><div class="sl">Export Excel (.xlsx)</div><div class="ssub">สรุปใบงานทั้งหมด (ทุกคน export ได้)</div></div>
       <span class="sa">›</span>
     </div>
     <div class="sr" onclick="exportPDFBatch()">
@@ -761,7 +784,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <div id="pg-trash" class="pg">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
     <button onclick="swPg('settings')" class="btn-back-trash" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
-    <div style="font-size:14px;font-weight:800;color:#1a3a6e">🗑️ ถังขยะ — กู้คืนเอกสาร</div>
+    <div style="font-size:14px;font-weight:800;color:#1a3a6e;flex:1">🗑️ ถังขยะ — กู้คืนเอกสาร</div>
+    <button onclick="purgeAllTrash()" id="purgeAllBtn" style="display:none;padding:7px 14px;background:#fff0f0;color:#dc2626;border:1.5px solid #fecaca;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;-webkit-appearance:none">🗑️ ลบทั้งหมด</button>
   </div>
   <p style="font-size:12px;color:#888;margin-bottom:12px">ใบงานที่ลบจะมาอยู่ที่นี่ กด "กู้คืน" เพื่อนำกลับ หรือ "ลบถาวร" เพื่อลบออกอย่างถาวร (ไม่สามารถกู้คืนได้)</p>
   <div id="trashList"><div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div></div>
@@ -791,8 +815,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- DELETE MODAL -->
 <div class="mo" id="delMo">
   <div class="mb">
-    <div class="mt">🗑️ ย้ายไปถังขยะ <button class="mclose" onclick="closeDel()">✕</button></div>
-    <p style="font-size:13px;color:#555">ย้ายใบงาน <b id="delNo" style="color:#dc2626"></b> ไปถังขยะ?<br><span style="font-size:12px;color:#16a34a">✓ กู้คืนได้ภายหลังที่หน้า "ถังขยะ" ในเมนูตั้งค่า</span></p>
+    <div class="mt">🗑️ ลบใบงาน <button class="mclose" onclick="closeDel()">✕</button></div>
+    <p style="font-size:13px;color:#555">ย้ายใบงาน <b id="delNo" style="color:#dc2626"></b> ไปถังขยะ?<br><span id="delNote" style="font-size:12px;color:#888"></span></p>
     <div class="mc">
       <button class="mno" onclick="closeDel()">ยกเลิก</button>
       <button class="mok" id="mok" onclick="doDel()">ย้ายไปถังขยะ</button>
@@ -1048,7 +1072,9 @@ async function init(){
     // Show bell for ALL roles
     var _bw=document.getElementById('notifBellWrap'); if(_bw)_bw.style.display='block';
     if(role==='admin'){
-      document.getElementById('filterBar').classList.add('show');
+      // Admin: show inline tech filter in the main bar (single row), hide old filterBar
+      var _fb=document.getElementById('filterBar'); if(_fb)_fb.style.display='none';
+      var _fti=document.getElementById('filterTechInline'); if(_fti)_fti.style.display='';
       var _ts=document.getElementById('trashSetting'); if(_ts)_ts.style.display='block';
       var _ads=document.getElementById('adminDispatchSection'); if(_ads)_ads.style.display='block';
       var _nm=document.getElementById('nav-mine'); if(_nm)_nm.style.display='none';
@@ -1133,11 +1159,22 @@ async function loadJobs(){
       if(da!==db)return db<da?-1:1; // เรียงวันที่ใหม่ → เก่า (รูปแบบ YYYY-MM-DD เทียบแบบ string ได้ตรงกับวันที่จริง)
       return (b.created_at||'')<(a.created_at||'')?-1:1; // วันเดียวกัน → สร้างล่าสุดอยู่บนสุด
     });
-    // Update tech filter
+    // Update tech filter (both old filterBar and inline)
     const sel=document.getElementById('filterTech');
+    const selInline=document.getElementById('filterTechInline');
     const existing=[...sel.options].map(o=>o.value).filter(Boolean);
     const techs=[...new Set(jobs.map(j=>j.technician_name).filter(Boolean))];
-    techs.forEach(t=>{if(!existing.includes(t)){const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);}});
+    techs.forEach(t=>{
+      if(!existing.includes(t)){
+        const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);
+        if(selInline){const o2=document.createElement('option');o2.value=t;o2.textContent=t;selInline.appendChild(o2);}
+      }
+    });
+    // Sync inline if it has only default option
+    if(selInline && selInline.options.length<=1 && techs.length){
+      selInline.innerHTML='<option value="">ทุกคน</option>';
+      techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;selInline.appendChild(o);});
+    }
     updateStats();
     clearTimeout(_ltimer);
     var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
@@ -1172,10 +1209,20 @@ function updateStats(){
   var eDo=document.getElementById('sDo'); if(eDo) eDo.textContent=jj.filter(j=>j.status==='completed'||j.status==='approved').length;
 }
 
+function renderJobsFromInline(){
+  // Sync inline filter value to the old filterTech select
+  var inline=document.getElementById('filterTechInline');
+  var old=document.getElementById('filterTech');
+  if(inline&&old) old.value=inline.value;
+  renderJobs();
+}
+
 function renderJobs(){
   const q=(document.getElementById('sq').value||'').toLowerCase();
   const st=document.getElementById('fs').value;
-  const tech=document.getElementById('filterTech').value;
+  // Use inline filter if visible, otherwise filterTech
+  const inlineSel=document.getElementById('filterTechInline');
+  const tech=(inlineSel&&inlineSel.style.display!=='none')?(inlineSel.value||''):(document.getElementById('filterTech').value);
   const isAdmin=CP?.role==='admin';
   let jj=jobs;
   if(q)jj=jj.filter(j=>(j.job_no||'').toLowerCase().includes(q)||(j.company||'').toLowerCase().includes(q)||(j.technician_name||'').toLowerCase().includes(q));
@@ -1195,6 +1242,7 @@ function renderJobs(){
     const tot=j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-';
     const sw=Array.isArray(j.shared_with)?j.shared_with:[];
     const canEdit=isAdmin||j.technician_id===CU.id||sw.includes(CU.id);
+    const canDelete=isAdmin||(CU&&j.technician_id===CU.id); // ทุกคนลบงานตัวเองได้
     return `<div class="card" onclick="editJob(${j.id})">
       <div class="ch">
         <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
@@ -1212,7 +1260,7 @@ function renderJobs(){
         <div class="cacts" onclick="event.stopPropagation()">
           ${canEdit?`<button class="bsm bedit" onclick="editJob(${j.id})">✏️ แก้ไข</button>`:'<span style="font-size:10px;color:#aaa">👁 ดูได้</span>'}
           ${isAdmin?`<button class="bsm" style="background:#eef6ff;color:#1a3a6e" onclick="openShare(${j.id})">👥 สิทธิ์</button>`:''}
-          ${isAdmin?`<button class="bsm bdel" onclick="askDel(${j.id},'${j.job_no||j.id}')">🗑️</button>`:''}
+          ${canDelete?`<button class="bsm bdel" onclick="askDel(${j.id},'${j.job_no||j.id}')">🗑️</button>`:''}
         </div>
       </div></div>`;
   }).join('');
@@ -1367,15 +1415,16 @@ function renderTeam(){
     const role=p.role||'technician';
     const cnt=jobs.filter(j=>j.technician_id===p.id).length;
     const isMe=p.id===CU.id;
-    return `<div class="tc">
+    return `<div class="tc" style="cursor:pointer" onclick="viewMemberJobs('${p.id}','${nm.replace(/'/g,"\\'")}')">
       <div class="tav">${nm[0]?.toUpperCase()||'?'}</div>
       <div style="flex:1">
         <div class="tn">${nm} ${isMe?'<span style="font-size:10px;background:#f0fdf4;color:#16a34a;padding:1px 6px;border-radius:10px">คุณ</span>':''}</div>
         <div class="tp">${pos}</div>
         <span class="rb ${role==='admin'?'ra':'rt'}">${role==='admin'?'👑 Admin':'🔧 ช่าง'}</span>
       </div>
-      <div class="ts">
-        <div class="tcnt">${cnt}</div><div class="tl">ใบงาน</div>
+      <div class="ts" onclick="event.stopPropagation()">
+        <div class="tcnt" style="cursor:pointer;color:#427aa1;text-decoration:underline" onclick="viewMemberJobs('${p.id}','${nm.replace(/'/g,"\\'")}')">
+          ${cnt}</div><div class="tl">ใบงาน ›</div>
         ${isAdmin&&!isMe?`<button onclick="openSetRole('${p.id}','${nm}','${role}','${pos}')"
           style="margin-top:6px;padding:4px 10px;background:#f0f4ff;color:#1a3a6e;
           border:1px solid #c7d7ff;border-radius:6px;font-family:'Sarabun',sans-serif;
@@ -1384,6 +1433,45 @@ function renderTeam(){
           style="margin-top:6px;padding:4px 10px;background:#fff0f0;color:#dc2626;
           border:1px solid #f5b5b5;border-radius:6px;font-family:'Sarabun',sans-serif;
           font-size:11px;font-weight:600;cursor:pointer;-webkit-appearance:none">🗑️ ลบ</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewMemberJobs(memberId, memberName){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
+  const pg=document.getElementById('pg-member-jobs');
+  if(pg)pg.classList.add('on');
+  const nav=document.getElementById('nav-team');
+  if(nav)nav.classList.add('on');
+  document.getElementById('memberJobsTitle').textContent='📋 ใบงานของ '+memberName;
+  const memberJobs=jobs.filter(j=>j.technician_id===memberId).sort((a,b)=>{
+    const da=(a.service_date||(a.created_at||'').slice(0,10)||'');
+    const db=(b.service_date||(b.created_at||'').slice(0,10)||'');
+    return db<da?-1:1;
+  });
+  const el=document.getElementById('memberJobsList');
+  if(!memberJobs.length){el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><b>ยังไม่มีใบงาน</b></div>';return;}
+  const nm={draft:'กำลังดำเนินการ',completed:'เสร็จสิ้น',approved:'อนุมัติแล้ว'};
+  const slm={draft:'draft',completed:'completed',approved:'approved'};
+  el.innerHTML=memberJobs.map(j=>{
+    const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+    const tot=j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-';
+    return `<div class="card" onclick="editJob(${j.id})">
+      <div class="ch">
+        <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
+        <div class="cdate">📅 ${d}</div></div>
+        <span class="badge ${slm[j.status]||'draft'}">${nm[j.status]||'กำลังดำเนินการ'}</span>
+      </div>
+      <div class="cb">
+        <div class="ci">🏢 <b>${j.company||'-'}</b></div>
+        <div class="ci">⚙️ <b>${j.machine_name||'-'}</b></div>
+        <div class="ci">📍 <b>${j.service_location||'-'}</b></div>
+        <div class="ci">🛠️ <b>${j.service_type==='install'?'ติดตั้ง':j.service_type==='repair'?'ซ่อมบำรุง':j.service_type||'-'}</b></div>
+      </div>
+      <div class="cf">
+        <div class="ctot">💰 ฿${tot}</div>
       </div>
     </div>`;
   }).join('');
@@ -1399,7 +1487,7 @@ function swPg(name){
   if(name==='report'){const ns=document.getElementById('nav-settings');if(ns)ns.classList.add('on');}
   if(name==='mine'){renderMine();markMineSeen();}
   if(name==='report')renderReport();
-  if(name==='team')renderTeam();
+  if(name==='team'){renderTeam();const nt=document.getElementById('nav-team');if(nt)nt.classList.add('on');}
   if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
   if(name==='dispatch'){loadDispatchPage();}
   if(name==='trash')loadTrash();
@@ -1492,7 +1580,7 @@ async function chgPwd(){
 }
 
 function exportCSV(){
-  var jj=CP&&CP.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  var jj=jobs; // ทุกคน export ได้
   if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
   var h=['เลขใบงาน','วันที่','บริษัท','ช่าง','เครื่อง','ยอดรวม','สถานะ'];
   var rows=jj.map(j=>[j.job_no||'',j.service_date||'',j.company||'',j.technician_name||'',j.machine_name||'',j.total||0,j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'กำลังดำเนินการ']);
@@ -1512,7 +1600,7 @@ function loadScript(src){
 }
 
 async function exportXLSX(){
-  var jj=CP&&CP.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
+  var jj=jobs; // ทุกคน export ใบงานทั้งหมดได้
   if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
   toast('⏳ กำลังสร้างไฟล์ Excel...','info');
   try{
@@ -1887,6 +1975,17 @@ function calRender(){
   if(el) el.textContent=new Date(calYear,calMonth,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
   var jobDates={};
   (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)jobDates[d]=(jobDates[d]||0)+1;});
+  // รวม dispatch jobs ด้วย
+  var dispatchDates={};
+  try{
+    var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
+    dlist.forEach(function(d){if(d.date_of_work) dispatchDates[d.date_of_work]=(dispatchDates[d.date_of_work]||0)+1;});
+  }catch(e){}
+  // ดึง dispatch จาก tech notifs ด้วย (สำหรับช่าง)
+  try{
+    var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
+    tlist.forEach(function(n){if(n.date_of_work) dispatchDates[n.date_of_work]=(dispatchDates[n.date_of_work]||0)+1;});
+  }catch(e){}
   var grid=document.getElementById('calGrid');
   if(!grid)return;
   var dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
@@ -1900,6 +1999,7 @@ function calRender(){
     var cls='cal-day';
     if(calYear===todayY&&calMonth===todayM&&d===todayD) cls+=' today';
     if(jobDates[ymd]) cls+=' has-job';
+    if(dispatchDates[ymd]) cls+=' has-dispatch';
     if(calSelectedDate===ymd) cls+=' selected';
     html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'+d+'</div>';
   }
@@ -1943,17 +2043,56 @@ function calRenderToday(filterDate){
   }
   var filtered=(jobs||[]).filter(function(j){return (j.service_date||j.created_at||'').slice(0,10)===target;})
     .sort(function(a,b){return (a.time_start||'').localeCompare(b.time_start||'');});
+  // รวม dispatch items
+  var dispatchItems=[];
+  try{
+    var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
+    dispatchItems=dispatchItems.concat(dlist.filter(function(d){return d.date_of_work===target;}).map(function(d){return {_isDispatch:true,location:d.location,time_of_work:d.time_of_work,technician_name:d.technician_name};}));
+  }catch(e){}
+  try{
+    var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
+    tlist.filter(function(n){return n.date_of_work===target;}).forEach(function(n){
+      dispatchItems.push({_isDispatch:true,location:n.location,time_of_work:n.time_of_work,_fromAdmin:true});
+    });
+  }catch(e){}
+  var total=filtered.length+dispatchItems.length;
   var cEl=document.getElementById('todayCount');
-  if(cEl)cEl.textContent=filtered.length;
-  if(!filtered.length){listEl.innerHTML='<div class="cal-empty">ไม่มีใบงานวันนี้</div>';return;}
-  listEl.innerHTML=filtered.map(function(j){
-    var timeStr=j.time_start?(j.time_start+(j.time_end?' – '+j.time_end:'')):'';
-    return '<div class="cal-job-item" onclick="editJob(\''+j.id+'\')"><div class="cji-no">'+(j.job_no||'#'+j.id)+'</div><div class="cji-co">'+(j.company||'-')+'</div>'+(timeStr?'<div class="cji-time">🕐 '+timeStr+'</div>':'')+'</div>';
+  if(cEl)cEl.textContent=total;
+  if(!total){listEl.innerHTML='<div class="cal-empty">ไม่มีงานวันนี้</div>';return;}
+  var html=filtered.map(function(j){
+    var timeStr=j.time_start?(j.time_start+(j.time_end?' – '+j.time_end:'')):'';;
+    return '<div class="cal-job-item" onclick="editJob('+j.id+')"><div class="cji-no">📄 '+(j.job_no||'#'+j.id)+'</div><div class="cji-co">'+(j.company||'-')+'</div>'+(timeStr?'<div class="cji-time">🕐 '+timeStr+'</div>':'')+'</div>';
   }).join('');
+  html+=dispatchItems.map(function(d){
+    var timeStr=d.time_of_work?('🕐 '+d.time_of_work+' น.'):'';
+    var label=d._fromAdmin?'📤 งานแอดมินส่ง':'📤 ส่งงาน: '+(d.technician_name||'');
+    return '<div class="cal-job-item cal-dispatch-item"><div class="cji-no">'+label+'</div><div class="cji-co">'+(d.location||'-')+'</div>'+(timeStr?'<div class="cji-time">'+timeStr+'</div>':'')+'</div>';
+  }).join('');
+  listEl.innerHTML=html;
+}
+  (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)jobDates[d]=(jobDates[d]||0)+1;});
+  var grid=document.getElementById('calGrid');
+  if(!grid)return;
+  var dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  var html=dows.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
+  var first=new Date(calYear,calMonth,1).getDay();
+  var days=new Date(calYear,calMonth+1,0).getDate();
+  var prevDays=new Date(calYear,calMonth,0).getDate();
+  for(var i=0;i<first;i++) html+='<div class="cal-day other-month">'+(prevDays-first+i+1)+'</div>';
+  for(var d=1;d<=days;d++){
+    var ymd=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cls='cal-day';
+    if(calYear===todayY&&calMonth===todayM&&d===todayD) cls+=' today';
+    if(jobDates[ymd]) cls+=' has-job';
+    if(calSelectedDate===ymd) cls+=' selected';
+    html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'+d+'</div>';
+  }
+  var rem=(first+days)%7?7-(first+days)%7:0;
+  for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
+  grid.innerHTML=html;
+  calRenderToday(calSelectedDate);
 }
 
-function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}calRender();}
-function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calRender();}
 
 function toggleCalSidebar(){
   var sb=document.getElementById('calSidebar');
@@ -2800,7 +2939,17 @@ async function transferOwner(pid,ev){
   }catch(e){toast("❌ "+e.message,"err");if(btn){btn.textContent="⭐ ตั้งเป็นเจ้าของ";btn.disabled=false;}}
 }
 
-function askDel(id,no){delId=id;document.getElementById('delNo').textContent=no;document.getElementById('delMo').classList.add('open');}
+function askDel(id,no){
+  delId=id;
+  document.getElementById('delNo').textContent=no;
+  const isAdmin=CP&&CP.role==='admin';
+  const noteEl=document.getElementById('delNote');
+  if(noteEl){
+    if(isAdmin) noteEl.innerHTML='<span style="color:#16a34a">✓ กู้คืนได้ภายหลังที่หน้า "ถังขยะ" ในเมนูตั้งค่า</span>';
+    else noteEl.innerHTML='<span style="color:#f59e0b">⚠️ ลบแล้วต้องให้แอดมินกู้คืนให้เท่านั้น</span>';
+  }
+  document.getElementById('delMo').classList.add('open');
+}
 function closeDel(){delId=null;document.getElementById('delMo').classList.remove('open');}
 // ===== TRASH / RECOVERY =====
 let trashJobs=[],purgeId=null;
@@ -2816,7 +2965,9 @@ function timeAgo(iso){
 
 async function loadTrash(){
   const el=document.getElementById('trashList');
-  if(CP?.role!=='admin'){el.innerHTML='<div class="empty"><div class="empty-ic">🔒</div><b>เฉพาะผู้ดูแลระบบ</b></div>';return;}
+  const btn=document.getElementById('purgeAllBtn');
+  if(CP?.role!=='admin'){el.innerHTML='<div class="empty"><div class="empty-ic">🔒</div><b>เฉพาะผู้ดูแลระบบ</b></div>';if(btn)btn.style.display='none';return;}
+  if(btn)btn.style.display='';
   el.innerHTML='<div class="ld"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...</div>';
   try{
     const{data,error}=await sb.from('service_jobs').select('*').not('deleted_at','is',null).order('deleted_at',{ascending:false});
@@ -2871,6 +3022,24 @@ async function doPurge(){
     closePurge();await loadTrash();toast('ลบถาวรแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
   btn.textContent='ลบถาวร';btn.disabled=false;
+}
+
+async function purgeAllTrash(){
+  if(!trashJobs.length){toast('ถังขยะว่างเปล่า','info');return;}
+  if(!confirm('⚠️ ลบใบงานทั้งหมดในถังขยะอย่างถาวร '+trashJobs.length+' ใบ?\n\nการลบนี้ไม่สามารถกู้คืนได้'))return;
+  if(!confirm('ยืนยันอีกครั้ง — ลบถาวรทั้งหมด '+trashJobs.length+' ใบงาน?'))return;
+  const btn=document.getElementById('purgeAllBtn');if(btn){btn.textContent='กำลังลบ...';btn.disabled=true;}
+  let errs=0;
+  for(const j of trashJobs){
+    try{
+      await sb.from('service_parts').delete().eq('job_id',j.id);
+      const{error}=await sb.from('service_jobs').delete().eq('id',j.id);
+      if(error)throw error;
+    }catch(e){errs++;console.error('purgeAll job',j.id,e);}
+  }
+  if(btn){btn.textContent='🗑️ ลบทั้งหมด';btn.disabled=false;}
+  await loadTrash();
+  toast(errs?('⚠️ ลบ '+(trashJobs.length-errs)+'/'+(trashJobs.length)+' ใบงาน ('+errs+' ผิดพลาด)'):'✅ ลบถาวรทั้งหมดแล้ว','ok');
 }
 
 async function doDel(){
