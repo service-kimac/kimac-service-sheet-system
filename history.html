@@ -444,7 +444,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
     <select class="fsel" id="fs" onchange="renderJobs()">
       <option value="">ทุกสถานะ</option>
-      <option value="draft">ร่าง</option>
+      <option value="draft">กำลังดำเนินการ</option>
       <option value="completed">เสร็จสิ้น</option>
     </select>
     <div class="bar-wrap">
@@ -1094,7 +1094,7 @@ function renderJobs(){
   const el=document.getElementById('list');
   if(!jj.length){el.innerHTML='<div class="empty"><div class="empty-ic">📭</div><b>ไม่พบใบงาน</b><p style="margin-top:6px;font-size:13px">กด "+ ใหม่" เพื่อสร้างใบงาน</p></div>';return;}
   const slm={draft:'draft',completed:'completed'};
-  const nm={draft:'ร่าง',completed:'เสร็จสิ้น'};
+  const nm={draft:'กำลังดำเนินการ',completed:'เสร็จสิ้น'};
   el.innerHTML=jj.map(j=>{
     const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
     const tot=j.total?parseFloat(j.total).toLocaleString('th-TH',{minimumFractionDigits:2}):'-';
@@ -1104,7 +1104,7 @@ function renderJobs(){
       <div class="ch">
         <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
         <div class="cdate">📅 ${d} · 🔧 ${j.technician_name||'-'}</div></div>
-        <span class="badge ${slm[j.status]||'draft'}">${nm[j.status]||'ร่าง'}</span>
+        <span class="badge ${slm[j.status]||'draft'}">${nm[j.status]||'กำลังดำเนินการ'}</span>
       </div>
       <div class="cb">
         <div class="ci">🏢 <b>${j.company||'-'}</b></div>
@@ -1188,7 +1188,7 @@ function renderReport(){
   Chart.defaults.font.family="'Sarabun',sans-serif";
   Chart.defaults.color = document.documentElement.getAttribute('data-theme')==='dark' ? '#cbd5e1' : '#1a1a2e';
   // สถานะ (โดนัท)
-  const stKeys=[['draft','ร่าง','#94a3b8'],['completed','เสร็จสิ้น','#16a34a']];
+  const stKeys=[['draft','กำลังดำเนินการ','#94a3b8'],['completed','เสร็จสิ้น','#16a34a']];
   mkChart('statusPie',{type:'doughnut',data:{labels:stKeys.map(k=>k[1]),datasets:[{data:stKeys.map(k=>jj.filter(j=>j.status===k[0]).length),backgroundColor:stKeys.map(k=>k[2]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'}}}});
   // 6 เดือน
   const labels=[],jobCnt=[],revArr=[];
@@ -1235,7 +1235,7 @@ function renderMine(){
   const mj=myJobs().slice().sort((a,b)=>jobTime(b)-jobTime(a));
   const cnt=document.getElementById('mineCount');if(cnt)cnt.textContent=mj.length?('ทั้งหมด '+mj.length+' งาน'):'';
   if(!mj.length){el.innerHTML='<div class="empty"><div class="empty-ic">🗂️</div><b>ยังไม่มีงานของคุณ</b><p style="margin-top:6px;font-size:13px">งานที่คุณเป็นเจ้าของ หรือถูกแอดมินมอบสิทธิ์ จะแสดงที่นี่</p></div>';return;}
-  const nm={draft:'ร่าง',completed:'เสร็จสิ้น',approved:'อนุมัติแล้ว'};
+  const nm={draft:'กำลังดำเนินการ',completed:'เสร็จสิ้น',approved:'อนุมัติแล้ว'};
   const slm={draft:'draft',completed:'completed',approved:'approved'};
   el.innerHTML=mj.map(j=>{
     const d=new Date(j.service_date||j.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
@@ -1246,7 +1246,7 @@ function renderMine(){
       <div class="ch">
         <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}${isNew?'<span class="newtag">🆕 ใหม่</span>':''}</div>
         <div class="cdate">📅 ${d}${tm?(' · ⏰ '+tm):''}</div></div>
-        <span class="badge ${slm[j.status]||'draft'}">${nm[j.status]||'ร่าง'}</span>
+        <span class="badge ${slm[j.status]||'draft'}">${nm[j.status]||'กำลังดำเนินการ'}</span>
       </div>
       <div class="cb">
         <div class="ci">🏢 <b>${j.company||'-'}</b></div>
@@ -1400,7 +1400,7 @@ function exportCSV(){
   var jj=CP&&CP.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
   if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
   var h=['เลขใบงาน','วันที่','บริษัท','ช่าง','เครื่อง','ยอดรวม','สถานะ'];
-  var rows=jj.map(j=>[j.job_no||'',j.service_date||'',j.company||'',j.technician_name||'',j.machine_name||'',j.total||0,j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'ร่าง']);
+  var rows=jj.map(j=>[j.job_no||'',j.service_date||'',j.company||'',j.technician_name||'',j.machine_name||'',j.total||0,j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'กำลังดำเนินการ']);
   var csv=[h].concat(rows).map(r=>r.map(v=>'"'+String(v)+'"').join(',')).join('\n');
   var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   var url=URL.createObjectURL(blob);
@@ -1441,7 +1441,7 @@ async function exportXLSX(){
       tech:j.technician_name||'',
       machine:j.machine_name||'',
       total:parseFloat(j.total)||0,
-      status:j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'ร่าง'
+      status:j.status==='completed'?'เสร็จสิ้น':j.status==='approved'?'อนุมัติ':'กำลังดำเนินการ'
     }));
     const thin={style:'thin',color:{argb:'FFD0D7E6'}};
     const border={top:thin,left:thin,bottom:thin,right:thin};
