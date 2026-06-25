@@ -97,7 +97,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-toggle-btn-bar{display:none;padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;}
 @media(max-width:700px){
   .cal-mob-header{display:flex!important;}
-  #calFloatBtn{display:flex!important;}
   .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;border-radius:0;}
   .cal-sidebar.mobile-open{display:block!important;}
   .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
@@ -123,7 +122,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .cal-job-item .cji-co{color:#94a3b8;}
 [data-theme="dark"] .cal-job-item.cal-dispatch-item{background:#2a1f00;border-left-color:#d97706;}
 [data-theme="dark"] .cal-job-item.cal-dispatch-item .cji-no{color:#fbbf24;}
-.bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:nowrap;align-items:center}
 .btn-cal{padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;
   background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;
   line-height:1;position:relative;transition:background .15s}
@@ -147,15 +146,15 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .dp-clear{background:#f1f5f9;color:#64748b}
 .bar-wrap{position:relative}
 
-.srch{flex:1;min-width:150px;position:relative}
+.srch{flex:1;min-width:0;position:relative}
 .srch input{width:100%;padding:10px 12px 10px 34px;border:2px solid #e2e8f8;
   border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;
   background:#fff;outline:none;-webkit-appearance:none;color:#1a1a2e}
 .srch input:focus{border-color:#427aa1}
 .srch::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px}
-.fsel{padding:10px 8px;border:2px solid #e2e8f8;border-radius:10px;
+.fsel{padding:10px 6px;border:2px solid #e2e8f8;border-radius:10px;
   font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;
-  outline:none;-webkit-appearance:none}
+  outline:none;-webkit-appearance:none;flex-shrink:1;min-width:0;max-width:110px}
 .btn-new{padding:10px 16px;background:linear-gradient(135deg,#0e1c36,#427aa1);
   color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;
   font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-appearance:none}
@@ -571,7 +570,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   <div id="calBackdrop" class="cal-backdrop" onclick="toggleCalSidebar()"></div>
 </div>
 <!-- Floating calendar button (mobile only) -->
-<button id="calFloatBtn" onclick="toggleCalSidebar()" style="display:none;position:fixed;bottom:100px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a3a6e;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;">📅</button>
+<button id="calFloatBtn" onclick="toggleCalSidebar()" style="display:flex;position:fixed;bottom:100px;right:16px;width:52px;height:52px;border-radius:50%;background:#1a3a6e;color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:200;align-items:center;justify-content:center;">📅</button>
 <!-- MY JOBS PAGE -->
 <div id="pg-mine" class="pg">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -1473,6 +1472,12 @@ function swPg(name){
   if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
   if(name==='dispatch'){loadDispatchPage();}
   if(name==='trash')loadTrash();
+  // แสดง/ซ่อนปุ่มปฏิทินลอย ตามหน้าที่กำหนด
+  const calBtn=document.getElementById('calFloatBtn');
+  if(calBtn){
+    const showCal=['jobs','mine','team','settings'];
+    calBtn.style.display=showCal.includes(name)?'flex':'none';
+  }
 }
 
 function loadSettingsProf(){
@@ -1994,16 +1999,8 @@ function calRender(){
 function calSelectDay(ymd){
   if(calSelectedDate===ymd){
     calSelectedDate=null;
-    // ล้าง filter
-    var f=document.getElementById('fdFrom'),t=document.getElementById('fdTo');
-    if(f)f.value='';if(t)t.value='';
-    renderJobs();
   }else{
     calSelectedDate=ymd;
-    // set filter ตามวันที่กด
-    var f=document.getElementById('fdFrom'),t=document.getElementById('fdTo');
-    if(f)f.value=ymd;if(t)t.value=ymd;
-    renderJobs();
   }
   calRender();
   if(window.innerWidth<=700) toggleCalSidebar();
