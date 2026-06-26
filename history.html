@@ -223,6 +223,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .tl{font-size:10px;color:#888}
 .rb{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:4px}
 .ra{background:#fff7d6;color:#8a5c00}
+.rlead{background:#fef3e2;color:#7c4a00;border:1px solid #f5c97a;display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:4px}
 .rt{background:#e0f0fb;color:#427aa1}
 /* SETTINGS */
 .ss{background:#fff;border-radius:14px;overflow:hidden;margin-bottom:12px;
@@ -1387,6 +1388,22 @@ function renderMine(){
   }).join('');
 }
 
+// ลำดับตำแหน่ง: Admin → หัวหน้า → ช่าง → ฝ่ายขาย → ประสานงาน → การตลาด → บัญชี → อื่นๆ
+const POSITION_ORDER = [
+  'หัวหน้าช่างบริการ',
+  'ช่างบริการ',
+  'ผู้จัดการฝ่ายขาย',
+  'วิศวกรฝ่ายขาย',
+  'ฝ่ายขาย',
+  'ฝ่ายประสานงานขาย',
+  'การตลาด',
+  'บัญชี',
+  'อื่นๆ',
+  'พนักงาน'
+];
+function getPosRank(pos){ const i=POSITION_ORDER.indexOf(pos); return i>=0?i:POSITION_ORDER.length; }
+function isLeader(pos){ return pos==='หัวหน้าช่างบริการ'||pos==='ผู้จัดการฝ่ายขาย'; }
+
 function renderTeam(){
   const el=document.getElementById('teamList');
   if(!profiles.length){
@@ -1395,18 +1412,31 @@ function renderTeam(){
     return;
   }
   const isAdmin=CP?.role==='admin';
-  el.innerHTML=profiles.map(p=>{
+  // เรียง: Admin ก่อน → หัวหน้า → ตำแหน่งอื่นตามลำดับ → ชื่อ A-Z
+  const sorted=[...profiles].sort((a,b)=>{
+    const ra=a.role||'technician', rb=b.role||'technician';
+    if(ra==='admin'&&rb!=='admin') return -1;
+    if(rb==='admin'&&ra!=='admin') return 1;
+    const pa=a.position||'พนักงาน', pb=b.position||'พนักงาน';
+    const diff=getPosRank(pa)-getPosRank(pb);
+    if(diff!==0) return diff;
+    return (a.full_name||'').localeCompare(b.full_name||'','th');
+  });
+  el.innerHTML=sorted.map(p=>{
     const nm=p.full_name||p.id;
     const pos=p.position||'พนักงาน';
     const role=p.role||'technician';
     const cnt=jobs.filter(j=>j.technician_id===p.id).length;
     const isMe=p.id===CU.id;
+    const leader=isLeader(pos);
+    const badgeCls=role==='admin'?'ra':leader?'rlead':'rt';
+    const badgeTxt=role==='admin'?'👑 Admin':leader?'🏅 หัวหน้า':'🔧 ช่าง';
     return `<div class="tc" style="cursor:pointer" onclick="viewMemberJobs('${p.id}','${nm.replace(/'/g,"\\'")}')">
-      <div class="tav">${nm[0]?.toUpperCase()||'?'}</div>
+      <div class="tav" style="${role==='admin'?'background:#0e1c36':leader?'background:#7c4a00':''}">${nm[0]?.toUpperCase()||'?'}</div>
       <div style="flex:1">
         <div class="tn">${nm} ${isMe?'<span style="font-size:10px;background:#f0fdf4;color:#16a34a;padding:1px 6px;border-radius:10px">คุณ</span>':''}</div>
         <div class="tp">${pos}</div>
-        <span class="rb ${role==='admin'?'ra':'rt'}">${role==='admin'?'👑 Admin':'🔧 ช่าง'}</span>
+        <span class="rb ${badgeCls}">${badgeTxt}</span>
       </div>
       <div class="ts" onclick="event.stopPropagation()">
         <div class="tcnt" style="cursor:pointer;color:#427aa1;text-decoration:underline" onclick="viewMemberJobs('${p.id}','${nm.replace(/'/g,"\\'")}')">
