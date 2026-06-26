@@ -65,17 +65,15 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-day:hover{background:#f0f4ff;}
 .cal-day.has-job{color:#1a3a6e;font-weight:700;}
 .cal-day.has-job::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#16a34a;margin:2px auto 0;}
-.cal-day.has-dispatch::after{background:#f59e0b!important;}
+.cal-day.has-dispatch::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#f59e0b;margin:2px auto 0;}
 .cal-day.has-job.has-dispatch::after{background:linear-gradient(to right,#16a34a 50%,#f59e0b 50%);}
-.cal-day.today{background:#1a3a6e;color:#fff!important;font-weight:700;}
-.cal-day.today::after{background:#ef4444!important;}
+.cal-day.today{background:#e8eeff;color:#1a3a6e!important;font-weight:700;border:2px solid #1a3a6e;}
 .cal-day.selected{background:#e0eaff;color:#1a3a6e;font-weight:700;}
 .cal-day.other-month{color:#cbd5e1;}
 .cal-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#888;flex-wrap:wrap;}
 .cal-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .cal-dot.has-job{background:#16a34a;}
 .cal-dot.has-dispatch{background:#f59e0b;}
-.cal-dot.today{background:#ef4444;}
 .cal-today-title{font-size:13px;font-weight:700;color:#1a3a6e;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .cal-count{background:#1a3a6e;color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700;}
 .cal-today-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;}
@@ -558,7 +556,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
           <div class="cal-legend">
             <span class="cal-dot has-job"></span><span>มีใบงาน</span>
             <span class="cal-dot has-dispatch"></span><span>งานแอดมินส่ง</span>
-            <span class="cal-dot today"></span><span>วันนี้</span>
           </div>
         </div>
         <div class="cal-card" style="margin-top:10px;">
