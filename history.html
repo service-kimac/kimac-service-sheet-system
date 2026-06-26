@@ -1990,7 +1990,7 @@ var calYear=new Date().getFullYear(), calMonth=new Date().getMonth(), calSelecte
 
 function initCalendar(){ calRender(); }
 
-function calRender(){
+async function calRender(){
   var now=new Date(), todayY=now.getFullYear(), todayM=now.getMonth(), todayD=now.getDate();
   var el=document.getElementById('calMonthLabel');
   if(el) el.textContent=new Date(calYear,calMonth,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
@@ -1998,6 +1998,17 @@ function calRender(){
   (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)jobDates[d]=(jobDates[d]||0)+1;});
   // รวม dispatch jobs ด้วย
   var dispatchDates={};
+  // ดึงจาก Supabase ถ้าเป็น admin
+  try{
+    if(CP&&CP.role==='admin'&&sb){
+      var monthStr=calYear+'-'+String(calMonth+1).padStart(2,'0');
+      var from=monthStr+'-01';
+      var lastDay=new Date(calYear,calMonth+1,0).getDate();
+      var to=monthStr+'-'+String(lastDay).padStart(2,'0');
+      var {data:ddata}=await sb.from('job_dispatches').select('date_of_work').gte('date_of_work',from).lte('date_of_work',to);
+      if(ddata) ddata.forEach(function(r){if(r.date_of_work) dispatchDates[r.date_of_work]=(dispatchDates[r.date_of_work]||0)+1;});
+    }
+  }catch(e){}
   try{
     var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
     dlist.forEach(function(d){if(d.date_of_work) dispatchDates[d.date_of_work]=(dispatchDates[d.date_of_work]||0)+1;});
@@ -2035,6 +2046,50 @@ function calSelectDay(ymd){
     calSelectedDate=null;
   }else{
     calSelectedDate=ymd;
+    // รีเฟรช cache ของวันที่เลือกใหม่ทุกครั้ง
+    delete _calDispatchCache[ymd];
+    delete _calDispatchLoading[ymd];
+  }
+  calRender();
+}
+
+// ปฏิทิน: cache dispatch ที่ดึงจาก Supabase แยกตามวัน
+var _calDispatchCache = {}; // { 'YYYY-MM-DD': [dispatch,...] }
+var _calDispatchLoading = {};
+
+async function calLoadDispatchForDate(target) {
+  if (_calDispatchLoading[target]) return;
+  _calDispatchLoading[target] = true;
+  try {
+    // ทุกคนเห็นงานทั้งหมดของวันนั้น (ไม่กรองตาม technician)
+    const {data, error} = await sb.from('job_dispatches').select('*').eq('date_of_work', target).order('time_of_work');
+    const rows = (!error && data) ? data : [];
+    _calDispatchCache[target] = rows;
+    // sync กลับ localStorage ด้วย
+    try {
+      var existing = JSON.parse(localStorage.getItem(DISPATCH_KEY)||'[]');
+      rows.forEach(function(r){
+        if (!existing.find(function(e){return String(e.id)===String(r.id);})) existing.unshift(r);
+      });
+      localStorage.setItem(DISPATCH_KEY, JSON.stringify(existing.slice(0,200)));
+    } catch(e) {}
+  } catch(e) { _calDispatchCache[target] = []; }
+  _calDispatchLoading[target] = false;
+  calRenderToday(target);
+}
+
+async function calDeleteDispatch(dispatchId, target) {
+  if (!confirm('ลบงานที่ส่งนี้?')) return;
+  // ลบจาก Supabase
+  try { await sb.from('job_dispatches').delete().eq('id', dispatchId); } catch(e) {}
+  // ลบจาก localStorage
+  try {
+    var list = JSON.parse(localStorage.getItem(DISPATCH_KEY)||'[]');
+    localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.filter(function(d){return String(d.id)!==String(dispatchId);})));
+  } catch(e) {}
+  // ลบจาก cache แล้ว re-render
+  if (_calDispatchCache[target]) {
+    _calDispatchCache[target] = _calDispatchCache[target].filter(function(d){return String(d.id)!==String(dispatchId);});
   }
   calRender();
 }
@@ -2045,6 +2100,9 @@ function calRenderToday(filterDate){
   var target=filterDate||todayYmd;
   var listEl=document.getElementById('todayList');
   if(!listEl)return;
+  var isAdmin=CP&&CP.role==='admin';
+
+  // อัปเดต title
   var titleCard=listEl.closest('.cal-card');
   if(titleCard){
     var t=titleCard.querySelector('.cal-today-title');
@@ -2053,37 +2111,69 @@ function calRenderToday(filterDate){
       t.innerHTML=lbl+' <span id="todayCount" class="cal-count">0</span>';
     }
   }
+
+  // ใบงาน service jobs
   var filtered=(jobs||[]).filter(function(j){return (j.service_date||j.created_at||'').slice(0,10)===target;})
     .sort(function(a,b){return (a.time_start||'').localeCompare(b.time_start||'');});
-  // รวม dispatch items
-  var dispatchItems=[];
-  try{
-    var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
-    dispatchItems=dispatchItems.concat(dlist.filter(function(d){return d.date_of_work===target;}).map(function(d){return {_isDispatch:true,location:d.location,time_of_work:d.time_of_work,technician_name:d.technician_name};}));
-  }catch(e){}
-  try{
-    var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
-    tlist.filter(function(n){return n.date_of_work===target;}).forEach(function(n){
-      dispatchItems.push({_isDispatch:true,location:n.location,time_of_work:n.time_of_work,_fromAdmin:true});
-    });
-  }catch(e){}
+
+  // dispatch items — ใช้ Supabase cache ถ้ามี ไม่งั้นใช้ localStorage แล้วโหลดพร้อมกัน
+  var dispatchItems = [];
+  if (_calDispatchCache[target] !== undefined) {
+    dispatchItems = _calDispatchCache[target];
+  } else {
+    // fallback: localStorage ก่อน + โหลด Supabase background
+    try {
+      var dlist=JSON.parse(localStorage.getItem(DISPATCH_KEY)||'[]');
+      dispatchItems=dlist.filter(function(d){return d.date_of_work===target;});
+    } catch(e) {}
+    // โหลด Supabase แบบ background แล้ว re-render
+    calLoadDispatchForDate(target);
+  }
+
+  // ช่าง: รวม notif จาก localStorage ด้วย (กรณียังไม่ sync)
+  if (!isAdmin) {
+    try {
+      var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
+      tlist.filter(function(n){return n.date_of_work===target;}).forEach(function(n){
+        if (!dispatchItems.find(function(d){return String(d.id)===String(n.dispatch_id);}))
+          dispatchItems.push({id:n.dispatch_id,location:n.location,time_of_work:n.time_of_work,note:n.note,maps_url:n.maps_url,technician_name:n.tech_name,_fromTechNotif:true});
+      });
+    } catch(e) {}
+  }
+
   var total=filtered.length+dispatchItems.length;
   var cEl=document.getElementById('todayCount');
   if(cEl)cEl.textContent=total;
   if(!total){listEl.innerHTML='<div class="cal-empty">ไม่มีงานวันนี้</div>';return;}
+
+  // render ใบงาน service
   var html=filtered.map(function(j){
     var timeStr=j.time_start?(j.time_start+(j.time_end?' – '+j.time_end:'')):'';;
-    return '<div class="cal-job-item" onclick="editJob('+j.id+')"><div class="cji-no">📄 '+(j.job_no||'#'+j.id)+'</div><div class="cji-co">'+(j.company||'-')+'</div>'+(timeStr?'<div class="cji-time">🕐 '+timeStr+'</div>':'')+'</div>';
+    return '<div class="cal-job-item" onclick="editJob('+j.id+')">'
+      +'<div class="cji-no">📄 '+(j.job_no||'#'+j.id)+'</div>'
+      +'<div class="cji-co">'+(j.company||'-')+'</div>'
+      +(j.technician_name?'<div class="cji-time">👷 '+j.technician_name+'</div>':'')
+      +(timeStr?'<div class="cji-time">🕐 '+timeStr+'</div>':'')
+      +'</div>';
   }).join('');
+
+  // render dispatch items — ทุกคนเห็นชื่อช่างที่รับงาน ไม่มีปุ่มลบในปฏิทิน
   html+=dispatchItems.map(function(d){
     var timeStr=d.time_of_work?('🕐 '+d.time_of_work+' น.'):'';
-    var label=d._fromAdmin?'📤 งานแอดมินส่ง':'📤 ส่งงาน: '+(d.technician_name||'');
-    return '<div class="cal-job-item cal-dispatch-item"><div class="cji-no">'+label+'</div><div class="cji-co">'+(d.location||'-')+'</div>'+(timeStr?'<div class="cji-time">'+timeStr+'</div>':'')+'</div>';
+    var label='📤 ส่งงาน: <b>'+(d.technician_name||'ไม่ระบุ')+'</b>';
+    var mapsLink=d.maps_url?('<a href="'+d.maps_url+'" target="_blank" style="font-size:10px;color:#2a5298;text-decoration:none;display:block;margin-top:2px">🗺️ Google Maps</a>'):'';
+    var noteHtml=d.note?('<div style="font-size:10px;color:#64748b;margin-top:2px">📝 '+d.note+'</div>'):'';
+    return '<div class="cal-job-item cal-dispatch-item">'
+      +'<div class="cji-no">'+label+'</div>'
+      +'<div class="cji-co">📍 '+(d.location||'-')+'</div>'
+      +(timeStr?'<div class="cji-time">'+timeStr+'</div>':'')
+      +noteHtml+mapsLink
+      +'</div>';
   }).join('');
   listEl.innerHTML=html;
 }
-function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}calRender();}
-function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calRender();}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}_calDispatchCache={};_calDispatchLoading={};calRender();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}_calDispatchCache={};_calDispatchLoading={};calRender();}
 
 function toggleCalSidebar(){
   var sb=document.getElementById('calSidebar');
