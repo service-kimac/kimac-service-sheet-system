@@ -2112,21 +2112,51 @@ async function calLoadDispatchForDate(target) {
 async function calDeleteDispatch(dispatchId, target) {
   if (!confirm('ลบงานที่ส่งนี้?')) return;
   var sid = String(dispatchId);
-  // ลบจาก Supabase (id อาจเป็น int หรือ uuid)
+
+  // ดึง technician_id จาก cache ก่อนลบ (เพื่อเอาไปลบ notif ของช่างด้วย)
+  var techId = null;
+  if (_calDispatchCache[target]) {
+    var found = _calDispatchCache[target].find(function(d){ return String(d.id)===sid; });
+    if (found) techId = found.technician_id;
+  }
+
+  // 1) ลบจาก Supabase
   try {
     var res = await sb.from('job_dispatches').delete().eq('id', sid);
     if (res.error) console.error('calDeleteDispatch Supabase error:', res.error);
   } catch(e) { console.error('calDeleteDispatch exception:', e); }
-  // ลบจาก localStorage
+
+  // 2) ลบจาก localStorage ของ admin (DISPATCH_KEY)
   try {
     var list = JSON.parse(localStorage.getItem(DISPATCH_KEY)||'[]');
     localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.filter(function(d){return String(d.id)!==sid;})));
   } catch(e) {}
-  // ลบจาก cache แล้ว re-render
+
+  // 3) ลบ notif ออกจาก localStorage ของช่างคนนั้น (kimac_tech_notifs_{techId})
+  if (techId) {
+    try {
+      var tKey = 'kimac_tech_notifs_' + techId;
+      var tList = JSON.parse(localStorage.getItem(tKey)||'[]');
+      var filtered = tList.filter(function(n){
+        return String(n.dispatch_id) !== sid && n.id !== ('dispatch_'+sid);
+      });
+      localStorage.setItem(tKey, JSON.stringify(filtered));
+    } catch(e) {}
+    // 4) แจ้งช่างผ่าน Web Push ว่างานถูกยกเลิก (optional, ไม่ block)
+    try {
+      await sb.functions.invoke('notify-push', { body: {
+        user_id: techId,
+        title: '🗑️ งานถูกยกเลิก',
+        body: (target||'') + ' — แอดมินยกเลิกงานที่ส่งให้คุณ',
+        data: { type: 'dispatch_cancelled', dispatch_id: sid }
+      }});
+    } catch(e) { console.warn('notify-push cancel (optional):', e); }
+  }
+
+  // 5) ลบจาก cache แล้ว re-render
   if (_calDispatchCache[target]) {
     _calDispatchCache[target] = _calDispatchCache[target].filter(function(d){return String(d.id)!==sid;});
   }
-  // reset loading flag เพื่อให้โหลดใหม่จาก Supabase ถ้ากดวันนั้นอีกครั้ง
   delete _calDispatchLoading[target];
   calRenderToday(target);
   calRender();
