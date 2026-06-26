@@ -2111,17 +2111,24 @@ async function calLoadDispatchForDate(target) {
 
 async function calDeleteDispatch(dispatchId, target) {
   if (!confirm('ลบงานที่ส่งนี้?')) return;
-  // ลบจาก Supabase
-  try { await sb.from('job_dispatches').delete().eq('id', dispatchId); } catch(e) {}
+  var sid = String(dispatchId);
+  // ลบจาก Supabase (id อาจเป็น int หรือ uuid)
+  try {
+    var res = await sb.from('job_dispatches').delete().eq('id', sid);
+    if (res.error) console.error('calDeleteDispatch Supabase error:', res.error);
+  } catch(e) { console.error('calDeleteDispatch exception:', e); }
   // ลบจาก localStorage
   try {
     var list = JSON.parse(localStorage.getItem(DISPATCH_KEY)||'[]');
-    localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.filter(function(d){return String(d.id)!==String(dispatchId);})));
+    localStorage.setItem(DISPATCH_KEY, JSON.stringify(list.filter(function(d){return String(d.id)!==sid;})));
   } catch(e) {}
   // ลบจาก cache แล้ว re-render
   if (_calDispatchCache[target]) {
-    _calDispatchCache[target] = _calDispatchCache[target].filter(function(d){return String(d.id)!==String(dispatchId);});
+    _calDispatchCache[target] = _calDispatchCache[target].filter(function(d){return String(d.id)!==sid;});
   }
+  // reset loading flag เพื่อให้โหลดใหม่จาก Supabase ถ้ากดวันนั้นอีกครั้ง
+  delete _calDispatchLoading[target];
+  calRenderToday(target);
   calRender();
 }
 
@@ -2190,11 +2197,11 @@ function calRenderToday(filterDate){
 
   // render dispatch items — ทุกคนเห็นชื่อช่าง, admin มีปุ่มลบ
   html+=dispatchItems.map(function(d){
-    var timeStr=d.time_of_work?('🕐 '+d.time_of_work+' น.'):' ';
+    var timeStr=d.time_of_work?('🕐 '+d.time_of_work+' น.'):'';
     var label='📤 ส่งงาน: <b>'+(d.technician_name||'ไม่ระบุ')+'</b>';
     var mapsLink=d.maps_url?('<a href="'+d.maps_url+'" target="_blank" style="font-size:10px;color:#2a5298;text-decoration:none;display:block;margin-top:2px">🗺️ Google Maps</a>'):'';
     var noteHtml=d.note?('<div style="font-size:10px;color:#64748b;margin-top:2px">📝 '+d.note+'</div>'):'';
-    var delBtn=isAdmin&&d.id?('<button onclick="event.stopPropagation();calDeleteDispatch('+JSON.stringify(String(d.id))+','+JSON.stringify(target)+')" style="position:absolute;top:6px;right:6px;background:#fff0f0;border:1px solid #fecaca;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:#dc2626;font-family:Sarabun,sans-serif;font-weight:700;line-height:1.5">✕ ลบ</button>'):'';
+    var delBtn=isAdmin&&d.id?('<button data-did="'+d.id+'" data-tgt="'+target+'" onclick="event.stopPropagation();calDeleteDispatch(this.dataset.did,this.dataset.tgt)" style="position:absolute;top:6px;right:6px;background:#fff0f0;border:1px solid #fecaca;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:#dc2626;font-family:Sarabun,sans-serif;font-weight:700;line-height:1.5">✕ ลบ</button>'):'';
     return '<div class="cal-job-item cal-dispatch-item" style="position:relative;'+(isAdmin&&d.id?'padding-right:52px':'')+'">'
       +'<div class="cji-no">'+label+'</div>'
       +'<div class="cji-co">📍 '+(d.location||'-')+'</div>'
