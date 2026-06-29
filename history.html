@@ -114,6 +114,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
 [data-theme="dark"] .cal-day.other-month{color:#475569;}
 [data-theme="dark"] .cal-today-title{color:#e2e8f0;}
+[data-theme="dark"] .cal-day.today{background:#1e3a6e!important;color:#ffd151!important;border-color:#5a8fcb!important;}
 [data-theme="dark"] .cal-job-item{background:#1a2332;border-left-color:#5a7fc9;}
 [data-theme="dark"] .cal-job-item:hover{background:#1e2d4a;}
 [data-theme="dark"] .cal-job-item .cji-no{color:#93c5fd;}
@@ -1323,7 +1324,7 @@ function renderReport(){
   Chart.defaults.color = document.documentElement.getAttribute('data-theme')==='dark' ? '#cbd5e1' : '#1a1a2e';
   // สถานะ (โดนัท)
   const stKeys=[['draft','กำลังดำเนินการ','#94a3b8'],['completed','เสร็จสิ้น','#16a34a']];
-  mkChart('statusPie',{type:'doughnut',data:{labels:stKeys.map(k=>k[1]),datasets:[{data:stKeys.map(k=>jj.filter(j=>j.status===k[0]).length),backgroundColor:stKeys.map(k=>k[2]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'},datalabels:{display:false}}}});
+  mkChart('statusPie',{type:'doughnut',data:{labels:stKeys.map(k=>k[1]),datasets:[{data:stKeys.map(k=>jj.filter(j=>j.status===k[0]).length),backgroundColor:stKeys.map(k=>k[2]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'}}}});
   // 6 เดือน
   const labels=[],jobCnt=[],revArr=[];
   for(let i=5;i>=0;i--){
@@ -1333,8 +1334,8 @@ function renderReport(){
     jobCnt.push(inM.length);
     revArr.push(inM.reduce((s,j)=>s+(parseFloat(j.total)||0),0));
   }
-  mkChart('monthBar',{type:'bar',data:{labels,datasets:[{label:'จำนวนใบงาน',data:jobCnt,backgroundColor:'#2a5298',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
-  mkChart('revLine',{type:'line',data:{labels,datasets:[{label:'รายได้ (฿)',data:revArr,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',fill:true,tension:.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},datalabels:{display:false}},scales:{y:{beginAtZero:true}}}});
+  mkChart('monthBar',{type:'bar',data:{labels,datasets:[{label:'จำนวนใบงาน',data:jobCnt,backgroundColor:'#2a5298',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  mkChart('revLine',{type:'line',data:{labels,datasets:[{label:'รายได้ (฿)',data:revArr,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',fill:true,tension:.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},scales:{y:{beginAtZero:true}}}});
   // รายช่าง
   const techMap={};
   jj.forEach(j=>{const n=j.technician_name||'-';techMap[n]=(techMap[n]||0)+1;});
@@ -1342,8 +1343,11 @@ function renderReport(){
   const tc=document.getElementById('techCard');
   if(tc)tc.style.display=te.length?'':'none';
   const techColors=['#2a5298','#16a34a','#dc2626','#f59e0b','#7c3aed','#0891b2','#ea580c','#be185d'];
-  Chart.register(ChartDataLabels);
-  mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:te.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' ใบงาน'}},datalabels:{anchor:'end',align:'end',color:document.documentElement.getAttribute('data-theme')==='dark'?'#e2e8f0':'#1a1a2e',font:{size:13,weight:'bold',family:"'Sarabun',sans-serif"},formatter:function(val){return val;}}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
+  var hasDL=typeof ChartDataLabels!=='undefined';
+  if(hasDL){try{Chart.register(ChartDataLabels);}catch(e){}}
+  var techOpts={indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' ใบงาน'}}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}};
+  if(hasDL){techOpts.plugins.datalabels={anchor:'end',align:'end',color:document.documentElement.getAttribute('data-theme')==='dark'?'#e2e8f0':'#1a1a2e',font:{size:13,weight:'bold',family:"'Sarabun',sans-serif"},formatter:function(val){return val;}};}
+  mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:te.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:techOpts});
 }
 
 // ===== งานของฉัน + badge =====
