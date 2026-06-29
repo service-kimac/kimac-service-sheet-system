@@ -114,7 +114,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
 [data-theme="dark"] .cal-day.other-month{color:#475569;}
 [data-theme="dark"] .cal-today-title{color:#e2e8f0;}
-[data-theme="dark"] .cal-day.today{background:#1e3a6e!important;color:#ffd151!important;border-color:#5a8fcb!important;}
 [data-theme="dark"] .cal-job-item{background:#1a2332;border-left-color:#5a7fc9;}
 [data-theme="dark"] .cal-job-item:hover{background:#1e2d4a;}
 [data-theme="dark"] .cal-job-item .cji-no{color:#93c5fd;}
@@ -589,8 +588,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <div class="rc"><div class="rn" id="rTot">-</div><div class="rl">ใบงานทั้งหมด</div></div>
     <div class="rc"><div class="rn" id="rMon">-</div><div class="rl">เดือนนี้</div></div>
     <div class="rc"><div class="rn" id="rRev" style="font-size:18px">-</div><div class="rl">รายได้รวม (฿)</div></div>
-    <div class="rc"><div class="rn" id="rMonIncome" style="font-size:18px">-</div><div class="rl">รายได้ต่อเดือน (฿)</div></div>
-    <div class="rc" style="grid-column:1/-1"><div class="rn" id="rAvgMonth" style="font-size:18px">-</div><div class="rl">เฉลี่ยต่อเดือน (฿)</div></div>
+    <div class="rc"><div class="rn" id="rAvg" style="font-size:18px">-</div><div class="rl">เฉลี่ยต่อใบงาน</div></div>
   </div>
   <div class="rs"><h3>📊 สัดส่วนสถานะใบงาน</h3><div style="position:relative;height:230px"><canvas id="statusPie"></canvas></div></div>
   <div class="rs"><h3>📅 จำนวนใบงาน 6 เดือนล่าสุด</h3><div style="position:relative;height:230px"><canvas id="monthBar"></canvas></div></div>
@@ -907,7 +905,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <script>
 const sb = supabase.createClient('https://vjblfdlzerpiazmqxuce.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqYmxmZGx6ZXJwaWF6bXF4dWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzU5NDcsImV4cCI6MjA5NTM1MTk0N30.Pzw41pZ0dpVXfG_iNvA833bVg2wDagKnK-8Y12Vcj1M');
 
@@ -1307,16 +1304,11 @@ function renderReport(){
   const jj=jobs;
   const mon=jj.filter(j=>{const d=new Date(j.service_date||j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   const rev=jj.reduce((s,j)=>s+(parseFloat(j.total)||0),0);
-  // หาจำนวนเดือนที่ไม่ซ้ำกัน (เดือน-ปี) จากทุกใบงาน
-  const uniqueMonths=new Set(jj.map(j=>{const d=new Date(j.service_date||j.created_at);return d.getFullYear()+'-'+d.getMonth();}));
-  const numMonths=uniqueMonths.size||1;
-  const monIncome=rev/numMonths;
-  const avgMonth=rev/numMonths;
+  const avg=jj.length?rev/jj.length:0;
   document.getElementById('rTot').textContent=jj.length;
   document.getElementById('rMon').textContent=mon.length;
   document.getElementById('rRev').textContent=rev.toLocaleString('th-TH',{maximumFractionDigits:0});
-  document.getElementById('rMonIncome').textContent=monIncome.toLocaleString('th-TH',{maximumFractionDigits:0});
-  document.getElementById('rAvgMonth').textContent=avgMonth.toLocaleString('th-TH',{maximumFractionDigits:0});
+  document.getElementById('rAvg').textContent=avg.toLocaleString('th-TH',{maximumFractionDigits:0});
   // วาดกราฟเฉพาะตอนหน้า "รายงาน" แสดงอยู่ (canvas ที่ซ่อนอยู่จะได้ขนาดผิด)
   const visible=document.getElementById('pg-report')&&document.getElementById('pg-report').classList.contains('on');
   if(!visible||typeof Chart==='undefined')return;
@@ -1334,8 +1326,8 @@ function renderReport(){
     jobCnt.push(inM.length);
     revArr.push(inM.reduce((s,j)=>s+(parseFloat(j.total)||0),0));
   }
-  mkChart('monthBar',{type:'bar',data:{labels,datasets:[{label:'จำนวนใบงาน',data:jobCnt,backgroundColor:'#2a5298',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
-  mkChart('revLine',{type:'line',data:{labels,datasets:[{label:'รายได้ (฿)',data:revArr,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',fill:true,tension:.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},scales:{y:{beginAtZero:true}}}});
+  mkChart('monthBar',{type:'bar',data:{labels,datasets:[{label:'จำนวนใบงาน',data:jobCnt,backgroundColor:'#2a5298',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  mkChart('revLine',{type:'line',data:{labels,datasets:[{label:'รายได้ (฿)',data:revArr,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',fill:true,tension:.3,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   // รายช่าง
   const techMap={};
   jj.forEach(j=>{const n=j.technician_name||'-';techMap[n]=(techMap[n]||0)+1;});
@@ -1343,11 +1335,7 @@ function renderReport(){
   const tc=document.getElementById('techCard');
   if(tc)tc.style.display=te.length?'':'none';
   const techColors=['#2a5298','#16a34a','#dc2626','#f59e0b','#7c3aed','#0891b2','#ea580c','#be185d'];
-  var hasDL=typeof ChartDataLabels!=='undefined';
-  if(hasDL){try{Chart.register(ChartDataLabels);}catch(e){}}
-  var techOpts={indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' ใบงาน'}}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}};
-  if(hasDL){techOpts.plugins.datalabels={anchor:'end',align:'end',color:document.documentElement.getAttribute('data-theme')==='dark'?'#e2e8f0':'#1a1a2e',font:{size:13,weight:'bold',family:"'Sarabun',sans-serif"},formatter:function(val){return val;}};}
-  mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:te.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:techOpts});
+  mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:te.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' ใบงาน'}}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
 }
 
 // ===== งานของฉัน + badge =====
