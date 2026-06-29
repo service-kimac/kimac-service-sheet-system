@@ -198,6 +198,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .rs{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
 .rs h3{font-size:14px;font-weight:700;color:#427aa1;margin-bottom:10px;letter-spacing:.3px}
+.rpt-range-btn{padding:5px 12px;border:1.5px solid #c7d7ff;border-radius:20px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;background:#f0f4ff;color:#1a3a6e;cursor:pointer;-webkit-appearance:none;transition:background .15s}
 .br{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .bl{font-size:12px;color:#555;width:70px;flex-shrink:0;font-weight:600}
 .bt{flex:1;height:8px;background:#f0f4ff;border-radius:4px;overflow:hidden}
@@ -507,33 +508,42 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   <div style="display:flex;gap:20px;align-items:flex-start;justify-content:center;">
     <!-- Main column -->
     <div style="flex:1;min-width:0;">
-  <div class="filter-bar" id="filterBar">
-    <span class="fb-label">👤 รายบุคคล:</span>
-    <select class="fb-select" id="filterTech" onchange="renderJobs()">
-      <option value="">ทุกคน</option>
-    </select>
-  </div>
+  <!-- Advanced Search Bar -->
   <div class="bar" id="mainBar">
-    <div class="srch"><input id="sq" placeholder="ค้นหา บริษัท / เลขใบงาน..." oninput="renderJobs()"></div>
-    <select class="fsel" id="fs" onchange="renderJobs()">
-      <option value="">ทุกสถานะ</option>
-      <option value="draft">กำลังดำเนินการ</option>
-      <option value="completed">เสร็จสิ้น</option>
-    </select>
-    <div class="bar-wrap">
-      <button class="btn-cal" id="btnCal" onclick="toggleDatePanel()" title="กรองตามช่วงวันที่">📅<span class="cal-badge"></span></button>
-      <div class="date-panel" id="datePanel">
-        <label>ตั้งแต่วันที่</label>
-        <input type="date" id="fdFrom">
-        <label>ถึงวันที่</label>
-        <input type="date" id="fdTo">
-        <div class="dp-row">
-          <button class="dp-btn dp-clear" onclick="clearDateFilter()">✕ ล้าง</button>
-          <button class="dp-btn dp-apply" onclick="applyDateFilter()">✓ กรอง</button>
-        </div>
+    <div class="srch"><input id="sq" placeholder="🔍 ค้นหา บริษัท / เลขใบงาน / ช่าง..." oninput="renderJobs()"></div>
+    <button class="btn-cal" id="btnAdvFilter" onclick="toggleAdvFilter()" title="ค้นหาขั้นสูง">⚙️<span class="cal-badge" id="advFilterBadge"></span></button>
+    <button class="btn-refresh" onclick="location.reload()" title="รีเฟรช">🔄</button>
+  </div>
+  <!-- Advanced filter panel -->
+  <div id="advFilterPanel" style="display:none;background:#fff;border:2px solid #dbeafe;border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 4px 16px rgba(26,58,110,.10)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">สถานะ</div>
+        <select class="fb-select" id="fs" onchange="renderJobs()" style="width:100%">
+          <option value="">ทุกสถานะ</option>
+          <option value="draft">กำลังดำเนินการ</option>
+          <option value="completed">เสร็จสิ้น</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">ช่างผู้รับผิดชอบ</div>
+        <select class="fb-select" id="filterTech" onchange="renderJobs()" style="width:100%">
+          <option value="">ทุกคน</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">ตั้งแต่วันที่</div>
+        <input type="date" id="fdFrom" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">ถึงวันที่</div>
+        <input type="date" id="fdTo" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
       </div>
     </div>
-    <button class="btn-refresh" onclick="location.reload()" title="รีเฟรช">🔄</button>
+    <div style="display:flex;gap:8px">
+      <button onclick="clearAdvFilter()" style="flex:1;padding:9px;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#f1f5f9;color:#64748b">✕ ล้างทั้งหมด</button>
+      <button onclick="applyAdvFilter()" style="flex:2;padding:9px;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#0e1c36,#427aa1);color:#fff">✓ กรองผลลัพธ์</button>
+    </div>
   </div>
   <div id="list"><div class="ld" id="listLoadingMsg"><div class="dots"><span></span><span></span><span></span></div><br>กำลังโหลด...<div id="loadRetryBtn" style="display:none;margin-top:16px"><button onclick="location.reload()" style="padding:10px 24px;background:#1a3a6e;color:#fff;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer">🔄 โหลดใหม่</button><div style="font-size:12px;color:#94a3b8;margin-top:6px">การเชื่อมต่ออาจช้า กรุณาลองใหม่</div></div></div></div>
     </div><!-- end main column -->
@@ -584,6 +594,27 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <button onclick="swPg('settings')" class="btn-back-report" style="padding:8px 12px;background:#f0f4ff;color:#1a3a6e;border:1px solid #c7d7ff;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;-webkit-appearance:none">‹ กลับ</button>
     <div style="font-size:14px;font-weight:800;color:#1a3a6e">📊 รายงานยอด</div>
   </div>
+  <!-- Date range filter for report -->
+  <div style="background:#fff;border:1.5px solid #dbeafe;border-radius:12px;padding:12px 14px;margin-bottom:14px;box-shadow:0 2px 8px rgba(26,58,110,.06)">
+    <div style="font-size:12px;font-weight:700;color:#1a3a6e;margin-bottom:8px">📅 กรองช่วงเวลา</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ตั้งแต่</div>
+        <input type="date" id="rptFrom" onchange="renderReport()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f8;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ถึงวันที่</div>
+        <input type="date" id="rptTo" onchange="renderReport()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f8;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="setRptRange('month')" class="rpt-range-btn" id="rptBtnMonth">เดือนนี้</button>
+      <button onclick="setRptRange('3m')" class="rpt-range-btn" id="rptBtn3m">3 เดือน</button>
+      <button onclick="setRptRange('6m')" class="rpt-range-btn" id="rptBtn6m" style="background:#427aa1;color:#fff;border-color:#427aa1">6 เดือน</button>
+      <button onclick="setRptRange('year')" class="rpt-range-btn" id="rptBtnYear">ปีนี้</button>
+      <button onclick="setRptRange('all')" class="rpt-range-btn" id="rptBtnAll">ทั้งหมด</button>
+    </div>
+  </div>
   <div class="rg">
     <div class="rc"><div class="rn" id="rTot">-</div><div class="rl">ใบงานทั้งหมด</div></div>
     <div class="rc"><div class="rn" id="rMon">-</div><div class="rl">เดือนนี้</div></div>
@@ -595,6 +626,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   <div class="rs"><h3>📅 จำนวนใบงาน 6 เดือนล่าสุด</h3><div style="position:relative;height:230px"><canvas id="monthBar"></canvas></div></div>
   <div class="rs"><h3>💰 รายได้ 6 เดือนล่าสุด (฿)</h3><div style="position:relative;height:230px"><canvas id="revLine"></canvas></div></div>
   <div class="rs" id="techCard"><h3>🔧 ใบงานรายช่าง</h3><div style="position:relative;height:260px"><canvas id="techBar"></canvas></div></div>
+  <div class="rs" id="techRevCard"><h3>💵 รายได้รายช่าง (฿)</h3><div style="position:relative;height:260px"><canvas id="techRevBar"></canvas></div></div>
 </div>
 <!-- TEAM PAGE -->
 <div id="pg-team" class="pg">
@@ -1075,7 +1107,7 @@ async function init(){
     // Show bell for ALL roles
     var _bw=document.getElementById('notifBellWrap'); if(_bw)_bw.style.display='block';
     if(role==='admin'){
-      document.getElementById('filterBar').classList.add('show');
+      // advFilterPanel shows tech filter when admin; filterTech already in panel
       var _ts=document.getElementById('trashSetting'); if(_ts)_ts.style.display='block';
       var _ads=document.getElementById('adminDispatchSection'); if(_ads)_ads.style.display='block';
       var _nm=document.getElementById('nav-mine'); if(_nm)_nm.style.display='none';
@@ -1178,6 +1210,7 @@ async function loadJobs(){
     // Check for both-signed jobs → notify admin
     if(typeof checkSigCompleteNotifs === 'function') setTimeout(checkSigCompleteNotifs, 500);
     if(typeof checkTechDispatchNotifs === 'function') setTimeout(checkTechDispatchNotifs, 800);
+    if(typeof checkAppointmentReminders === 'function') setTimeout(checkAppointmentReminders, 1200);
   }catch(e){showErr('เกิดข้อผิดพลาด: '+e.message);}
 }
 
@@ -1252,45 +1285,45 @@ function renderJobs(){
   }).join('');
 }
 
-function toggleDatePanel(){
-  var panel=document.getElementById('datePanel');
-  var btn=document.getElementById('btnCal');
+function toggleAdvFilter(){
+  var panel=document.getElementById('advFilterPanel');
+  var btn=document.getElementById('btnAdvFilter');
   if(!panel)return;
-  var isOpen=panel.classList.contains('open');
-  if(isOpen){panel.classList.remove('open');btn.classList.remove('active');}
-  else{panel.classList.add('open');btn.classList.add('active');}
+  var isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'block';
+  if(btn){if(isOpen)btn.classList.remove('active');else btn.classList.add('active');}
 }
-function applyDateFilter(){
-  var panel=document.getElementById('datePanel');
-  var btn=document.getElementById('btnCal');
-  if(panel)panel.classList.remove('open');
-  if(btn)btn.classList.remove('active');
-  updateCalBadge();
+function applyAdvFilter(){
+  updateAdvBadge();
   renderJobs();
 }
-function clearDateFilter(){
+function clearAdvFilter(){
   var f=document.getElementById('fdFrom');var t=document.getElementById('fdTo');
+  var st=document.getElementById('fs');var tc=document.getElementById('filterTech');
+  var sq=document.getElementById('sq');
   if(f)f.value='';if(t)t.value='';
-  var panel=document.getElementById('datePanel');
-  var btn=document.getElementById('btnCal');
-  if(panel)panel.classList.remove('open');
-  if(btn){btn.classList.remove('active');btn.classList.remove('has-filter');}
+  if(st)st.value='';if(tc)tc.value='';if(sq)sq.value='';
+  updateAdvBadge();
   renderJobs();
 }
-function updateCalBadge(){
+function updateAdvBadge(){
   var f=document.getElementById('fdFrom');var t=document.getElementById('fdTo');
-  var btn=document.getElementById('btnCal');
-  if(!btn)return;
-  var hasF=(f&&f.value)||(t&&t.value);
-  if(hasF)btn.classList.add('has-filter');else btn.classList.remove('has-filter');
+  var st=document.getElementById('fs');var tc=document.getElementById('filterTech');
+  var btn=document.getElementById('advFilterBadge');
+  var hasF=(f&&f.value)||(t&&t.value)||(st&&st.value)||(tc&&tc.value);
+  if(btn){btn.style.display=hasF?'block':'none';}
+  var mainBtn=document.getElementById('btnAdvFilter');
+  if(mainBtn){if(hasF)mainBtn.classList.add('has-filter');else mainBtn.classList.remove('has-filter');}
 }
-// ปิด date panel เมื่อกดที่อื่น
+function updateCalBadge(){ updateAdvBadge(); }
+// ปิด advanced filter panel เมื่อกดที่อื่น
 document.addEventListener('click',function(e){
-  var panel=document.getElementById('datePanel');
-  var btn=document.getElementById('btnCal');
+  var panel=document.getElementById('advFilterPanel');
+  var btn=document.getElementById('btnAdvFilter');
   if(!panel||!btn)return;
+  if(panel.style.display==='none')return;
   if(!panel.contains(e.target)&&e.target!==btn&&!btn.contains(e.target)){
-    panel.classList.remove('open');btn.classList.remove('active');
+    panel.style.display='none';btn.classList.remove('active');
   }
 });
 
@@ -1301,13 +1334,36 @@ function mkChart(id,cfg){
   if(_charts[id]){try{_charts[id].destroy();}catch(e){}}
   _charts[id]=new Chart(el,cfg);
 }
+function setRptRange(r){
+  const now=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  let from='',to=fmt(now);
+  if(r==='month'){const f=new Date(now.getFullYear(),now.getMonth(),1);from=fmt(f);}
+  else if(r==='3m'){const f=new Date(now.getFullYear(),now.getMonth()-2,1);from=fmt(f);}
+  else if(r==='6m'){const f=new Date(now.getFullYear(),now.getMonth()-5,1);from=fmt(f);}
+  else if(r==='year'){from=now.getFullYear()+'-01-01';}
+  else if(r==='all'){from='';to='';}
+  const fEl=document.getElementById('rptFrom');const tEl=document.getElementById('rptTo');
+  if(fEl)fEl.value=from;if(tEl)tEl.value=to;
+  // highlight active button
+  ['month','3m','6m','year','all'].forEach(k=>{
+    const btn=document.getElementById('rptBtn'+({month:'Month','3m':'3m','6m':'6m',year:'Year',all:'All'}[k]));
+    if(btn){btn.style.background=k===r?'#427aa1':'#f0f4ff';btn.style.color=k===r?'#fff':'#1a3a6e';btn.style.borderColor=k===r?'#427aa1':'#c7d7ff';}
+  });
+  renderReport();
+}
 function renderReport(){
   const now=new Date();
-  const jj=jobs;
+  let jj=jobs;
+  // กรองตามช่วงวันที่ที่เลือก
+  const rptFrom=document.getElementById('rptFrom')&&document.getElementById('rptFrom').value;
+  const rptTo=document.getElementById('rptTo')&&document.getElementById('rptTo').value;
+  if(rptFrom)jj=jj.filter(j=>(j.service_date||j.created_at||'').slice(0,10)>=rptFrom);
+  if(rptTo)jj=jj.filter(j=>(j.service_date||j.created_at||'').slice(0,10)<=rptTo);
   const mon=jj.filter(j=>{const d=new Date(j.service_date||j.created_at);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
   const rev=jj.reduce((s,j)=>s+(parseFloat(j.total)||0),0);
   const monRev=mon.reduce((s,j)=>s+(parseFloat(j.total)||0),0);
-  // คำนวณเฉลี่ยต่อเดือน: หาจำนวนเดือนที่มีข้อมูล
   const monthSet=new Set(jj.map(j=>{const d=new Date(j.service_date||j.created_at);return d.getFullYear()+'-'+d.getMonth();}));
   const numMonths=monthSet.size||1;
   const avgMon=rev/numMonths;
@@ -1316,13 +1372,11 @@ function renderReport(){
   document.getElementById('rRev').textContent=rev.toLocaleString('th-TH',{maximumFractionDigits:0});
   document.getElementById('rMonRev').textContent=monRev.toLocaleString('th-TH',{maximumFractionDigits:0});
   document.getElementById('rAvgMon').textContent=avgMon.toLocaleString('th-TH',{maximumFractionDigits:0});
-  // วาดกราฟเฉพาะตอนหน้า "รายงาน" แสดงอยู่ (canvas ที่ซ่อนอยู่จะได้ขนาดผิด)
   const visible=document.getElementById('pg-report')&&document.getElementById('pg-report').classList.contains('on');
   if(!visible||typeof Chart==='undefined')return;
   Chart.defaults.font.family="'Sarabun',sans-serif";
   const isDark=document.documentElement.getAttribute('data-theme')==='dark';
   Chart.defaults.color = isDark ? '#cbd5e1' : '#1a1a2e';
-  // ลงทะเบียน datalabels plugin ถ้ายังไม่ได้ลง
   if(typeof ChartDataLabels!=='undefined'&&!Chart._dlRegistered){
     Chart.register(ChartDataLabels);
     Chart._dlRegistered=true;
@@ -1333,9 +1387,17 @@ function renderReport(){
   const pieData=stKeys.map(k=>jj.filter(j=>j.status===k[0]).length);
   const pieTotal=pieData.reduce((a,b)=>a+b,0)||1;
   mkChart('statusPie',{type:'doughnut',data:{labels:stKeys.map(k=>k[1]),datasets:[{data:pieData,backgroundColor:stKeys.map(k=>k[2]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'},datalabels:{color:'#fff',font:{weight:'700',size:13},formatter:(v)=>v>0?v+'':null,anchor:'center',align:'center'}}}});
-  // 6 เดือน
+  // กำหนดจำนวนเดือนตามช่วงที่เลือก (ไม่ตายตัว 6 เดือน)
+  let numBars=6;
+  if(rptFrom&&rptTo){
+    const dFrom=new Date(rptFrom);const dTo=new Date(rptTo);
+    numBars=Math.min(24,Math.max(1,(dTo.getFullYear()-dFrom.getFullYear())*12+(dTo.getMonth()-dFrom.getMonth())+1));
+  }else if(rptFrom){
+    const dFrom=new Date(rptFrom);
+    numBars=Math.min(24,Math.max(1,(now.getFullYear()-dFrom.getFullYear())*12+(now.getMonth()-dFrom.getMonth())+1));
+  }
   const labels=[],jobCnt=[],revArr=[];
-  for(let i=5;i>=0;i--){
+  for(let i=numBars-1;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
     const inM=jj.filter(j=>{const jd=new Date(j.service_date||j.created_at);return jd.getMonth()===d.getMonth()&&jd.getFullYear()===d.getFullYear();});
     labels.push(d.toLocaleDateString('th-TH',{month:'short',year:'2-digit'}));
@@ -1344,14 +1406,18 @@ function renderReport(){
   }
   mkChart('monthBar',{type:'bar',data:{labels,datasets:[{label:'จำนวนใบงาน',data:jobCnt,backgroundColor:'#2a5298',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20}},plugins:{legend:{display:false},datalabels:{color:dlColor,anchor:'end',align:'end',font:{weight:'700',size:12},formatter:(v)=>v>0?v:''}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
   mkChart('revLine',{type:'line',data:{labels,datasets:[{label:'รายได้ (฿)',data:revArr,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.15)',fill:true,tension:.3,pointRadius:5,pointBackgroundColor:'#16a34a'}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24}},plugins:{legend:{display:false},datalabels:{color:dlColor,anchor:'end',align:'top',font:{weight:'700',size:11},formatter:(v)=>v>0?v.toLocaleString('th-TH',{maximumFractionDigits:0}):''}},scales:{y:{beginAtZero:true}}}});
-  // รายช่าง
-  const techMap={};
-  jj.forEach(j=>{const n=j.technician_name||'-';techMap[n]=(techMap[n]||0)+1;});
+  // รายช่าง: ใบงาน
+  const techMap={};const techRevMap={};
+  jj.forEach(j=>{const n=j.technician_name||'-';techMap[n]=(techMap[n]||0)+1;techRevMap[n]=(techRevMap[n]||0)+(parseFloat(j.total)||0);});
   const te=Object.entries(techMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const teRev=Object.entries(techRevMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const tc=document.getElementById('techCard');
   if(tc)tc.style.display=te.length?'':'none';
+  const trc=document.getElementById('techRevCard');
+  if(trc)trc.style.display=teRev.length?'':'none';
   const techColors=['#2a5298','#16a34a','#dc2626','#f59e0b','#7c3aed','#0891b2','#ea580c','#be185d'];
   mkChart('techBar',{type:'bar',data:{labels:te.map(e=>e[0]),datasets:[{label:'ใบงาน',data:te.map(e=>e[1]),backgroundColor:te.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:30}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' ใบงาน'}},datalabels:{color:dlColor,anchor:'end',align:'end',font:{weight:'700',size:12},formatter:(v)=>v>0?v:''}},scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
+  mkChart('techRevBar',{type:'bar',data:{labels:teRev.map(e=>e[0]),datasets:[{label:'รายได้ (฿)',data:teRev.map(e=>e[1]),backgroundColor:teRev.map((_,i)=>techColors[i%techColors.length]),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:50}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' ฿'+ctx.raw.toLocaleString('th-TH',{maximumFractionDigits:0})}},datalabels:{color:dlColor,anchor:'end',align:'end',font:{weight:'700',size:11},formatter:(v)=>v>0?'฿'+v.toLocaleString('th-TH',{maximumFractionDigits:0}):''}},scales:{x:{beginAtZero:true,ticks:{callback:(v)=>'฿'+(v>=1000?(v/1000).toFixed(0)+'K':v)}}}}});
 }
 
 // ===== งานของฉัน + badge =====
@@ -1515,7 +1581,15 @@ function swPg(name){
   if(nav)nav.classList.add('on');
   if(name==='report'){const ns=document.getElementById('nav-settings');if(ns)ns.classList.add('on');}
   if(name==='mine'){renderMine();markMineSeen();}
-  if(name==='report')renderReport();
+  if(name==='report'){
+    const ns=document.getElementById('nav-settings');if(ns)ns.classList.add('on');
+    // ตั้งค่า default range 6 เดือน ถ้ายังไม่ได้เลือก
+    if(!document.getElementById('rptFrom').value&&!document.getElementById('rptTo').value){
+      setRptRange('6m');
+    } else {
+      renderReport();
+    }
+  }
   if(name==='team'){renderTeam();const nt=document.getElementById('nav-team');if(nt)nt.classList.add('on');}
   if(name==='settings'){loadSettingsProf();refreshPushStatus();renderAccountSwitcher();}
   if(name==='dispatch'){loadDispatchPage();}
@@ -2612,6 +2686,103 @@ function updateTechBellBadge() {
 
 // Check Supabase realtime-style: poll for new dispatches addressed to this tech
 // (runs after loadJobs — uses existing Supabase client)
+// ======================================================================
+// ===== แจ้งเตือนอัตโนมัติก่อนวันออกหาลูกค้า (ช่างรับแจ้งเตือนก่อน 1 วัน) ====
+// ======================================================================
+const APPT_REMIND_KEY = () => 'kimac_appt_reminded_' + (CU ? CU.id : 'x');
+function getRemindedSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(APPT_REMIND_KEY()) || '[]')); } catch(e) { return new Set(); }
+}
+function markReminded(jobId) {
+  try {
+    const s = getRemindedSet();
+    s.add(String(jobId));
+    localStorage.setItem(APPT_REMIND_KEY(), JSON.stringify([...s].slice(-500)));
+  } catch(e) {}
+}
+async function checkAppointmentReminders() {
+  if (!CU || !CP) return;
+  // หา service_date = พรุ่งนี้
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const pad = n => String(n).padStart(2, '0');
+  const tomorrowStr = tomorrow.getFullYear() + '-' + pad(tomorrow.getMonth() + 1) + '-' + pad(tomorrow.getDate());
+  const reminded = getRemindedSet();
+  // กรองงานพรุ่งนี้ที่ยังไม่ได้แจ้งเตือน
+  const myJobs = (jobs || []).filter(j => {
+    if ((j.service_date || '').slice(0, 10) !== tomorrowStr) return false;
+    if (j.status === 'completed') return false;
+    if (reminded.has(String(j.id))) return false;
+    // ช่าง: เฉพาะงานของตัวเอง | Admin: ทุกงาน
+    if (CP.role !== 'admin' && j.technician_id !== CU.id) return false;
+    return true;
+  });
+  if (!myJobs.length) return;
+  for (const j of myJobs) {
+    const jobNo = j.job_no || ('#' + j.id);
+    const company = j.company || 'ลูกค้า';
+    const timeStr = j.time_start ? (' เวลา ' + j.time_start + ' น.') : '';
+    const loc = j.service_location || '';
+    const title = '📅 นัดหมายพรุ่งนี้';
+    const body = jobNo + ' · ' + company + (loc ? ' · ' + loc : '') + timeStr;
+    // Web Push (ถ้าอนุญาตแล้ว)
+    if (Notification && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body, icon: '/icon-192.png', tag: 'appt_' + j.id, renotify: false });
+      } catch(e) {}
+    }
+    // In-app notification เข้ากระดิ่ง (ใส่ใน tech notif store)
+    if (CP.role !== 'admin') {
+      const notif = {
+        id: 'appt_remind_' + j.id,
+        type: 'appt_remind',
+        job_id: j.id,
+        job_no: jobNo,
+        company,
+        date_of_work: tomorrowStr,
+        time_of_work: j.time_start || '',
+        location: loc,
+        timestamp: new Date().toISOString(),
+        read: false
+      };
+      const list = getTechNotifs();
+      if (!list.find(n => n.id === notif.id)) {
+        list.unshift(notif);
+        saveTechNotifs(list.slice(0, 100));
+        updateTechBellBadge();
+        // แสดง popup แจ้งเตือน
+        showApptReminderPopup(notif);
+      }
+    } else {
+      // Admin: push Web Push ไปหาช่างเจ้าของงาน
+      try {
+        await sb.functions.invoke('notify-push', { body: {
+          user_id: j.technician_id,
+          title,
+          body,
+          data: { type: 'appt_remind', job_id: j.id }
+        }});
+      } catch(e) { console.warn('appt remind push:', e); }
+    }
+    markReminded(j.id);
+  }
+}
+function showApptReminderPopup(notif) {
+  // สร้าง popup ชั่วคราว (เหมือน dispatch popup)
+  const old = document.getElementById('_apptReminderPopup');
+  if (old) old.remove();
+  const d = document.createElement('div');
+  d.id = '_apptReminderPopup';
+  d.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9000;background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 8px 32px rgba(0,0,0,.18);border:2px solid #fbbf24;min-width:280px;max-width:340px;font-family:Sarabun,sans-serif';
+  const timeStr = notif.time_of_work ? (' เวลา ' + notif.time_of_work + ' น.') : '';
+  d.innerHTML = '<div style="font-size:14px;font-weight:800;color:#92400e;margin-bottom:6px">📅 แจ้งเตือนนัดหมายพรุ่งนี้</div>'
+    + '<div style="font-size:13px;color:#1a1a2e;margin-bottom:4px"><b>' + notif.job_no + '</b> · ' + notif.company + '</div>'
+    + (notif.location ? '<div style="font-size:12px;color:#555;margin-bottom:2px">📍 ' + notif.location + '</div>' : '')
+    + (timeStr ? '<div style="font-size:12px;color:#555;margin-bottom:8px">🕐' + timeStr + '</div>' : '<div style="margin-bottom:8px"></div>')
+    + '<button onclick="document.getElementById(\'_apptReminderPopup\').remove()" style="width:100%;padding:8px;border-radius:8px;border:none;background:#fef3c7;color:#92400e;font-family:Sarabun,sans-serif;font-size:13px;font-weight:700;cursor:pointer">รับทราบ ✓</button>';
+  document.body.appendChild(d);
+  setTimeout(() => { if (d.parentNode) d.remove(); }, 15000);
+}
 async function checkTechDispatchNotifs() {
   if (!CU || !CP || CP.role === 'admin') return;
   try {
