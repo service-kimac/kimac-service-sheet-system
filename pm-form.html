@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e1c36">
+<link rel="manifest" href="manifest.json">
+<title>PM SHEET - KIMAC</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+body{width:100%;min-height:100vh;font-family:'Sarabun',sans-serif;background:#f0f4f8;
+  padding:calc(58px + env(safe-area-inset-top)) 0 calc(72px + env(safe-area-inset-bottom)) 0;
+  font-size:13px;overflow-x:hidden;}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:300;
+  background:linear-gradient(135deg,#0b4f6c 0%,#0e7490 100%);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));
+  box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.tc-l{display:flex;align-items:center;gap:8px;}
+.tc-title{color:#fff;font-size:14px;font-weight:800;letter-spacing:1px;white-space:nowrap;}
+.tc-r{display:flex;align-items:center;gap:6px;}
+.jno-badge{background:rgba(20,184,166,.25);border:1px solid rgba(20,184,166,.5);
+  color:#5eead4;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;}
+.btn-bk{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+  color:#fff;padding:5px 10px;border-radius:8px;font-family:'Sarabun',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;appearance:none;-webkit-appearance:none;}
+.status-sel{padding:4px 8px;border:1px solid rgba(255,255,255,.4);
+  background:rgba(255,255,255,.15);color:#fff;border-radius:6px;
+  font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;
+  outline:none;appearance:none;-webkit-appearance:none;}
+
+/* ACTION BAR */
+.actbar{position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,#073a5a,#032033);
+  border-top:1px solid rgba(0,0,0,.25);
+  display:flex;gap:8px;padding:9px 12px;
+  padding-bottom:calc(9px + env(safe-area-inset-bottom));
+  z-index:300;box-shadow:0 -3px 16px rgba(0,0,0,.08);}
+.ab{flex:1;padding:10px 4px;border:none;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
+.ab:active{opacity:.8;}
+.ab-hist{background:linear-gradient(135deg,#0b5f8a,#0e4b75);}
+.ab-save{background:linear-gradient(135deg,#0e1c36,#0e7490);}
+.ab-pdf{background:linear-gradient(135deg,#15803d,#16a34a);}
+
+/* PAGE WRAPPER */
+.page-wrapper{max-width:800px;margin:0 auto;padding:12px 10px;}
+
+/* CARD */
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);
+  margin-bottom:10px;overflow:hidden;}
+.card-header{background:linear-gradient(135deg,#0b4f6c,#0e7490);
+  color:#fff;padding:10px 14px;font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:8px;}
+.card-header .icon{font-size:16px;}
+.card-body{padding:12px 14px;}
+
+/* FORM FIELDS */
+.form-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px;}
+.field.full{flex-basis:100%;min-width:100%;}
+.field label{font-size:11px;font-weight:600;color:#0e7490;}
+.field input,.field select,.field textarea{
+  border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;
+  font-family:'Sarabun',sans-serif;font-size:13px;color:#111;
+  background:#fff;outline:none;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:#0e7490;box-shadow:0 0 0 2px rgba(14,116,144,.15);}
+.field textarea{resize:vertical;min-height:70px;}
+
+/* MACHINE TYPE SELECT */
+.machine-type-bar{background:linear-gradient(135deg,#ecfeff,#f0fdfa);
+  border:1px solid #a5f3fc;border-radius:8px;padding:10px 14px;margin-bottom:10px;}
+.machine-type-bar label{font-size:12px;font-weight:700;color:#0e7490;display:block;margin-bottom:6px;}
+.machine-pills{display:flex;flex-wrap:wrap;gap:6px;}
+.mpill{padding:6px 12px;border-radius:20px;border:1.5px solid #a5f3fc;
+  background:#fff;color:#0e7490;font-family:'Sarabun',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.mpill.active{background:#0e7490;color:#fff;border-color:#0e7490;}
+
+/* CHECKLIST */
+.checklist-group{margin-bottom:4px;}
+.checklist-group-title{font-size:11px;font-weight:700;color:#6b7280;
+  text-transform:uppercase;letter-spacing:.5px;padding:6px 0 4px;}
+.check-item{display:flex;align-items:center;gap:8px;
+  padding:7px 10px;border-radius:8px;margin-bottom:3px;
+  border:1px solid #f3f4f6;background:#fafafa;}
+.check-item:hover{background:#f0fdfa;border-color:#a5f3fc;}
+.check-num{font-size:11px;font-weight:700;color:#9ca3af;min-width:22px;}
+.check-label{flex:1;font-size:12px;color:#111;}
+.check-radios{display:flex;gap:4px;}
+.rr{display:flex;align-items:center;gap:3px;}
+.rr input[type=radio]{accent-color:#0e7490;width:14px;height:14px;}
+.rr span{font-size:11px;color:#374151;}
+.rr.ng input[type=radio]{accent-color:#dc2626;}
+.rr.ng span{color:#dc2626;}
+
+/* RATING */
+.rating-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.rating-btn{padding:6px 14px;border-radius:20px;border:1.5px solid #d1d5db;
+  background:#fff;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;
+  cursor:pointer;color:#374151;transition:all .15s;}
+.rating-btn.excellent{border-color:#16a34a;}
+.rating-btn.excellent.active{background:#16a34a;color:#fff;}
+.rating-btn.good{border-color:#0e7490;}
+.rating-btn.good.active{background:#0e7490;color:#fff;}
+.rating-btn.fair{border-color:#d97706;}
+.rating-btn.fair.active{background:#d97706;color:#fff;}
+.rating-btn.poor{border-color:#dc2626;}
+.rating-btn.poor.active{background:#dc2626;color:#fff;}
+
+/* TOAST */
+.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);
+  padding:10px 20px;border-radius:10px;font-family:'Sarabun',sans-serif;
+  font-size:13px;font-weight:700;z-index:9999;opacity:0;transition:opacity .3s;
+  white-space:nowrap;pointer-events:none;}
+.toast.ok{background:#16a34a;color:#fff;}
+.toast.err{background:#dc2626;color:#fff;}
+.toast.info{background:#0e7490;color:#fff;}
+
+/* SIGNATURE */
+.sig-wrap{border:2px dashed #d1d5db;border-radius:10px;
+  min-height:100px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;background:#f9fafb;position:relative;overflow:hidden;}
+.sig-wrap:hover{border-color:#0e7490;background:#f0fdfa;}
+.sig-hint{color:#9ca3af;font-size:12px;text-align:center;pointer-events:none;}
+.sig-img{width:100%;max-height:120px;object-fit:contain;display:none;}
+.sig-meta{display:flex;gap:8px;margin-top:6px;}
+
+/* SIG MODAL */
+.sig-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  display:none;flex-direction:column;}
+.sig-overlay.open{display:flex;}
+.sig-modal-head{background:#0b4f6c;padding:12px 16px;
+  padding-top:calc(12px + env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;}
+.sig-modal-title{color:#fff;font-size:15px;font-weight:700;}
+.sig-modal-body{flex:1;display:flex;flex-direction:column;padding:12px;gap:10px;}
+.sig-canvas-wrap{flex:1;background:#fff;border-radius:10px;overflow:hidden;
+  border:2px solid #a5f3fc;}
+canvas#sigCanvas{width:100%;height:100%;touch-action:none;}
+.sig-modal-foot{display:flex;gap:8px;}
+.sig-btn{flex:1;padding:11px;border:none;border-radius:10px;
+  font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.sig-btn.cancel{background:rgba(255,255,255,.15);color:#fff;}
+.sig-btn.clear{background:#dc2626;color:#fff;}
+.sig-btn.confirm{background:#0e7490;color:#fff;}
+
+/* PDF EXPORT OVERLAY */
+#pdfOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;
+  display:none;align-items:center;justify-content:center;}
+#pdfOverlay.show{display:flex;}
+#pdfOverlay .box{background:#fff;border-radius:12px;padding:24px;text-align:center;
+  min-width:200px;}
+#pdfOverlay .box p{font-size:14px;color:#374151;margin-top:8px;}
+
+/* PM TYPE SECTIONS */
+.pm-section{display:none;}
+.pm-section.show{display:block;}
+
+@media print {
+  .topbar,.actbar,.toast,.sig-overlay,#pdfOverlay,.mpill,.card-header .icon{display:none!important;}
+  body{padding:0!important;background:#fff!important;}
+  .card{box-shadow:none!important;border:1px solid #e5e7eb!important;margin-bottom:6px!important;}
+  .card-header{background:#0e7490!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .check-item{border-color:#e5e7eb!important;background:#fff!important;}
+  .page-wrapper{padding:0!important;max-width:100%!important;}
+}
+@media(max-width:480px){
+  .topbar{padding:7px 10px;padding-top:calc(7px + env(safe-area-inset-top));}
+  .tc-title{font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tc-l">
+    <span class="tc-title">📋 PM SHEET - KIMAC</span>
+  </div>
+  <div class="tc-r">
+    <select class="status-sel" id="pmStatus">
+      <option value="draft">📝 กำลังดำเนินการ</option>
+      <option value="completed">✅ เสร็จสิ้น</option>
+    </select>
+    <span class="jno-badge" id="pmNoBadge">PM ใหม่</span>
+    <button class="btn-bk" onclick="goBack()">← กลับ</button>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- SECTION 1: ข้อมูลลูกค้า -->
+  <div class="card">
+    <div class="card-header"><span class="icon">🏢</span>ส่วนที่ 1 ข้อมูลลูกค้า</div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="field"><label>วันที่บริการ</label><input type="date" id="pmDate"></div>
+        <div class="field"><label>เวลาเริ่ม</label><input type="time" id="pmTimeStart"></div>
+        <div class="field"><label>เวลาจบงาน</label><input type="time" id="pmTimeEnd"></div>
+        <div class="field"><label>ครั้งที่</label><input type="number" id="pmRound" min="1" placeholder="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="field full"><label>บริษัท / ห้างฯ / ร้าน</label><input type="text" id="pmCompany" placeholder="ชื่อบริษัทลูกค้า"></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>ติดต่อคุณ</label><input type="text" id="pmContact"></div>
+        <div class="field"><label>ตำแหน่ง</label><input type="text" id="pmPosition"></div>
+        <div class="field"><label>เบอร์โทร</label><input type="tel" id="pmPhone"></div>
+      </div>
+      <div class="form-row">
+        <div class="field full"><label>ที่อยู่</label><input type="text" id="pmAddress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: ข้อมูลเครื่องจักร -->
+  <div class="card">
+    <div class="card-header"><span class="icon">⚙️</span>ส่วนที่ 2 ข้อมูลเครื่องจักร</div>
+    <div class="card-body">
+      <div class="machine-type-bar">
+        <label>ประเภทเครื่อง (เลือกได้หลายประเภท)</label>
+        <div class="machine-pills">
+          <button class="mpill" onclick="toggleMachine(this,'eztag')" data-type="eztag">EZtag (Print&Apply)</button>
+          <button class="mpill" onclick="toggleMachine(this,'ezlabe')" data-type="ezlabe">EZlabe (Labeling)</button>
+          <button class="mpill" onclick="toggleMachine(this,'ezfeed')" data-type="ezfeed">EZfeed (Feeder)</button>
+          <button class="mpill" onclick="toggleMachine(this,'ezjet')" data-type="ezjet">EZjet (Inkjet TIJ)</button>
+          <button class="mpill" onclick="toggleMachine(this,'ezlaser')" data-type="ezlaser">EZlaser (Laser)</button>
+        </div>
+      </div>
+      <div id="machineFields">
+        <!-- dynamically populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: รายการตรวจเช็ค -->
+  <div class="card" id="pmChecklistCard">
+    <div class="card-header"><span class="icon">✅</span>ส่วนที่ 3 รายการตรวจเช็ค PM</div>
+    <div class="card-body" id="pmChecklistBody">
+      <p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px 0;">เลือกประเภทเครื่องก่อน เพื่อแสดงรายการตรวจเช็ค</p>
+    </div>
+  </div>
+
+  <!-- SECTION 4: ปัญหาและคำแนะนำ -->
+  <div class="card">
+    <div class="card-header"><span class="icon">📝</span>ส่วนที่ 4 ปัญหาและคำแนะนำ</div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="field full"><label>ระบุปัญหา / ต้นเหตุ / คำแนะนำ</label>
+          <textarea id="pmRemark" rows="4" placeholder="ระบุปัญหาที่พบ สาเหตุ และคำแนะนำเพื่อป้องกัน..."></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field full"><label>อื่นๆ</label>
+          <textarea id="pmOther" rows="2" placeholder="ข้อมูลเพิ่มเติม..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: ข้อมูลติดต่อ (สำหรับส่งรายงาน) -->
+  <div class="card">
+    <div class="card-header"><span class="icon">📧</span>ส่วนที่ 5 ข้อมูลสำหรับจัดส่งรายงาน</div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="field"><label>ชื่อผู้ติดต่อ</label><input type="text" id="pmSendContact"></div>
+        <div class="field"><label>อีเมล</label><input type="email" id="pmSendEmail" placeholder="example@company.com"></div>
+        <div class="field"><label>เบอร์โทร</label><input type="tel" id="pmSendPhone"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: ความพึงพอใจ -->
+  <div class="card">
+    <div class="card-header"><span class="icon">⭐</span>ส่วนที่ 6 สำรวจความพึงพอใจ</div>
+    <div class="card-body">
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:8px;">ท่านให้คะแนนงานบริการของเราในครั้งนี้</label>
+      <div class="rating-row">
+        <button class="rating-btn excellent" onclick="setRating(this,'excellent')">😊 ดีมาก</button>
+        <button class="rating-btn good" onclick="setRating(this,'good')">🙂 ดี</button>
+        <button class="rating-btn fair" onclick="setRating(this,'fair')">😐 พอใช้</button>
+        <button class="rating-btn poor" onclick="setRating(this,'poor')">😞 ปรับปรุง</button>
+      </div>
+      <div class="form-row" style="margin-top:10px;">
+        <div class="field full"><label>ข้อเสนอแนะ / ติชม</label>
+          <textarea id="pmFeedback" rows="2" placeholder="ข้อเสนอแนะเพื่อพัฒนาบริการ..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: ลายเซ็น -->
+  <div class="card">
+    <div class="card-header"><span class="icon">✍️</span>ส่วนที่ 7 ลายเซ็น</div>
+    <div class="card-body">
+      <div class="form-row">
+        <!-- Tech sig -->
+        <div class="field" style="min-width:200px;">
+          <label>ลายเซ็นช่างผู้ให้บริการ</label>
+          <div class="sig-wrap" id="techSigWrap" onclick="openSig('tech')">
+            <img id="techSigImg" class="sig-img">
+            <div class="sig-hint" id="techSigHint">✏️ แตะเพื่อเซ็น</div>
+          </div>
+          <div class="sig-meta">
+            <div class="field" style="flex:1"><label>ชื่อช่าง</label><input type="text" id="techName"></div>
+            <div class="field" style="flex:1"><label>วันที่</label><input type="date" id="techDate"></div>
+          </div>
+        </div>
+        <!-- Cust sig -->
+        <div class="field" style="min-width:200px;">
+          <label>ลายเซ็นลูกค้า / ผู้ตรวจรับ</label>
+          <div class="sig-wrap" id="custSigWrap" onclick="openSig('cust')">
+            <img id="custSigImg" class="sig-img">
+            <div class="sig-hint" id="custSigHint">✏️ แตะเพื่อเซ็น</div>
+          </div>
+          <div class="sig-meta">
+            <div class="field" style="flex:1"><label>ชื่อ</label><input type="text" id="custName"></div>
+            <div class="field" style="flex:1"><label>ตำแหน่ง</label><input type="text" id="custPosition"></div>
+          </div>
+          <div class="sig-meta">
+            <div class="field" style="flex:1"><label>วันที่</label><input type="date" id="custDate"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;color:#9ca3af;font-size:11px;padding:4px 0 8px;">
+    บริษัท คีแมค จำกัด | 298 ถ.สามวา แขวงบางชัน เขตคลองสามวา กทม. 10510<br>
+    Tel. 02-956-8291-2 &nbsp;|&nbsp; Line: @kimac &nbsp;|&nbsp; www.kimacthailand.com
+  </div>
+
+</div><!-- end page-wrapper -->
+
+<!-- ACTION BAR -->
+<div class="actbar">
+  <button class="ab ab-hist" onclick="goBack()">📋 ประวัติ PM</button>
+  <button class="ab ab-save" id="btnSave" onclick="saveCloud()">☁️ บันทึก</button>
+  <button class="ab ab-pdf" id="btnPDF" onclick="exportPDF()">📄 PDF</button>
+</div>
+
+<!-- SIGNATURE MODAL -->
+<div class="sig-overlay" id="sigOverlay">
+  <div class="sig-modal-head">
+    <span class="sig-modal-title" id="sigModalTitle">เซ็นชื่อ</span>
+    <button class="btn-bk" onclick="closeSig()">✕ ปิด</button>
+  </div>
+  <div class="sig-modal-body">
+    <div style="color:#a5f3fc;font-size:12px;text-align:center;">วาดลายเซ็นในพื้นที่ด้านล่าง</div>
+    <div class="sig-canvas-wrap">
+      <canvas id="sigCanvas"></canvas>
+    </div>
+    <div class="sig-modal-foot">
+      <button class="sig-btn cancel" onclick="closeSig()">ยกเลิก</button>
+      <button class="sig-btn clear" onclick="clearSig()">🗑 ล้าง</button>
+      <button class="sig-btn confirm" onclick="confirmSig()">✔ ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF OVERLAY -->
+<div id="pdfOverlay">
+  <div class="box"><div style="font-size:28px;">⏳</div><p>กำลังสร้าง PDF...</p></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"></div>
+
+<script>
+/* ── Supabase ── */
+var SUPA_URL='', SUPA_KEY='', sb=null;
+(function(){
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  s.onload=function(){cloudInit();};
+  document.head.appendChild(s);
+})();
+
+var CU=null,CP=null,CPM=null;
+async function cloudInit(){
+  try{
+    var sp=document.createElement('script');
+    sp.src='../kimac-service-sheet-system/supabase-config.js';
+    document.head.appendChild(sp);
+    await new Promise(r=>setTimeout(r,300));
+    if(typeof SUPABASE_URL!=='undefined') SUPA_URL=SUPABASE_URL;
+    if(typeof SUPABASE_ANON_KEY!=='undefined') SUPA_KEY=SUPABASE_ANON_KEY;
+  }catch(e){}
+  if(!SUPA_URL||!SUPA_KEY){
+    toastF('⚠️ ไม่พบการตั้งค่า Supabase','err');
+    return;
+  }
+  sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+  var sess=await sb.auth.getSession();
+  if(!sess.data.session){location.href='login.html';return;}
+  CU=sess.data.session.user;
+  var {data:p}=await sb.from('profiles').select('*').eq('id',CU.id).single();
+  CP=p||{};
+  var urlId=new URLSearchParams(location.search).get('id');
+  if(urlId){localStorage.setItem('kpmid',urlId);}
+  var eid=localStorage.getItem('kpmid');
+  if(eid){
+    await loadPM(eid);
+  }else{
+    document.getElementById('pmDate').value=new Date().toISOString().slice(0,10);
+    document.getElementById('techDate').value=new Date().toISOString().slice(0,10);
+    document.getElementById('techName').value=CP.full_name||CU.email||'';
+    bindAutosave();
+  }
+}
+
+/* ── Machine Types ── */
+var activeMachines=[];
+var MACHINE_CHECKLISTS={
+  ezlabe:[
+    {group:'ทั่วไป',items:['คุณภาพการแปะ','สภาพของ Roller','ความสะอาดของ Roller','สภาพของ Peel Bar','ความสะอาดของ Peel Bar','สภาพของ Brush (ถ้ามี)','สภาพของ Rewinder','สภาพของ Toothed Belt','สภาพของ Spring','สภาพของ Band brake','สภาพของ Peirpheral band break','สภาพของ Rund belt','ตรวจสอบ Driver Motor','ความแน่นของน็อตต่างๆ','สภาพ Sensor หรือ Encoder','การต่อ Sensor หรือ Encoder','สภาพไฟสัญญาณ','ทำความสะอาดคราบกาวต่างๆ']},
+    {group:'วัสดุสิ้นเปลือง',items:['Sticker for Kimac','Size Sticker','Size Core']},
+    {group:'ระบบปฏิบัติการ',items:['Version Firmware','สภาพของสายลม (หากมี)','สภาพ Regolator (หากมี)','สภาพหน้าจอ','สภาพตัวเครื่องโดยรวม','สภาพชุดติดยึด','UPS ใช้งานได้หรือไม่ (หากมี)','สภาพของจุดติดตั้งเครื่อง']}
+  ],
+  ezjet:[
+    {group:'ทั่วไป',items:['คุณภาพการพิมพ์','ความสะอาดของหัวพิมพ์','ตำแหน่งการเรียงของหัวพิมพ์','ความสะอาดของ Head Plate','สภาพของ Locking Lever','สภาพของ Connector','สภาพของน็อต และตัวยึดต่างๆ','สภาพ Sensor หรือ Encoder','การต่อ Sensor หรือ Encoder','สภาพไฟสัญญาณ','ค่า Parameter','อุณหภูมิของสภาพแวดล้อม','ทำความสะอาดหัวพิมพ์']},
+    {group:'คุณภาพวัสดุสิ้นเปลือง',items:['ใช้น้ำยาของ KIMAC ทั้งหมด','ใช้อะไหล่ของ KIMAC ทั้งหมด','เบอร์หมึก','Lot Number ของหมึก']},
+    {group:'สภาพอะไหล่สำคัญ',items:['สภาพหน้าจอ Controller','สภาพตลับหมึก','สภาพของจุดติดตั้งเครื่อง']}
+  ],
+  ezfeed:[
+    {group:'ทั่วไป',items:['คุณภาพการฟีด','เสียงเครื่องทำงาน','ความเร็วในการฟีด','ความสะอาดเครื่อง','สภาพสายดิน','สภาพสายไฟ','สภาพปลั๊กไฟ','สภาพตู้คอนโทรล','สภาพ Bag Infeed','สภาพหน้าจอเครื่อง','สภาพวงจรไฟฟ้าโดยรวม']},
+    {group:'สภาพอะไหล่สำคัญ',items:['สภาพ Motor + Gear Head','สภาพ Belts (Red)','สภาพ Belts (Green)','สภาพ Inverter','สภาพ Switching','สภาพ Bearing','สภาพชุดยึดต่างๆ','สภาพ เฟือง + โซ่','สภาพของจุดติดตั้งเครื่องดีหรือไม่','สภาพไฟสัญญาณ','สภาพวงจรไฟฟ้าโดยรวม','สภาพสายลม (หากมี)','สภาพ Regulator ลม']}
+  ],
+  eztag:[
+    {group:'Print & Apply - ส่วน Print',items:['Print Head - คุณภาพงานพิมพ์','Platen Roller - สภาพ','Platen Roller - ความสะอาด','Timing Belts - สภาพ','Touch Screen - สภาพ','Electrical system - สภาพ','Cleanliness - ความสะอาด']},
+    {group:'Print & Apply - ส่วน Apply',items:['Friction Belt (Red) - สภาพ','Round belt green Top - สภาพ','Round belt green Bottom - สภาพ','Bearing - สภาพ','Sensor - สภาพ','System Parameter - ตรวจสอบ','Pneumatic system - สภาพ (ถ้ามี)','Cleanliness - ความสะอาด']}
+  ],
+  ezlaser:[
+    {group:'Laser System',items:['Laser source - สภาพ','Lens - ความสะอาด','Cartridge Holder - สภาพ','Controller - สภาพ','Connecting Cable - สภาพ','Electrical system - สภาพ','Bearing - สภาพ','Timing Belts - สภาพ','Touch Screen - สภาพ','Cleanliness - ความสะอาด']}
+  ]
+};
+
+function toggleMachine(btn,type){
+  btn.classList.toggle('active');
+  if(btn.classList.contains('active')){
+    if(!activeMachines.includes(type)) activeMachines.push(type);
+  }else{
+    activeMachines=activeMachines.filter(t=>t!==type);
+  }
+  renderMachineFields();
+  renderChecklist();
+}
+
+function renderMachineFields(){
+  var cont=document.getElementById('machineFields');
+  cont.innerHTML='';
+  activeMachines.forEach(function(type){
+    var labels={eztag:'EZtag',ezlabe:'EZlabe',ezfeed:'EZfeed',ezjet:'EZjet',ezlaser:'EZlaser'};
+    var div=document.createElement('div');
+    div.style.cssText='border:1px solid #a5f3fc;border-radius:8px;padding:10px;margin-bottom:8px;background:#f0fdfa;';
+    div.innerHTML='<div style="font-size:12px;font-weight:700;color:#0e7490;margin-bottom:8px;">'+labels[type]+'</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+      +'<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px;"><label style="font-size:11px;font-weight:600;color:#0e7490;">รุ่น</label><input type="text" id="mach_model_'+type+'" style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-family:Sarabun,sans-serif;font-size:13px;width:100%;"></div>'
+      +'<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px;"><label style="font-size:11px;font-weight:600;color:#0e7490;">S/N</label><input type="text" id="mach_sn_'+type+'" style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-family:Sarabun,sans-serif;font-size:13px;width:100%;"></div>'
+      +'<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px;"><label style="font-size:11px;font-weight:600;color:#0e7490;">ไลน์ผลิต</label><input type="text" id="mach_line_'+type+'" style="border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-family:Sarabun,sans-serif;font-size:13px;width:100%;"></div>'
+      +'</div>';
+    cont.appendChild(div);
+  });
+}
+
+function renderChecklist(){
+  var body=document.getElementById('pmChecklistBody');
+  if(activeMachines.length===0){
+    body.innerHTML='<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px 0;">เลือกประเภทเครื่องก่อน เพื่อแสดงรายการตรวจเช็ค</p>';
+    return;
+  }
+  body.innerHTML='';
+  activeMachines.forEach(function(type){
+    var lists=MACHINE_CHECKLISTS[type]||[];
+    var labels={eztag:'EZtag (Print&Apply)',ezlabe:'EZlabe (Labeling)',ezfeed:'EZfeed (Feeder)',ezjet:'EZjet (Inkjet TIJ)',ezlaser:'EZlaser'};
+    var hdr=document.createElement('div');
+    hdr.style.cssText='font-size:12px;font-weight:700;color:#0e7490;padding:8px 0 4px;border-bottom:2px solid #a5f3fc;margin-bottom:8px;';
+    hdr.textContent='🔧 '+labels[type];
+    body.appendChild(hdr);
+    var n=1;
+    lists.forEach(function(grp){
+      var gt=document.createElement('div');
+      gt.className='checklist-group-title';
+      gt.textContent=grp.group;
+      body.appendChild(gt);
+      grp.items.forEach(function(item){
+        var id='chk_'+type+'_'+n;
+        var row=document.createElement('div');
+        row.className='check-item';
+        row.innerHTML='<span class="check-num">'+n+'</span>'
+          +'<span class="check-label">'+item+'</span>'
+          +'<div class="check-radios">'
+          +'<label class="rr"><input type="radio" name="'+id+'" value="ok"> <span>ปกติ</span></label>'
+          +'<label class="rr ng"><input type="radio" name="'+id+'" value="ng"> <span>ไม่ปกติ</span></label>'
+          +'<label class="rr"><input type="radio" name="'+id+'" value="na"> <span>N/A</span></label>'
+          +'</div>';
+        body.appendChild(row);
+        n++;
+      });
+    });
+  });
+}
+
+/* ── Signature ── */
+var sigTarget=null,sigDrawing=false,sigCtx=null,sigLX=0,sigLY=0,sigHasInk=false;
+function openSig(t){
+  sigTarget=t;
+  document.getElementById('sigModalTitle').textContent=t==='tech'?'เซ็นชื่อช่างผู้ให้บริการ':'เซ็นชื่อลูกค้า';
+  document.getElementById('sigOverlay').classList.add('open');
+  setTimeout(initSigCanvas,50);
+}
+function closeSig(){document.getElementById('sigOverlay').classList.remove('open');}
+function initSigCanvas(){
+  var c=document.getElementById('sigCanvas');
+  var wrap=c.parentElement;
+  c.width=wrap.clientWidth;c.height=wrap.clientHeight;
+  sigCtx=c.getContext('2d');
+  sigCtx.strokeStyle='#0e7490';sigCtx.lineWidth=2;sigCtx.lineCap='round';sigCtx.lineJoin='round';
+  sigCtx.clearRect(0,0,c.width,c.height);
+  sigHasInk=false;
+  c.ontouchstart=function(e){e.preventDefault();sigDrawing=true;var t=e.touches[0];var r=c.getBoundingClientRect();sigLX=t.clientX-r.left;sigLY=t.clientY-r.top;};
+  c.ontouchmove=function(e){e.preventDefault();if(!sigDrawing)return;var t=e.touches[0];var r=c.getBoundingClientRect();var x=t.clientX-r.left,y=t.clientY-r.top;sigCtx.beginPath();sigCtx.moveTo(sigLX,sigLY);sigCtx.lineTo(x,y);sigCtx.stroke();sigLX=x;sigLY=y;sigHasInk=true;};
+  c.ontouchend=function(){sigDrawing=false;};
+  c.onmousedown=function(e){sigDrawing=true;var r=c.getBoundingClientRect();sigLX=e.clientX-r.left;sigLY=e.clientY-r.top;};
+  c.onmousemove=function(e){if(!sigDrawing)return;var r=c.getBoundingClientRect();var x=e.clientX-r.left,y=e.clientY-r.top;sigCtx.beginPath();sigCtx.moveTo(sigLX,sigLY);sigCtx.lineTo(x,y);sigCtx.stroke();sigLX=x;sigLY=y;sigHasInk=true;};
+  c.onmouseup=function(){sigDrawing=false;};
+}
+function clearSig(){if(sigCtx){var c=document.getElementById('sigCanvas');sigCtx.clearRect(0,0,c.width,c.height);sigHasInk=false;}}
+function confirmSig(){
+  if(!sigHasInk){toastF('กรุณาวาดลายเซ็นก่อน','err');return;}
+  var c=document.getElementById('sigCanvas');
+  var data=c.toDataURL('image/png');
+  if(sigTarget==='tech'){
+    var img=document.getElementById('techSigImg');img.src=data;img.style.display='block';
+    document.getElementById('techSigHint').style.display='none';
+  }else{
+    var img=document.getElementById('custSigImg');img.src=data;img.style.display='block';
+    document.getElementById('custSigHint').style.display='none';
+  }
+  closeSig();
+}
+
+/* ── Rating ── */
+var pmRating='';
+function setRating(btn,val){
+  document.querySelectorAll('.rating-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  pmRating=val;
+}
+
+/* ── Toast ── */
+function toastF(m,t){
+  var el=document.getElementById('toastEl');
+  el.textContent=m;el.className='toast '+(t||'info');
+  el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(function(){el.style.opacity='0';},3000);
+}
+
+/* ── Autosave draft ── */
+var _draftT;
+function draftKey(){var id=localStorage.getItem('kpmid');return id?('kpmd_'+id):'kpmd_new';}
+function saveDraft(){
+  try{localStorage.setItem(draftKey(),JSON.stringify({ts:Date.now(),data:getFormData()}));}catch(e){}
+}
+function scheduleDraft(){clearTimeout(_draftT);_draftT=setTimeout(saveDraft,600);}
+function bindAutosave(){
+  document.querySelectorAll('input,textarea,select').forEach(function(el){
+    el.addEventListener('change',scheduleDraft);
+    el.addEventListener('input',scheduleDraft);
+  });
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveDraft();});
+}
+
+/* ── Get Form Data ── */
+function getFormData(){
+  var chklist={};
+  document.querySelectorAll('[name^="chk_"]').forEach(function(r){
+    if(r.checked) chklist[r.name]=r.value;
+  });
+  var machines={};
+  activeMachines.forEach(function(type){
+    machines[type]={
+      model:(document.getElementById('mach_model_'+type)||{}).value||'',
+      sn:(document.getElementById('mach_sn_'+type)||{}).value||'',
+      line:(document.getElementById('mach_line_'+type)||{}).value||''
+    };
+  });
+  return {
+    status:document.getElementById('pmStatus').value,
+    pm_date:document.getElementById('pmDate').value||null,
+    time_start:document.getElementById('pmTimeStart').value||null,
+    time_end:document.getElementById('pmTimeEnd').value||null,
+    pm_round:parseInt(document.getElementById('pmRound').value)||1,
+    company:document.getElementById('pmCompany').value||'',
+    contact:document.getElementById('pmContact').value||'',
+    position:document.getElementById('pmPosition').value||'',
+    phone:document.getElementById('pmPhone').value||'',
+    address:document.getElementById('pmAddress').value||'',
+    machine_types:activeMachines,
+    machines:machines,
+    checklist:chklist,
+    remark:document.getElementById('pmRemark').value||'',
+    other:document.getElementById('pmOther').value||'',
+    send_contact:document.getElementById('pmSendContact').value||'',
+    send_email:document.getElementById('pmSendEmail').value||'',
+    send_phone:document.getElementById('pmSendPhone').value||'',
+    rating:pmRating,
+    feedback:document.getElementById('pmFeedback').value||'',
+    tech_name:document.getElementById('techName').value||'',
+    tech_date:document.getElementById('techDate').value||null,
+    tech_sig:document.getElementById('techSigImg').src&&document.getElementById('techSigImg').src.startsWith('data:')?document.getElementById('techSigImg').src:null,
+    cust_name:document.getElementById('custName').value||'',
+    cust_position:document.getElementById('custPosition').value||'',
+    cust_date:document.getElementById('custDate').value||null,
+    cust_sig:document.getElementById('custSigImg').src&&document.getElementById('custSigImg').src.startsWith('data:')?document.getElementById('custSigImg').src:null
+  };
+}
+
+/* ── Fill Form ── */
+function fillForm(d){
+  if(!d)return;
+  var fv=function(id,v){var e=document.getElementById(id);if(e&&v!==undefined&&v!==null)e.value=v;};
+  fv('pmStatus',d.status);fv('pmDate',d.pm_date);fv('pmTimeStart',d.time_start);
+  fv('pmTimeEnd',d.time_end);fv('pmRound',d.pm_round);fv('pmCompany',d.company);
+  fv('pmContact',d.contact);fv('pmPosition',d.position);fv('pmPhone',d.phone);
+  fv('pmAddress',d.address);fv('pmRemark',d.remark);fv('pmOther',d.other);
+  fv('pmSendContact',d.send_contact);fv('pmSendEmail',d.send_email);fv('pmSendPhone',d.send_phone);
+  fv('pmFeedback',d.feedback);fv('techName',d.tech_name);fv('techDate',d.tech_date);
+  fv('custName',d.cust_name);fv('custPosition',d.cust_position);fv('custDate',d.cust_date);
+  // Machine types
+  if(d.machine_types&&d.machine_types.length){
+    activeMachines=[];
+    document.querySelectorAll('.mpill').forEach(function(btn){
+      var type=btn.getAttribute('data-type');
+      if(d.machine_types.includes(type)){btn.classList.add('active');activeMachines.push(type);}
+    });
+    renderMachineFields();
+    renderChecklist();
+    setTimeout(function(){
+      activeMachines.forEach(function(type){
+        if(d.machines&&d.machines[type]){
+          fv('mach_model_'+type,d.machines[type].model);
+          fv('mach_sn_'+type,d.machines[type].sn);
+          fv('mach_line_'+type,d.machines[type].line);
+        }
+      });
+      if(d.checklist){
+        Object.keys(d.checklist).forEach(function(name){
+          var r=document.querySelector('input[name="'+name+'"][value="'+d.checklist[name]+'"]');
+          if(r)r.checked=true;
+        });
+      }
+    },100);
+  }
+  if(d.rating){
+    var rb=document.querySelector('.rating-btn.'+d.rating);
+    if(rb){rb.classList.add('active');pmRating=d.rating;}
+  }
+  if(d.tech_sig){var i=document.getElementById('techSigImg');i.src=d.tech_sig;i.style.display='block';document.getElementById('techSigHint').style.display='none';}
+  if(d.cust_sig){var i=document.getElementById('custSigImg');i.src=d.cust_sig;i.style.display='block';document.getElementById('custSigHint').style.display='none';}
+}
+
+/* ── Save Cloud ── */
+async function saveCloud(){
+  if(!sb){toastF('ยังไม่ได้เชื่อมต่อระบบ','err');return;}
+  var btn=document.getElementById('btnSave');btn.disabled=true;btn.textContent='⏳ กำลังบันทึก...';
+  var fd=getFormData();
+  fd.technician_id=CU.id;fd.technician_name=CP.full_name||CU.email;
+  try{
+    var pmId=localStorage.getItem('kpmid');
+    if(pmId){
+      fd.updated_at=new Date().toISOString();
+      var{error}=await sb.from('pm_sheets').update(fd).eq('id',pmId);
+      if(error)throw error;
+      toastF('✅ อัปเดต PM สำเร็จ','ok');
+    }else{
+      fd.created_at=new Date().toISOString();
+      fd.updated_at=new Date().toISOString();
+      var{data:ins,error}=await sb.from('pm_sheets').insert(fd).select().single();
+      if(error)throw error;
+      pmId=ins.id;localStorage.setItem('kpmid',pmId);
+      document.getElementById('pmNoBadge').textContent='PM #'+pmId.slice(-6).toUpperCase();
+      toastF('✅ บันทึก PM สำเร็จ','ok');
+    }
+  }catch(e){
+    toastF('❌ บันทึกไม่สำเร็จ: '+e.message,'err');
+  }finally{
+    btn.disabled=false;btn.textContent='☁️ บันทึก';
+  }
+}
+
+/* ── Load PM ── */
+async function loadPM(id){
+  var{data,error}=await sb.from('pm_sheets').select('*').eq('id',id).single();
+  if(error||!data){toastF('ไม่พบข้อมูล PM','err');return;}
+  CPM=data;
+  document.getElementById('pmNoBadge').textContent='PM #'+id.slice(-6).toUpperCase();
+  fillForm(data);
+  bindAutosave();
+}
+
+/* ── Export PDF ── */
+async function exportPDF(){
+  var ov=document.getElementById('pdfOverlay');ov.classList.add('show');
+  try{
+    function loadScript(src,chk,ms){
+      return new Promise(function(res,rej){
+        var s=document.createElement('script');s.src=src;
+        var t=setTimeout(function(){rej(new Error('timeout'));},ms||20000);
+        s.onload=function(){clearTimeout(t);res();};
+        s.onerror=function(){clearTimeout(t);rej(new Error('load fail'));};
+        document.head.appendChild(s);
+      });
+    }
+    if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',function(){return!!window.html2canvas;},20000);
+    if(!window.jspdf||!window.jspdf.jsPDF) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',function(){return!!(window.jspdf&&window.jspdf.jsPDF);},20000);
+    var el=document.querySelector('.page-wrapper');
+    var canvas=await html2canvas(el,{scale:2,useCORS:true,logging:false,backgroundColor:'#fff'});
+    var img=canvas.toDataURL('image/jpeg',0.92);
+    var pdf=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    var pw=210,ph=297;
+    var iw=canvas.width/2,ih=canvas.height/2;
+    var ratio=pw/iw;var scaledH=ih*ratio;
+    if(scaledH<=ph){pdf.addImage(img,'JPEG',0,0,pw,scaledH);}
+    else{
+      var pages=Math.ceil(scaledH/ph);
+      for(var i=0;i<pages;i++){
+        if(i>0)pdf.addPage();
+        pdf.addImage(img,'JPEG',0,-(i*ph),pw,scaledH);
+      }
+    }
+    var comp=document.getElementById('pmCompany').value||'PM';
+    var date=document.getElementById('pmDate').value||new Date().toISOString().slice(0,10);
+    pdf.save('KIMAC_PM_'+comp+'_'+date+'.pdf');
+    toastF('✅ ดาวน์โหลด PDF สำเร็จ','ok');
+  }catch(e){
+    toastF('❌ PDF ไม่สำเร็จ: '+e.message,'err');
+  }finally{
+    ov.classList.remove('show');
+  }
+}
+
+function goBack(){localStorage.removeItem('kpmid');location.href='history.html';}
+
+// Service worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
+</script>
+</body>
+</html>
