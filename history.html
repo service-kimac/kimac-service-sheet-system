@@ -2710,6 +2710,9 @@ async function checkAppointmentReminders() {
   const reminded = getRemindedSet();
   // กรองงานพรุ่งนี้ที่ยังไม่ได้แจ้งเตือน — ใครเปิดแอปอยู่ก็ได้เป็นคนกระตุ้นให้เช็ค
   // แต่ไม่กรองตาม role ของผู้เปิดแอปแล้ว เพราะปลายทางที่ต้องแจ้งคือ "แอดมินทุกคน + ช่างเจ้าของงาน" เสมอ
+  // (หมายเหตุ: นี่คือ fallback ฝั่ง client ที่ทำงานได้ก็ต่อเมื่อมีคนเปิดแอปจริงๆ
+  //  ถ้าต้องการให้แจ้งได้แม้ไม่มีใครเปิดแอปเลย ต้องใช้ Edge Function appointment-reminders
+  //  ที่รันผ่าน pg_cron แทน — ดูไฟล์ index.ts/setup.sql ที่แยกไว้)
   const dueJobs = (jobs || []).filter(j => {
     if ((j.service_date || '').slice(0, 10) !== tomorrowStr) return false;
     if (j.status === 'completed') return false;
@@ -3241,7 +3244,7 @@ async function notifyAssign(jobId,userId){
 }
 
 // ===== Web Push: เปิดการแจ้งเตือนบนอุปกรณ์ =====
-const VAPID_PUBLIC='BIqAHXB1lUv5T_VO1O3t7ECi2TAoP8IdV5wOXWUGvRaq9CtFW5nAyksiDbHOS2CEtAQawloxSs62APX0tGCNpkc';
+const VAPID_PUBLIC='BMr6dxid3T14gg7eJHwJ-VSFVb95y7qKYQxUWdvSgdLvFvvyvVkWK2zk1Q7_Usd2stZb3o26ty8ewrFs5dHu1jg';
 function urlB64ToUint8Array(b){
   const pad='='.repeat((4-b.length%4)%4);
   const base=(b+pad).replace(/-/g,'+').replace(/_/g,'/');
