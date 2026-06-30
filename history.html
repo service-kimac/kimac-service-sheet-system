@@ -2708,31 +2708,48 @@ async function checkAppointmentReminders() {
   const pad = n => String(n).padStart(2, '0');
   const tomorrowStr = tomorrow.getFullYear() + '-' + pad(tomorrow.getMonth() + 1) + '-' + pad(tomorrow.getDate());
   const reminded = getRemindedSet();
-  // กรองงานพรุ่งนี้ที่ยังไม่ได้แจ้งเตือน
-  const myJobs = (jobs || []).filter(j => {
+  // กรองงานพรุ่งนี้ที่ยังไม่ได้แจ้งเตือน — ใครเปิดแอปอยู่ก็ได้เป็นคนกระตุ้นให้เช็ค
+  // แต่ไม่กรองตาม role ของผู้เปิดแอปแล้ว เพราะปลายทางที่ต้องแจ้งคือ "แอดมินทุกคน + ช่างเจ้าของงาน" เสมอ
+  const dueJobs = (jobs || []).filter(j => {
     if ((j.service_date || '').slice(0, 10) !== tomorrowStr) return false;
     if (j.status === 'completed') return false;
     if (reminded.has(String(j.id))) return false;
-    // ช่าง: เฉพาะงานของตัวเอง | Admin: ทุกงาน
-    if (CP.role !== 'admin' && j.technician_id !== CU.id) return false;
     return true;
   });
-  if (!myJobs.length) return;
-  for (const j of myJobs) {
+  if (!dueJobs.length) return;
+  for (const j of dueJobs) {
     const jobNo = j.job_no || ('#' + j.id);
     const company = j.company || 'ลูกค้า';
     const timeStr = j.time_start ? (' เวลา ' + j.time_start + ' น.') : '';
     const loc = j.service_location || '';
     const title = '📅 นัดหมายพรุ่งนี้';
+    const techLabel = j.technician_name ? (' · 🔧 ' + j.technician_name) : '';
     const body = jobNo + ' · ' + company + (loc ? ' · ' + loc : '') + timeStr;
-    // Web Push (ถ้าอนุญาตแล้ว)
-    if (Notification && Notification.permission === 'granted') {
-      try {
-        new Notification(title, { body, icon: '/icon-192.png', tag: 'appt_' + j.id, renotify: false });
-      } catch(e) {}
-    }
-    // In-app notification เข้ากระดิ่ง (ใส่ใน tech notif store)
-    if (CP.role !== 'admin') {
+    const adminBody = body + techLabel;
+
+    // 1) แจ้งเตือนช่างเจ้าของงาน — ทั้ง Web Push ไปอุปกรณ์ของช่าง และ in-app notif (ถ้าเปิดแอปอยู่)
+    try {
+      await sb.functions.invoke('notify-push', { body: {
+        user_id: j.technician_id,
+        title,
+        body,
+        data: { type: 'appt_remind', job_id: j.id }
+      }});
+    } catch(e) { console.warn('appt remind push (tech):', e); }
+
+    // 2) แจ้งเตือนแอดมินทุกคน — ใช้ notify_admins:true (รูปแบบเดียวกับ sendSigCompletePushToAdmin)
+    try {
+      await sb.functions.invoke('notify-push', { body: {
+        job_id: j.id,
+        notify_admins: true,
+        title,
+        body: adminBody,
+        data: { type: 'appt_remind', job_id: j.id }
+      }});
+    } catch(e) { console.warn('appt remind push (admin):', e); }
+
+    // 3) In-app notification ฝั่งช่าง: ใส่เข้ากระดิ่งของช่างเจ้าของงาน (ทำได้จริงเฉพาะกรณีช่างคนนั้นเปิดแอปอยู่เอง)
+    if (CU.id === j.technician_id) {
       const notif = {
         id: 'appt_remind_' + j.id,
         type: 'appt_remind',
@@ -2750,20 +2767,38 @@ async function checkAppointmentReminders() {
         list.unshift(notif);
         saveTechNotifs(list.slice(0, 100));
         updateTechBellBadge();
-        // แสดง popup แจ้งเตือน
         showApptReminderPopup(notif);
       }
-    } else {
-      // Admin: push Web Push ไปหาช่างเจ้าของงาน
-      try {
-        await sb.functions.invoke('notify-push', { body: {
-          user_id: j.technician_id,
-          title,
-          body,
-          data: { type: 'appt_remind', job_id: j.id }
-        }});
-      } catch(e) { console.warn('appt remind push:', e); }
     }
+
+    // 4) In-app notification ฝั่งแอดมิน: เข้ากระดิ่ง Admin notif panel (ทำได้จริงเฉพาะกรณีแอดมินเปิดแอปอยู่เอง)
+    if (CP.role === 'admin') {
+      const adminNotif = {
+        id: j.id + ':appt_remind',
+        job_id: j.id,
+        job_no: jobNo,
+        company,
+        tech_name: j.technician_name || '-',
+        timestamp: new Date().toISOString(),
+        type: 'appt_remind',
+        read: false
+      };
+      const aList = getAdminNotifs();
+      if (!aList.find(n => n.id === adminNotif.id)) {
+        aList.unshift(adminNotif);
+        saveAdminNotifs(aList.slice(0, 100));
+        updateBellBadge();
+        renderNotifPanel();
+      }
+    }
+
+    // 5) Web Push ในอุปกรณ์ที่เปิดแอปอยู่ตอนนี้เอง (เสริมความไว ไม่ต้องรอ edge function)
+    if (Notification && Notification.permission === 'granted') {
+      try {
+        new Notification(title, { body: CP.role === 'admin' ? adminBody : body, icon: '/icon-192.png', tag: 'appt_' + j.id, renotify: false });
+      } catch(e) {}
+    }
+
     markReminded(j.id);
   }
 }
