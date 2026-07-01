@@ -3047,10 +3047,15 @@ function dpClearAll(){
   dpUpdateCount();
 }
 
-function deleteDispatch(dispatchId) {
+async function deleteDispatch(dispatchId) {
+  // 1) ลบจาก Supabase ก่อน (สำคัญ! ถ้าลบแค่ localStorage มันจะกลับมาตอน sync ใหม่)
+  try {
+    await sb.from('job_dispatches').delete().eq('id', String(dispatchId));
+  } catch(e) { console.warn('deleteDispatch Supabase:', e); }
+  // 2) ลบจาก localStorage ด้วย
   try {
     const list = JSON.parse(localStorage.getItem(DISPATCH_KEY) || '[]');
-    const filtered = list.filter(d => d.id !== dispatchId);
+    const filtered = list.filter(d => String(d.id) !== String(dispatchId));
     localStorage.setItem(DISPATCH_KEY, JSON.stringify(filtered));
   } catch(e) {}
   renderDispatchHistory();
@@ -3077,22 +3082,26 @@ function renderDispatchHistory() {
     <button onclick="clearAllDispatches()" style="font-size:11px;font-weight:700;color:#dc2626;background:#fff0f0;border:1px solid #fecaca;border-radius:7px;padding:4px 10px;cursor:pointer;font-family:'Sarabun',sans-serif">🗑️ ล้างทั้งหมด</button>
   </div>`;
   const cards = list.map(function(d) {
-    const dt = new Date(d.created_at).toLocaleString('th-TH',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    // รองรับทั้ง field ชื่อใหม่ (จาก Supabase) และเก่า (จาก localStorage เวอร์ชันก่อน)
+    const location = d.location || d.place || d.address || '-';
+    const createdAt = d.created_at || d.timestamp || d.sent_at;
+    const createdBy = d.created_by || d.sent_by || '';
+    const dt = createdAt ? new Date(createdAt).toLocaleString('th-TH',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '-';
     return `<div class="card" style="margin-bottom:10px">
       <div class="ch">
         <div>
-          <div class="cjno">👷 ${d.technician_name}</div>
+          <div class="cjno">👷 ${d.technician_name || '-'}</div>
           <div class="cdate">📅 ${d.date_of_work || '-'}${d.time_of_work ? ' เวลา ' + d.time_of_work : ''}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge approved">ส่งแล้ว</span>
-          <button onclick="deleteDispatch(${d.id})" title="ลบรายการนี้" style="background:#fff0f0;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:12px;line-height:1;color:#dc2626">✕</button>
+          <button onclick="deleteDispatch('${d.id}')" title="ลบรายการนี้" style="background:#fff0f0;border:1px solid #fecaca;border-radius:6px;padding:3px 7px;cursor:pointer;font-size:12px;line-height:1;color:#dc2626">✕</button>
         </div>
       </div>
-      <div style="font-size:12px;color:#334155;margin-bottom:4px">📍 ${d.location}</div>
+      <div style="font-size:12px;color:#334155;margin-bottom:4px">📍 ${location}</div>
       ${d.note ? `<div style="font-size:11px;color:#64748b;margin-bottom:4px">📝 ${d.note}</div>` : ''}
       ${d.maps_url ? `<a href="${d.maps_url}" target="_blank" style="font-size:11px;color:#2a5298;text-decoration:none">🗺️ Google Maps</a>` : ''}
-      <div style="font-size:10px;color:#94a3b8;margin-top:6px">ส่งโดย ${d.created_by} · ${dt}</div>
+      <div style="font-size:10px;color:#94a3b8;margin-top:6px">ส่งโดย ${createdBy} · ${dt}</div>
     </div>`;
   }).join('');
   el.innerHTML = header + cards;
