@@ -481,6 +481,43 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .dispatch-form-card {
   background:#172033!important;border-color:#2a3650!important;
 }
+/* หน้ารายงานยอด: กล่องกรองช่วงเวลา + การ์ดกราฟ + ปุ่มช่วงเวลา */
+[data-theme="dark"] .rs {
+  background:#172033!important;border-color:#2a3650!important;box-shadow:none!important;
+}
+[data-theme="dark"] #pg-report > div[style*="background:#fff"] {
+  background:#172033!important;border-color:#2a3650!important;box-shadow:none!important;
+}
+[data-theme="dark"] #pg-report input[type="date"] {
+  background:#1a2332!important;border-color:#2a3650!important;
+  color:#e2e8f0!important;color-scheme:dark;
+}
+[data-theme="dark"] #pg-report [style*="color:#64748b"] {
+  color:#94a3b8!important;
+}
+[data-theme="dark"] .rpt-range-btn {
+  background:#1e2d4a!important;color:#9fc1ff!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] .rpt-range-btn[style*="background:#427aa1"] {
+  background:#427aa1!important;color:#ffd151!important;border-color:#427aa1!important;
+}
+/* หน้าส่งงานให้ช่าง: กล่องรายชื่อช่าง + ปุ่มทั้งหมด/ล้าง */
+/* หน้าใบงานของสมาชิก (member-jobs): ปุ่มกลับ ไม่มี class เฉพาะ ต้องจับด้วย id ผู้ปกครอง */
+[data-theme="dark"] #pg-member-jobs > div:first-child > button {
+  background:#1e2d4a!important;color:#9fc1ff!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] #memberJobsTitle {
+  color:#e2e8f0!important;
+}
+[data-theme="dark"] #dp-tech-list {
+  background:#1a2332!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] .ff button[onclick="dpSelectAll()"] {
+  background:#1e2d4a!important;color:#9fc1ff!important;border-color:#2a3650!important;
+}
+[data-theme="dark"] .ff button[onclick="dpClearAll()"] {
+  background:#1a2332!important;color:#94a3b8!important;border-color:#2a3650!important;
+}
 </style>
 </head>
 <body>
