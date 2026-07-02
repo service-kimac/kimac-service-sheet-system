@@ -518,6 +518,27 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .ff button[onclick="dpClearAll()"] {
   background:#1a2332!important;color:#94a3b8!important;border-color:#2a3650!important;
 }
+/* กล่องค้นหาขั้นสูง (advFilterPanel) */
+[data-theme="dark"] #advFilterPanel {
+  background:#172033!important;border-color:#2a3650!important;box-shadow:none!important;
+}
+[data-theme="dark"] #advFilterPanel [style*="color:#1a3a6e"] {
+  color:#9fc1ff!important;
+}
+[data-theme="dark"] #advFilterPanel input[type="date"] {
+  background:#1a2332!important;border-color:#2a3650!important;
+  color:#e2e8f0!important;color-scheme:dark;
+}
+[data-theme="dark"] #advFilterPanel button[onclick="clearAdvFilter()"] {
+  background:#1a2332!important;color:#94a3b8!important;
+}
+/* ทุกปุ่มพื้นน้ำเงิน #427aa1: กด/active ให้ตัวหนังสือเหลือง #ffd151 เหมือนกันหมดในโหมดมืด */
+[data-theme="dark"] .dp-apply,
+[data-theme="dark"] .btn-new,
+[data-theme="dark"] .bsp,
+[data-theme="dark"] #advFilterPanel button[onclick="applyAdvFilter()"] {
+  color:#ffd151!important;
+}
 </style>
 </head>
 <body>
