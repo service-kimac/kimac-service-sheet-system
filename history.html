@@ -530,8 +530,16 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   background:#1a2332!important;border-color:#2a3650!important;
   color:#e2e8f0!important;color-scheme:dark;
 }
+/* ปุ่มทุกปุ่มทุกโหมด: เพิ่ม effect ตอนกดให้เห็นชัดเหมือนกันหมดทั้งแอป */
+button {
+  transition:transform .1s ease,filter .12s ease;
+}
+button:active {
+  transform:scale(.96);
+  filter:brightness(1.25);
+}
 [data-theme="dark"] #advFilterPanel button[onclick="clearAdvFilter()"] {
-  background:#1a2332!important;color:#94a3b8!important;
+  background:#26324a!important;color:#c7d7ff!important;border:1px solid #3a4a68!important;
 }
 /* ทุกปุ่มพื้นน้ำเงิน #427aa1: กด/active ให้ตัวหนังสือเหลือง #ffd151 เหมือนกันหมดในโหมดมืด */
 [data-theme="dark"] .dp-apply,
