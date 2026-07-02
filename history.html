@@ -199,6 +199,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   box-shadow:0 2px 8px rgba(0,0,0,.05);border:1.5px solid #eef2ff}
 .rs h3{font-size:14px;font-weight:700;color:#427aa1;margin-bottom:10px;letter-spacing:.3px}
 .rpt-range-btn{padding:5px 12px;border:1.5px solid #c7d7ff;border-radius:20px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;background:#f0f4ff;color:#1a3a6e;cursor:pointer;-webkit-appearance:none;transition:background .15s}
+.rpt-range-btn.on{background:#427aa1;color:#fff;border-color:#427aa1}
 .br{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .bl{font-size:12px;color:#555;width:70px;flex-shrink:0;font-weight:600}
 .bt{flex:1;height:8px;background:#f0f4ff;border-radius:4px;overflow:hidden}
@@ -498,7 +499,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .rpt-range-btn {
   background:#1e2d4a!important;color:#9fc1ff!important;border-color:#2a3650!important;
 }
-[data-theme="dark"] .rpt-range-btn[style*="background:#427aa1"] {
+[data-theme="dark"] .rpt-range-btn.on {
   background:#427aa1!important;color:#ffd151!important;border-color:#427aa1!important;
 }
 /* หน้าส่งงานให้ช่าง: กล่องรายชื่อช่าง + ปุ่มทั้งหมด/ล้าง */
@@ -668,7 +669,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button onclick="setRptRange('month')" class="rpt-range-btn" id="rptBtnMonth">เดือนนี้</button>
       <button onclick="setRptRange('3m')" class="rpt-range-btn" id="rptBtn3m">3 เดือน</button>
-      <button onclick="setRptRange('6m')" class="rpt-range-btn" id="rptBtn6m" style="background:#427aa1;color:#fff;border-color:#427aa1">6 เดือน</button>
+      <button onclick="setRptRange('6m')" class="rpt-range-btn on" id="rptBtn6m">6 เดือน</button>
       <button onclick="setRptRange('year')" class="rpt-range-btn" id="rptBtnYear">ปีนี้</button>
       <button onclick="setRptRange('all')" class="rpt-range-btn" id="rptBtnAll">ทั้งหมด</button>
     </div>
@@ -1407,7 +1408,7 @@ function setRptRange(r){
   // highlight active button
   ['month','3m','6m','year','all'].forEach(k=>{
     const btn=document.getElementById('rptBtn'+({month:'Month','3m':'3m','6m':'6m',year:'Year',all:'All'}[k]));
-    if(btn){btn.style.background=k===r?'#427aa1':'#f0f4ff';btn.style.color=k===r?'#fff':'#1a3a6e';btn.style.borderColor=k===r?'#427aa1':'#c7d7ff';}
+    if(btn){btn.classList.toggle('on',k===r);btn.style.background='';btn.style.color='';btn.style.borderColor='';}
   });
   renderReport();
 }
