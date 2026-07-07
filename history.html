@@ -1973,12 +1973,12 @@ async function _pdfRenderOne(env, job, parts, J){
     var p=parts[pi]||{};
     sub+=Number(p.qty||0)*Number(p.price||0);
     partsRows+='<tr>'
-      +'<td style="text-align:center;background:#fff7d6;font-weight:600;color:#427aa1;border:1px solid #c4960a;padding:2px 4px;width:5%;">'+(pi+1)+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:35%;word-break:break-word;">'+escH(p.part_name||'')+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:13%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escH(p.part_code||'')+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;">'+escH(String(p.qty||''))+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;">'+escH(p.unit||'')+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:21%;text-align:right;">'+escH(p.price?fmt(p.price):'')+'</td>'
+      +'<td style="text-align:center;background:#fff7d6;font-weight:600;color:#427aa1;border:1px solid #c4960a;padding:2px 4px;width:5%;line-height:1.7;">'+(pi+1)+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:35%;word-break:break-word;line-height:1.7;">'+escH(p.part_name||'')+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:13%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.7;">'+escH(p.part_code||'')+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;line-height:1.7;">'+escH(String(p.qty||''))+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;line-height:1.7;">'+escH(p.unit||'')+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:21%;text-align:right;line-height:1.7;">'+escH(p.price?fmt(p.price):'')+'</td>'
       +'</tr>';
   }
   var vat=sub*0.07, net=sub+vat;
@@ -1993,32 +1993,32 @@ async function _pdfRenderOne(env, job, parts, J){
 
   function sigBox(title,imgSrc,name,date,dept){
     var nameLabel=dept?'ชื่อ :':'ชื่อช่าง :';
-    var deptPart=dept?'<td style="white-space:nowrap;color:#555;font-size:10px;padding:1px 2px;">แผนก :</td><td style="border-bottom:1px solid #ffd151;font-size:10px;padding:0 3px;min-width:40px;">'+escH(dept)+'</td>':'';
+    var deptPart=dept?'<td style="white-space:nowrap;color:#555;font-size:10px;padding:1px 2px;line-height:1.5;">แผนก :</td><td style="border-bottom:1px solid #ffd151;font-size:10px;padding:0 3px;min-width:40px;line-height:1.5;">'+escH(dept)+'</td>':'';
     return '<div style="flex:1;border:1.5px solid #427aa1;border-radius:6px;padding:4px 8px 5px;background:#fff;text-align:center;display:flex;flex-direction:column;">'
-      +'<div style="font-size:11px;font-weight:700;color:#427aa1;margin-bottom:3px;">'+title+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:#427aa1;margin-bottom:3px;line-height:1.5;">'+title+'</div>'
       +'<div style="position:relative;width:100%;border:1px dashed #bfa000;border-radius:4px;background:#f8f8f8;flex:1;min-height:70px;overflow:hidden;">'
       +(imgSrc?'<img src="'+imgSrc+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;">':'')
       +'</div>'
       +'<table style="width:100%;margin-top:3px;font-size:10px;border-collapse:collapse;"><tr>'
-      +'<td style="white-space:nowrap;color:#555;padding:1px 2px;">'+nameLabel+'</td>'
-      +'<td style="border-bottom:1px solid #ffd151;padding:0 3px;min-width:50px;text-align:left;">'+escH(name||'')+'</td>'
+      +'<td style="white-space:nowrap;color:#555;padding:1px 2px;line-height:1.5;">'+nameLabel+'</td>'
+      +'<td style="border-bottom:1px solid #ffd151;padding:0 3px;min-width:50px;text-align:left;line-height:1.5;">'+escH(name||'')+'</td>'
       +deptPart
-      +'<td style="white-space:nowrap;color:#555;padding:1px 2px;">วันที่ :</td>'
-      +'<td style="border-bottom:1px solid #ffd151;padding:0 3px;min-width:50px;text-align:left;">'+escH(date||'')+'</td>'
+      +'<td style="white-space:nowrap;color:#555;padding:1px 2px;line-height:1.5;">วันที่ :</td>'
+      +'<td style="border-bottom:1px solid #ffd151;padding:0 3px;min-width:50px;text-align:left;line-height:1.5;">'+escH(date||'')+'</td>'
       +'</tr></table>'
       +'</div>';
   }
 
   function field(label,value){
     return '<div style="display:flex;align-items:baseline;gap:4px;flex:1;min-width:0;">'
-      +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;">'+label+'</span>'
-      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;min-height:16px;display:block;">'+escH(value||'')+'</span>'
+      +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;line-height:1.5;">'+label+'</span>'
+      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;min-height:16px;display:block;line-height:1.5;">'+escH(value||'')+'</span>'
       +'</div>';
   }
   function fieldLast(label,value){
     return '<div style="display:flex;align-items:baseline;gap:4px;flex:1;min-width:0;">'
-      +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;">'+label+'</span>'
-      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;min-height:16px;display:block;">'+escH(value||'')+'</span>'
+      +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;line-height:1.5;">'+label+'</span>'
+      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-width:30px;min-height:16px;display:block;line-height:1.5;">'+escH(value||'')+'</span>'
       +'</div>';
   }
   function fieldRow(fields){
@@ -2026,8 +2026,8 @@ async function _pdfRenderOne(env, job, parts, J){
   }
   function fieldRowFull(label,value){
     return '<div style="display:flex;gap:4px;margin-bottom:2px;align-items:baseline;">'
-      +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;">'+label+'</span>'
-      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-height:16px;display:block;">'+escH(value||'')+'</span>'
+      +'<span style="white-space:nowrap;color:#427aa1;font-weight:600;font-size:11px;flex-shrink:0;line-height:1.5;">'+label+'</span>'
+      +'<span style="flex:1;border-bottom:1px solid #ffd151;font-size:12px;color:#000;padding:0 2px;min-height:16px;display:block;line-height:1.5;">'+escH(value||'')+'</span>'
       +'</div>';
   }
 
@@ -2035,37 +2035,37 @@ async function _pdfRenderOne(env, job, parts, J){
     // header
     +'<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #427aa1;padding-bottom:2px;margin-bottom:4px;">'
     +'<div style="width:95px;flex-shrink:0;">'+(logoSrc?'<img src="'+logoSrc+'" style="width:95px;height:70px;object-fit:contain;display:block;">':'')+'</div>'
-    +'<div style="text-align:center;flex:1;"><div style="font-size:20px;font-weight:700;color:#427aa1;letter-spacing:1px;">SERVICE SHEET</div><div style="font-size:12px;color:#555;">ใบบันทึกงานบริการ</div></div>'
+    +'<div style="text-align:center;flex:1;"><div style="font-size:20px;font-weight:700;color:#427aa1;letter-spacing:1px;">SERVICE SHEET</div><div style="font-size:12px;color:#555;line-height:1.5;">ใบบันทึกงานบริการ</div></div>'
     +'<div style="width:95px;flex-shrink:0;"></div></div>'
     // service type
-    +'<div style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:2px 6px;margin-bottom:3px;display:flex;align-items:center;gap:8px;font-size:12px;">'
+    +'<div style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:2px 6px;margin-bottom:3px;display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.5;">'
     +'<b style="color:#427aa1;font-weight:600;">งานบริการ :</b>'
     +'<span style="display:inline-block;border:1px solid #ffd151;border-radius:4px;background:#fff;padding:1px 8px;min-width:100px;">'+escH(svcLabel)+'</span></div>'
     // s1
-    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;">ส่วนที่ 1 ข้อมูลลูกค้า</div>'
+    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;line-height:1.5;">ส่วนที่ 1 ข้อมูลลูกค้า</div>'
     +fieldRow(field('วันที่บริการ :',fmtDate(job.service_date))+field('เวลาเริ่ม :',job.time_start||'')+fieldLast('เวลาจบงาน :',job.time_end||''))
     +fieldRowFull('บริษัท / ห้างฯ / ร้าน ลูกค้า :',job.company||'')
     +fieldRow(field('ติดต่อคุณ :',job.contact_name||'')+field('ตำแหน่ง :',job.position||'')+fieldLast('เบอร์โทร :',job.contact_phone||''))
     +fieldRowFull('ที่อยู่ :',job.address||'')
     // s2
-    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>'
-    +'<div style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:2px;display:flex;align-items:center;gap:12px;font-size:11px;flex-wrap:nowrap;">'
+    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;line-height:1.5;">ส่วนที่ 2 ข้อมูลเครื่องจักร</div>'
+    +'<div style="background:#fff7d6;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:2px;display:flex;align-items:center;gap:12px;font-size:11px;flex-wrap:nowrap;line-height:1.5;">'
     +'<span style="white-space:nowrap;"><b style="color:#427aa1;font-weight:600;">สถานที่บริการ :</b> <span style="border:1px solid #ffd151;border-radius:3px;background:#fff;padding:1px 5px;">'+escH(job.service_location||'')+'</span></span>'
     +'<span style="white-space:nowrap;display:flex;align-items:center;gap:4px;"><b style="color:#427aa1;font-weight:600;">สถานะ :</b> '+wHTML+'</span>'
     +'</div>'
     +fieldRow(field('เครื่อง :',job.machine_name||'')+field('รุ่น :',job.machine_model||'')+field('S/N :',job.machine_sn||'')+fieldLast('วันที่ซื้อ :',fmtDate(job.purchase_date)))
-    +'<div style="font-size:11px;font-weight:600;color:#444;margin-bottom:1px;">รายละเอียด :</div>'
+    +'<div style="font-size:11px;font-weight:600;color:#444;margin-bottom:1px;line-height:1.5;">รายละเอียด :</div>'
     +'<div style="border:1.5px solid #ffd151;border-radius:4px;background:rgba(255,255,255,0.7);padding:4px;font-size:11px;line-height:18px;color:#222;white-space:pre-wrap;word-break:break-word;min-height:80px;box-sizing:border-box;">'+escH(job.machine_detail||'')+'</div>'
     // s3
-    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
+    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;line-height:1.5;">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;margin-bottom:2px;">'
     +'<thead><tr>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:5%;">ลำดับ</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:35%;">รายการอะไหล่</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:13%;">รหัส</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;">จำนวน</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;">หน่วย</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:21%;">ราคา</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:5%;line-height:1.7;">ลำดับ</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:35%;line-height:1.7;">รายการอะไหล่</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:13%;line-height:1.7;">รหัส</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;line-height:1.7;">จำนวน</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;line-height:1.7;">หน่วย</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:21%;line-height:1.7;">ราคา</th>'
     +'</tr></thead><tbody>'+partsRows+'</tbody>'
     +'<tfoot>'
     +'<tr><td colspan="5" style="text-align:right;font-weight:700;background:#fff7d6;color:#427aa1;padding:2px 8px;border:1px solid #c4960a;">รวมยอด</td>'
@@ -2076,10 +2076,10 @@ async function _pdfRenderOne(env, job, parts, J){
     +'<td style="text-align:right;background:#fff7d6;font-weight:700;color:#1a3a6e;font-size:14px;border:1px solid #c4960a;padding-right:4px;">'+fmt(net)+'</td></tr>'
     +'</tfoot></table>'
     // s4
-    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:2px;">ส่วนที่ 4 ประเภทค่าบริการ</div>'
-    +'<div style="background:#fff;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;font-size:11px;display:flex;align-items:center;gap:12px;flex-wrap:nowrap;">'+feeHTML+'</div>'
+    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:2px;line-height:1.5;">ส่วนที่ 4 ประเภทค่าบริการ</div>'
+    +'<div style="background:#fff;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;font-size:11px;display:flex;align-items:center;gap:12px;flex-wrap:nowrap;line-height:1.5;">'+feeHTML+'</div>'
     // s5
-    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:3px;margin-top:2px;">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
+    +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:3px;margin-top:2px;line-height:1.5;">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
     +'<div style="display:flex;gap:8px;flex:1;min-height:0;align-items:stretch;">'
     +sigBox('ลายเซ็นช่างผู้ให้บริการ',job.tech_sig_data,job.tech_name_sign||job.technician_name,job.tech_sign_date,'')
     +sigBox('ลายเซ็นลูกค้า / ผู้ตรวจรับงาน',job.cust_sig_data,job.cust_name_sign,job.cust_sign_date,job.cust_dept)
