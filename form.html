@@ -195,11 +195,11 @@
   .header-center h1 { font-size: 20px !important; letter-spacing: 1px !important; }
   .header-center p { font-size: 12px !important; }
 
-  .section-title { font-size: 12px !important; padding: 3px 6px !important; margin-top: 6px !important; margin-bottom: 3px !important; }
+  .section-title { font-size: 12px !important; padding: 3px 6px !important; margin-top: 6px !important; margin-bottom: 3px !important; line-height: 1.4 !important; }
 
   .form-row { margin-bottom: 3px !important; gap: 4px !important; }
   .field { gap: 3px !important; }
-  .field label { font-size: 11px !important; }
+  .field label { font-size: 11px !important; line-height: 1.4 !important; }
   .field input, .field select, .field textarea { font-size: 12px !important; padding: 1px 3px !important; background: #ffffff !important; color: #000 !important; }
 
   .service-type-bar { padding: 3px 6px !important; margin-bottom: 4px !important; font-size: 12px !important; }
@@ -207,23 +207,23 @@
 
   .status-row { gap: 6px !important; margin-bottom: 3px !important; }
   .status-block { padding: 3px 6px !important; font-size: 11px !important; }
-  .status-block label { font-size: 11px !important; }
+  .status-block label { font-size: 11px !important; line-height: 1.4 !important; }
   .radio-group { font-size: 11px !important; gap: 8px !important; }
-  .radio-group label { font-size: 11px !important; }
+  .radio-group label { font-size: 11px !important; line-height: 1.4 !important; }
 
   .parts-table { font-size: 11px !important; margin-bottom: 4px !important; }
-  .parts-table th { font-size: 11px !important; padding: 3px 3px !important; line-height: 1.45 !important; }
-  .parts-table td { padding: 3px 3px !important; font-size: 11px !important; line-height: 1.45 !important; }
-  .parts-table td input { font-size: 11px !important; line-height: 1.45 !important; }
+  .parts-table th { font-size: 11px !important; padding: 3px 3px !important; line-height: 1.6 !important; }
+  .parts-table td { padding: 3px 3px !important; font-size: 11px !important; line-height: 1.6 !important; }
+  .parts-table td input { font-size: 11px !important; line-height: 1.6 !important; }
   .parts-table, .parts-table th, .parts-table td { border-color: #c4960a !important; }
 
-  .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; flex: 1 !important; }
+  .sig-section { margin-top: 6px !important; margin-bottom: 6px !important; gap: 8px !important; flex: 1 !important; min-height: 190px !important; }
   .sig-box { padding: 5px 8px 8px !important; }
-  .sig-box .sig-title { font-size: 13px !important; margin-bottom: 4px !important; }
+  .sig-box .sig-title { font-size: 13px !important; margin-bottom: 4px !important; line-height: 1.3 !important; }
   .sig-preview-wrap { min-height: 150px !important; height: auto !important; }
   .sig-preview-img { display: block !important; }
   .sig-meta { font-size: 11px !important; margin-top: 3px !important; }
-  .sig-meta label { font-size: 11px !important; }
+  .sig-meta label { font-size: 11px !important; line-height: 1.3 !important; }
   .sig-meta input { font-size: 11px !important; }
 
   .footer { font-size: 11px !important; padding-top: 5px !important; line-height: 1.6 !important; }
@@ -382,7 +382,7 @@ body.mobile-a4 .footer { margin-top: auto; }
 
 /* service type bar */
 .service-type-bar { background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; margin-bottom: 3px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; }
+.service-type-bar span { font-weight: 600; color: #427aa1; white-space: nowrap; line-height: 1.4; }
 .service-type-bar select { border: none; border-bottom: 1px solid #aaa; border-radius: 0; background: #fff7d6; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; box-shadow: none; appearance: none; -webkit-appearance: none; }
   .status-block select { border: none; border-bottom: none; border-radius: 0; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 2px 8px; outline: none; cursor: pointer; color: #222; box-shadow: none; appearance: none; -webkit-appearance: none; }
   .field select { border: none; border-bottom: 1px solid #c4960a; border-radius: 0; background: transparent; padding: 2px 4px; cursor: pointer; box-shadow: none; appearance: none; -webkit-appearance: none; }
@@ -390,21 +390,21 @@ body.mobile-a4 .footer { margin-top: auto; }
 .other-input.show { display: inline-block; }
 
 /* section titles */
-.section-title { background: #427aa1; color: white; padding: 2px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 3px; margin-top: 4px; }
+.section-title { background: #427aa1; color: white; padding: 2px 8px; font-weight: 700; font-size: 12px; border-radius: 3px; margin-bottom: 3px; margin-top: 4px; line-height: 1.4; }
 
 /* form rows & fields */
 .form-row { display: flex; gap: 6px; margin-bottom: 3px; align-items: center; flex-wrap: wrap; }
 .field { display: flex; align-items: center; gap: 4px; flex: 1; }
-.field label { white-space: nowrap; color: #444; font-weight: 600; font-size: 12px; }
-  .field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #ffd151; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; }
+.field label { white-space: nowrap; color: #444; font-weight: 600; font-size: 12px; line-height: 1.4; }
+  .field input, .field select, .field textarea { flex: 1; border: none; border-bottom: 1px solid #ffd151; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 13px; padding: 1px 4px; outline: none; color: #222; min-width: 60px; line-height: 1.4; }
   .field select { border: none; border-bottom: 1px solid #ffd151; border-radius: 0; background: transparent; padding: 2px 4px; cursor: pointer; }
   .field textarea { resize: none; border: none; border-bottom: 1px solid #ffd151; background: transparent; padding: 4px 4px 4px 4px; width: 100%; font-size: 13px; line-height: 1.45; }
 /* status row */
 .status-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 3px; }
 .status-block { display: flex; align-items: center; gap: 8px; background: #fff7d6; border: 1px solid #ffd151; border-radius: 4px; padding: 3px 8px; flex-wrap: wrap; }
-.status-block label { font-weight: 600; color: #427aa1; font-size: 12px; white-space: nowrap; }
+.status-block label { font-weight: 600; color: #427aa1; font-size: 12px; white-space: nowrap; line-height: 1.4; }
 .radio-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; font-weight: 400; color: #333; }
+.radio-group label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; font-weight: 400; color: #333; line-height: 1.4; }
 .radio-group input[type=radio] { width: 14px; height: 14px; accent-color: #427aa1; cursor: pointer; }
 .warranty-input { border: none; border-bottom: 1px solid #aaa; background: #fff7d6; font-family: 'Sarabun', sans-serif; font-size: 13px; width: 160px; outline: none; display: none; padding: 1px 4px; }
   .warranty-input.show { display: inline-block; }
@@ -413,9 +413,9 @@ body.mobile-a4 .footer { margin-top: auto; }
 
 /* parts table */
 .parts-table { width: 100%; border-collapse: collapse; margin-bottom: 3px; font-size: 12px; }
-.parts-table th { background: #427aa1; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; line-height: 1.45; }
-.parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; line-height: 1.45; }
-.parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: left; line-height: 1.45; }
+.parts-table th { background: #427aa1; color: white; padding: 4px; text-align: center; font-size: 11px; font-weight: 600; line-height: 1.6; }
+.parts-table td { border: 1px solid #c4960a; padding: 2px 4px; background: white; line-height: 1.6; }
+.parts-table td input { width: 100%; border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; outline: none; text-align: left; line-height: 1.6; }
 .parts-table .amount-cell input { text-align: right; }
 .parts-table input.part-qty { text-align: center; }
 .parts-table input.part-unit { text-align: center; }
@@ -425,9 +425,9 @@ body.mobile-a4 .footer { margin-top: auto; }
 .parts-table .total-val { text-align: right; background: #fffbf0; font-weight: 700; color: #c00; border: 1px solid #c4960a; padding-right: 6px; min-width: 80px; }
 
 /* signature section */
-.sig-section { clear: both; display: flex; gap: 8px; margin-top: 6px; margin-bottom: 4px; align-items: stretch; flex: 1; }
+.sig-section { clear: both; display: flex; gap: 8px; margin-top: 6px; margin-bottom: 4px; align-items: stretch; flex: 1; min-height: 190px; }
 .sig-box { flex: 1 1 0; border: 1.5px solid #427aa1; border-radius: 6px; padding: 6px 8px 6px; background: white; text-align: center; display:flex; flex-direction:column; }
-.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; }
+.sig-box .sig-title { font-size: 13px; font-weight: 700; color: #427aa1; margin-bottom: 6px; line-height: 1.3; }
 .sig-preview-wrap { position: relative; width: 100%; height: auto; min-height: 150px; border: 1px dashed #bfa000; border-radius: 4px; background: #f8f8f8; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; flex:1; }
 .sig-preview-img { width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; }
 .sig-trigger-btn { font-size: 12px; color: #555; background: none; border: none; cursor: pointer; font-family: 'Sarabun', sans-serif; padding: 4px 8px; display: flex; align-items: center; gap: 4px; z-index: 1; }
@@ -435,7 +435,7 @@ body.mobile-a4 .footer { margin-top: auto; }
 .btn-clear-sig.show { display: inline-block; }
 .sig-clear-wrap { text-align: right; min-height: 22px; }
 .sig-meta { display: flex; gap: 6px; margin-top: 3px; font-size: 11px; align-items: center; flex-wrap: wrap; }
-.sig-meta label { color: #555; font-size: 11px; white-space: nowrap; }
+.sig-meta label { color: #555; font-size: 11px; white-space: nowrap; line-height: 1.3; }
 .sig-meta input { border: none; border-bottom: 1px solid #ffd151; background: transparent; font-family: 'Sarabun', sans-serif; font-size: 11px; flex: 1; outline: none; min-width: 50px; }
 
 /* footer */
@@ -1158,10 +1158,10 @@ async function exportPDF(){
       .detail-div-pdf{width:100%!important;border:1px solid #bfa000!important;border-radius:4px!important;background:rgba(255,255,255,0.7)!important;padding:4px!important;font-family:Sarabun,sans-serif!important;font-size:12px!important;line-height:20px!important;color:#222!important;white-space:pre-wrap!important;word-break:break-word!important;overflow-wrap:anywhere!important;min-height:108px!important;overflow:visible!important;box-sizing:border-box!important;}
       /* Parts table */
       .parts-table{width:100%!important;border-collapse:collapse!important;margin-bottom:3px!important;font-size:11px!important;}
-      .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;line-height:1.45!important;}
-      .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#ffffff!important;font-size:11px!important;line-height:1.45!important;}
+      .parts-table th{background:#427aa1!important;color:#ffffff!important;padding:3px!important;text-align:center!important;font-size:11px!important;font-weight:600!important;border:1px solid #c4960a!important;line-height:1.6!important;}
+      .parts-table td{border:1px solid #c4960a!important;padding:2px 4px!important;background:#ffffff!important;font-size:11px!important;line-height:1.6!important;}
       .parts-table td:first-child{text-align:center!important;width:24px!important;background:#fff7d6!important;font-weight:600!important;color:#427aa1!important;}
-      .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;text-align:left!important;color:#000!important;line-height:1.45!important;}
+      .parts-table td input{width:100%!important;border:none!important;background:transparent!important;font-family:Sarabun,sans-serif!important;font-size:11px!important;outline:none!important;text-align:left!important;color:#000!important;line-height:1.6!important;}
       .parts-table .amount-cell input{text-align:right!important;}
       .parts-table input.part-qty{text-align:center!important;}
       .parts-table input.part-unit{text-align:center!important;}
@@ -1171,7 +1171,7 @@ async function exportPDF(){
       /* Fee row */
       .fee-row-pdf{background:transparent!important;border:none!important;padding:4px 0!important;margin-bottom:4px!important;display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;font-size:12px!important;line-height:1.35!important;}
       /* Signature */
-      .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important;}
+      .sig-section{display:flex!important;gap:8px!important;margin-top:5px!important;margin-bottom:4px!important;flex:1!important;align-items:stretch!important;min-height:110px!important;}
       .sig-box{flex:1 1 0!important;border:1.5px solid #427aa1!important;border-radius:6px!important;padding:5px 8px 6px!important;background:#ffffff!important;text-align:center!important;display:flex!important;flex-direction:column!important;}
       .sig-box .sig-title{font-size:12px!important;font-weight:700!important;color:#427aa1!important;margin-bottom:4px!important;line-height:1.3!important;}
       .sig-preview-wrap{position:relative!important;width:100%!important;border:1px dashed #bfa000!important;border-radius:4px!important;background:#f8f8f8!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:1!important;min-height:80px!important;}
