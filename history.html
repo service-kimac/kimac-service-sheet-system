@@ -1973,12 +1973,12 @@ async function _pdfRenderOne(env, job, parts, J){
     var p=parts[pi]||{};
     sub+=Number(p.qty||0)*Number(p.price||0);
     partsRows+='<tr>'
-      +'<td style="text-align:center;background:#fff7d6;font-weight:600;color:#427aa1;border:1px solid #c4960a;padding:2px 4px;width:5%;line-height:1.45;">'+(pi+1)+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:35%;word-break:break-word;line-height:1.45;">'+escH(p.part_name||'')+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:13%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45;">'+escH(p.part_code||'')+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;line-height:1.45;">'+escH(String(p.qty||''))+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;line-height:1.45;">'+escH(p.unit||'')+'</td>'
-      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:21%;text-align:right;line-height:1.45;">'+escH(p.price?fmt(p.price):'')+'</td>'
+      +'<td style="text-align:center;background:#fff7d6;font-weight:600;color:#427aa1;border:1px solid #c4960a;padding:2px 4px;width:5%;line-height:1.6;">'+(pi+1)+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:35%;word-break:break-word;line-height:1.6;">'+escH(p.part_name||'')+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:13%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.6;">'+escH(p.part_code||'')+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;line-height:1.6;">'+escH(String(p.qty||''))+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:8%;text-align:center;line-height:1.6;">'+escH(p.unit||'')+'</td>'
+      +'<td style="border:1px solid #c4960a;padding:2px 4px;width:21%;text-align:right;line-height:1.6;">'+escH(p.price?fmt(p.price):'')+'</td>'
       +'</tr>';
   }
   var vat=sub*0.07, net=sub+vat;
@@ -2060,12 +2060,12 @@ async function _pdfRenderOne(env, job, parts, J){
     +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;line-height:1.35;">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;margin-bottom:2px;">'
     +'<thead><tr>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:5%;line-height:1.45;">ลำดับ</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:35%;line-height:1.45;">รายการอะไหล่</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:13%;line-height:1.45;">รหัส</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;line-height:1.45;">จำนวน</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;line-height:1.45;">หน่วย</th>'
-    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:21%;line-height:1.45;">ราคา</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:5%;line-height:1.6;">ลำดับ</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:35%;line-height:1.6;">รายการอะไหล่</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:13%;line-height:1.6;">รหัส</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;line-height:1.6;">จำนวน</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:8%;line-height:1.6;">หน่วย</th>'
+    +'<th style="background:#427aa1;color:#fff;padding:3px;text-align:center;border:1px solid #c4960a;width:21%;line-height:1.6;">ราคา</th>'
     +'</tr></thead><tbody>'+partsRows+'</tbody>'
     +'<tfoot>'
     +'<tr><td colspan="5" style="text-align:right;font-weight:700;background:#fff7d6;color:#427aa1;padding:2px 8px;border:1px solid #c4960a;">รวมยอด</td>'
@@ -2080,7 +2080,7 @@ async function _pdfRenderOne(env, job, parts, J){
     +'<div style="background:#fff;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;font-size:11px;display:flex;align-items:center;gap:12px;flex-wrap:nowrap;line-height:1.35;">'+feeHTML+'</div>'
     // s5
     +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:3px;margin-top:2px;line-height:1.35;">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
-    +'<div style="display:flex;gap:8px;flex:1;min-height:0;align-items:stretch;">'
+    +'<div style="display:flex;gap:8px;flex:1;min-height:110px;align-items:stretch;">'
     +sigBox('ลายเซ็นช่างผู้ให้บริการ',job.tech_sig_data,job.tech_name_sign||job.technician_name,job.tech_sign_date,'')
     +sigBox('ลายเซ็นลูกค้า / ผู้ตรวจรับงาน',job.cust_sig_data,job.cust_name_sign,job.cust_sign_date,job.cust_dept)
     +'</div>'
