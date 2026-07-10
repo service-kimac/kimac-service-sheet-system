@@ -53,7 +53,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .pg.on{display:block}
 #pg-jobs{max-width:1160px!important;padding:12px 20px!important;}
 @media(min-width:701px){
-  #pg-jobs{max-width:1300px!important;}
+  #pg-jobs{max-width:1380px!important;}
 }
 /* ── Calendar Sidebar ── */
 .cal-sidebar{width:300px;flex-shrink:0;position:sticky;top:12px;}
@@ -121,16 +121,16 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 @media(min-width:701px){
   #pg-jobs>div:first-child{justify-content:center;}
   #calSidebar{margin-left:20px;}
-  .cal-sidebar{width:380px;}
-  .cal-card{padding:20px;}
-  .cal-header span{font-size:17px;}
-  .cal-nav{font-size:24px;padding:4px 12px;}
-  .cal-grid{gap:6px;}
-  .cal-dow{font-size:12px;padding:6px 0;}
-  .cal-day{padding:12px 4px;font-size:15px;border-radius:10px;}
-  .cal-day.has-job::after,.cal-day.has-dispatch::after{width:6px;height:6px;margin-top:3px;}
-  .cal-legend{font-size:11px;}
-  .cal-today-title{font-size:14px;}
+  .cal-sidebar{width:440px;}
+  .cal-card{padding:22px;}
+  .cal-header span{font-size:19px;}
+  .cal-nav{font-size:26px;padding:4px 14px;}
+  .cal-grid{gap:8px;}
+  .cal-dow{font-size:13px;padding:8px 0;}
+  .cal-day{padding:15px 4px;font-size:16px;border-radius:10px;}
+  .cal-day.has-job::after,.cal-day.has-dispatch::after{width:6px;height:6px;margin-top:4px;}
+  .cal-legend{font-size:12px;}
+  .cal-today-title{font-size:15px;}
   .cal-job-item{font-size:12px;padding:10px 12px;}
 }
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
@@ -670,8 +670,9 @@ button:active {
         </div>
         <div class="cal-card" style="margin-top:10px;">
           <div class="cal-today-title" id="myNotesTitle">📝 โน้ตของฉัน</div>
+          <div style="font-size:11px;color:#94a3b8;margin:-4px 0 10px;">แตะวันที่ในปฏิทินด้านบนก่อน แล้วเพิ่มโน้ตของวันนั้นได้เลย</div>
           <div class="cal-note-form">
-            <textarea id="myNoteInput" class="cal-note-input" placeholder="เขียนโน้ตของคุณ... (เห็นเฉพาะคุณ)" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();calAddNote();}"></textarea>
+            <textarea id="myNoteInput" class="cal-note-input" placeholder="เขียนโน้ต..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();calAddNote();}"></textarea>
             <button id="myNoteAddBtn" class="cal-note-add" onclick="calAddNote()">เพิ่ม</button>
           </div>
           <div id="myNotesList" class="cal-note-list"></div>
@@ -2472,7 +2473,8 @@ function calRenderNotes(filterDate){
 
   var titleEl=document.getElementById('myNotesTitle');
   if(titleEl){
-    titleEl.textContent = target===todayYmd?'📝 โน้ตของฉัน':'📝 โน้ต '+new Date(target+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+    var dLbl=new Date(target+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+    titleEl.textContent = '📝 โน้ตวันที่ '+dLbl+(target===todayYmd?' (วันนี้)':'');
   }
   var inputEl=document.getElementById('myNoteInput');
   if(inputEl) inputEl.dataset.target=target;
