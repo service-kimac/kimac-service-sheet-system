@@ -52,9 +52,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .pg{display:none;padding:12px;max-width:800px;margin:0 auto}
 .pg.on{display:block}
 #pg-jobs{max-width:1160px!important;padding:12px 20px!important;}
-@media(min-width:701px){
-  #pg-jobs{max-width:1380px!important;}
-}
 /* ── Calendar Sidebar ── */
 .cal-sidebar{width:300px;flex-shrink:0;position:sticky;top:12px;}
 .cal-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
@@ -65,20 +62,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
 .cal-dow{color:#94a3b8;font-weight:600;padding:4px 0;font-size:10px;}
 .cal-day{padding:6px 2px;border-radius:8px;cursor:pointer;color:#374151;font-size:12px;position:relative;line-height:1.4;}
-/* โน้ตส่วนตัว */
-.cal-note-form{display:flex;gap:6px;margin-bottom:10px;}
-.cal-note-input{flex:1;padding:8px 10px;border:1.5px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:12px;color:#0e1c36;background:#fffaff;outline:none;resize:none;min-height:36px;line-height:1.4;}
-.cal-note-input:focus{border-color:#427aa1;}
-.cal-note-add{background:linear-gradient(135deg,#0e1c36,#427aa1);color:#fff;border:none;border-radius:10px;padding:0 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;}
-.cal-note-add:disabled{opacity:.5;cursor:default;}
-.cal-note-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}
-.cal-note-item{background:#fffbe8;border-left:3px solid #f9c900;border-radius:8px;padding:8px 30px 8px 10px;position:relative;font-size:12px;color:#0e1c36;line-height:1.4;word-break:break-word;}
-.cal-note-item .cni-del{position:absolute;top:6px;right:6px;background:none;border:none;color:#b45309;font-size:13px;cursor:pointer;padding:2px 6px;line-height:1;border-radius:6px;}
-.cal-note-item .cni-del:hover{background:#fef3c7;}
-[data-theme="dark"] .cal-note-input{background:#0e1c36;border-color:#2a3650;color:#e2e8f0;}
-[data-theme="dark"] .cal-note-item{background:#2a2410;border-left-color:#d4af00;color:#e2e8f0;}
-[data-theme="dark"] .cal-note-item .cni-del{color:#f9c900;}
-[data-theme="dark"] .cal-note-item .cni-del:hover{background:#3a3010;}
 .cal-day:hover{background:#f0f4ff;}
 .cal-day.has-job{color:#1a3a6e;font-weight:700;}
 .cal-day.has-job::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#16a34a;margin:2px auto 0;}
@@ -117,21 +100,10 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
   #pg-jobs>div:first-child{flex-direction:column;}
 }
-/* Desktop: calendar flush right, job list centered, bigger + wider calendar */
+/* Desktop: calendar flush right, job list centered */
 @media(min-width:701px){
   #pg-jobs>div:first-child{justify-content:center;}
   #calSidebar{margin-left:20px;}
-  .cal-sidebar{width:440px;}
-  .cal-card{padding:22px;}
-  .cal-header span{font-size:19px;}
-  .cal-nav{font-size:26px;padding:4px 14px;}
-  .cal-grid{gap:8px;}
-  .cal-dow{font-size:13px;padding:8px 0;}
-  .cal-day{padding:15px 4px;font-size:16px;border-radius:10px;}
-  .cal-day.has-job::after,.cal-day.has-dispatch::after{width:6px;height:6px;margin-top:4px;}
-  .cal-legend{font-size:12px;}
-  .cal-today-title{font-size:15px;}
-  .cal-job-item{font-size:12px;padding:10px 12px;}
 }
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
 [data-theme="dark"] .cal-header span{color:#e2e8f0;}
@@ -667,15 +639,6 @@ button:active {
         <div class="cal-card" style="margin-top:10px;">
           <div class="cal-today-title">📋 งานวันนี้ <span id="todayCount" class="cal-count">0</span></div>
           <div id="todayList" class="cal-today-list"></div>
-        </div>
-        <div class="cal-card" style="margin-top:10px;">
-          <div class="cal-today-title" id="myNotesTitle">📝 โน้ตของฉัน</div>
-          <div style="font-size:11px;color:#94a3b8;margin:-4px 0 10px;">แตะวันที่ในปฏิทินด้านบนก่อน แล้วเพิ่มโน้ตของวันนั้นได้เลย</div>
-          <div class="cal-note-form">
-            <textarea id="myNoteInput" class="cal-note-input" placeholder="เขียนโน้ต..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();calAddNote();}"></textarea>
-            <button id="myNoteAddBtn" class="cal-note-add" onclick="calAddNote()">เพิ่ม</button>
-          </div>
-          <div id="myNotesList" class="cal-note-list"></div>
         </div>
       </div>
     </div><!-- end calendar sidebar -->
@@ -2224,7 +2187,6 @@ function calRender(){
   for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
   grid.innerHTML=html;
   calRenderToday(calSelectedDate);
-  calRenderNotes(calSelectedDate);
   // โหลด dispatch dots จาก Supabase เพื่ออัปเดต dot สีส้ม (background, ไม่บล็อก UI)
   calFetchDispatchDotsAsync();
 }
@@ -2438,89 +2400,6 @@ function calRenderToday(filterDate){
   }).join('');
   listEl.innerHTML=html;
 }
-// ===== โน้ตส่วนตัว (เห็นเฉพาะเจ้าของ) =====
-var _calNotesCache = {}; // { 'YYYY-MM-DD': [{id,note_text,...}, ...] }
-var _calNotesLoading = {};
-
-function _calTodayYmd(){
-  var now=new Date();
-  return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-}
-
-function _escNoteHtml(s){
-  return String(s==null?'':s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br>');
-}
-
-async function calLoadNotesForDate(target){
-  if(!CU||!sb) return;
-  if(_calNotesLoading[target]) return;
-  _calNotesLoading[target]=true;
-  try{
-    var {data,error}=await sb.from('calendar_notes').select('*').eq('user_id',CU.id).eq('note_date',target).order('created_at');
-    _calNotesCache[target]=(!error&&data)?data:[];
-  }catch(e){ _calNotesCache[target]=[]; }
-  _calNotesLoading[target]=false;
-  calRenderNotes(target);
-}
-
-function calRenderNotes(filterDate){
-  var todayYmd=_calTodayYmd();
-  var target=filterDate||todayYmd;
-  var listEl=document.getElementById('myNotesList');
-  if(!listEl) return;
-
-  var titleEl=document.getElementById('myNotesTitle');
-  if(titleEl){
-    var dLbl=new Date(target+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
-    titleEl.textContent = '📝 โน้ตวันที่ '+dLbl+(target===todayYmd?' (วันนี้)':'');
-  }
-  var inputEl=document.getElementById('myNoteInput');
-  if(inputEl) inputEl.dataset.target=target;
-
-  if(_calNotesCache[target]===undefined){
-    listEl.innerHTML='<div class="cal-empty">กำลังโหลด...</div>';
-    calLoadNotesForDate(target);
-    return;
-  }
-  var notes=_calNotesCache[target];
-  if(!notes.length){ listEl.innerHTML='<div class="cal-empty">ยังไม่มีโน้ต</div>'; return; }
-  listEl.innerHTML=notes.map(function(n){
-    return '<div class="cal-note-item"><div>'+_escNoteHtml(n.note_text)+'</div>'
-      +'<button class="cni-del" data-nid="'+n.id+'" data-tgt="'+target+'" onclick="calDeleteNote(this.dataset.nid,this.dataset.tgt)" title="ลบโน้ต">✕</button></div>';
-  }).join('');
-}
-
-async function calAddNote(){
-  var inputEl=document.getElementById('myNoteInput');
-  if(!inputEl) return;
-  var text=inputEl.value.trim();
-  if(!text) return;
-  if(!CU){ alert('กรุณาเข้าสู่ระบบใหม่'); return; }
-  var target=inputEl.dataset.target||_calTodayYmd();
-  var btn=document.getElementById('myNoteAddBtn');
-  if(btn) btn.disabled=true;
-  try{
-    var {data,error}=await sb.from('calendar_notes').insert({user_id:CU.id,note_date:target,note_text:text}).select().single();
-    if(error){ alert('บันทึกโน้ตไม่สำเร็จ: '+error.message); return; }
-    if(!_calNotesCache[target]) _calNotesCache[target]=[];
-    _calNotesCache[target].push(data);
-    inputEl.value='';
-    calRenderNotes(target);
-  }catch(e){ alert('บันทึกโน้ตไม่สำเร็จ'); }
-  finally{ if(btn) btn.disabled=false; }
-}
-
-async function calDeleteNote(id,target){
-  if(!confirm('ลบโน้ตนี้?')) return;
-  try{
-    await sb.from('calendar_notes').delete().eq('id',id).eq('user_id',CU.id);
-  }catch(e){}
-  if(_calNotesCache[target]) _calNotesCache[target]=_calNotesCache[target].filter(function(n){return String(n.id)!==String(id);});
-  calRenderNotes(target);
-}
-
 function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}_calDispatchCache={};_calDispatchLoading={};calRender();}
 function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}_calDispatchCache={};_calDispatchLoading={};calRender();}
 
