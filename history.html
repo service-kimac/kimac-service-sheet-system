@@ -52,54 +52,28 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .pg{display:none;padding:12px;max-width:800px;margin:0 auto}
 .pg.on{display:block}
 #pg-jobs{max-width:1160px!important;padding:12px 20px!important;}
-@media(min-width:701px){
-  #pg-jobs{max-width:1380px!important;}
-}
 /* ── Calendar Sidebar ── */
-.cal-sidebar{width:300px;flex-shrink:0;}
+.cal-sidebar{width:300px;flex-shrink:0;position:sticky;top:12px;}
 .cal-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .cal-header span{font-size:14px;font-weight:700;color:#1a3a6e;}
 .cal-nav{background:none;border:none;font-size:20px;color:#427aa1;cursor:pointer;padding:2px 10px;border-radius:6px;line-height:1;}
 .cal-nav:hover{background:#f0f4ff;}
-.cal-today-btn{background:#eff6ff;border:1.5px solid #dbeafe;color:#1e40af;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
 .cal-dow{color:#94a3b8;font-weight:600;padding:4px 0;font-size:10px;}
-.cal-day{padding:4px;border-radius:8px;cursor:pointer;color:#374151;font-size:11px;position:relative;line-height:1.3;
-  display:flex;flex-direction:column;align-items:stretch;text-align:left;min-height:52px;}
-.cal-day-num{font-size:11px;font-weight:600;color:#374151;margin-bottom:2px;}
-.cal-day-chips{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;}
-.cal-day-chip{font-size:8.5px;line-height:1.35;padding:1px 4px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-weight:600;}
-.cdc-job{background:#dcfce7;color:#166534;}
-.cdc-dispatch{background:#fef3c7;color:#92400e;}
-.cdc-note{background:#ede9fe;color:#5b21b6;}
-.cdc-more{background:#f1f5f9;color:#64748b;}
-/* โน้ตส่วนตัว */
-.cal-note-form{display:flex;gap:6px;margin-bottom:10px;}
-.cal-note-input{flex:1;padding:8px 10px;border:1.5px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:12px;color:#0e1c36;background:#fffaff;outline:none;resize:none;min-height:36px;line-height:1.4;}
-.cal-note-input:focus{border-color:#427aa1;}
-.cal-note-add{background:linear-gradient(135deg,#0e1c36,#427aa1);color:#fff;border:none;border-radius:10px;padding:0 14px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;}
-.cal-note-add:disabled{opacity:.5;cursor:default;}
-.cal-note-list{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}
-.cal-note-item{background:#fffbe8;border-left:3px solid #f9c900;border-radius:8px;padding:8px 30px 8px 10px;position:relative;font-size:12px;color:#0e1c36;line-height:1.4;word-break:break-word;}
-.cal-note-item .cni-del{position:absolute;top:6px;right:6px;background:none;border:none;color:#b45309;font-size:13px;cursor:pointer;padding:2px 6px;line-height:1;border-radius:6px;}
-.cal-note-item .cni-del:hover{background:#fef3c7;}
-[data-theme="dark"] .cal-note-input{background:#0e1c36;border-color:#2a3650;color:#e2e8f0;}
-[data-theme="dark"] .cal-note-item{background:#2a2410;border-left-color:#d4af00;color:#e2e8f0;}
-[data-theme="dark"] .cal-note-item .cni-del{color:#f9c900;}
-[data-theme="dark"] .cal-note-item .cni-del:hover{background:#3a3010;}
+.cal-day{padding:6px 2px;border-radius:8px;cursor:pointer;color:#374151;font-size:12px;position:relative;line-height:1.4;}
 .cal-day:hover{background:#f0f4ff;}
-.cal-day.has-job .cal-day-num{color:#1a3a6e;font-weight:700;}
-.cal-day.today{background:#e8eeff;border:2px solid #1a3a6e;}
-.cal-day.today .cal-day-num{color:#1a3a6e;font-weight:700;}
-.cal-day.selected{background:#e0eaff;border:2px solid #427aa1;}
+.cal-day.has-job{color:#1a3a6e;font-weight:700;}
+.cal-day.has-job::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#16a34a;margin:2px auto 0;}
+.cal-day.has-dispatch::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#f59e0b;margin:2px auto 0;}
+.cal-day.has-job.has-dispatch::after{background:linear-gradient(to right,#16a34a 50%,#f59e0b 50%);}
+.cal-day.today{background:#e8eeff;color:#1a3a6e!important;font-weight:700;border:2px solid #1a3a6e;}
+.cal-day.selected{background:#e0eaff;color:#1a3a6e;font-weight:700;}
 .cal-day.other-month{color:#cbd5e1;}
-.cal-day.other-month .cal-day-num{color:#cbd5e1;}
-.cal-legend{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:10px;color:#888;flex-wrap:wrap;}
+.cal-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#888;flex-wrap:wrap;}
 .cal-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .cal-dot.has-job{background:#16a34a;}
 .cal-dot.has-dispatch{background:#f59e0b;}
-.cal-dot.has-note{background:#7c3aed;}
 .cal-today-title{font-size:13px;font-weight:700;color:#1a3a6e;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .cal-count{background:#1a3a6e;color:#fff;font-size:10px;border-radius:10px;padding:1px 7px;font-weight:700;}
 .cal-today-list{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;}
@@ -121,44 +95,24 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-toggle-btn-bar{display:none;padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;}
 @media(max-width:700px){
   .cal-mob-header{display:flex!important;}
-  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;border-radius:0;-webkit-overflow-scrolling:touch;}
+  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;border-radius:0;}
   .cal-sidebar.mobile-open{display:block!important;}
-  .cal-sidebar>div:not(.cal-mob-header){padding:0 12px 24px;}
+  .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
   #pg-jobs>div:first-child{flex-direction:column;}
-  .cal-day{min-height:56px;padding:3px;}
-  .cal-day-chip{font-size:8px;padding:1px 3px;}
 }
-/* Desktop: full-width calendar on top, job list below — bigger cells with room for chips */
+/* Desktop: calendar flush right, job list centered */
 @media(min-width:701px){
-  #pg-jobs>div:first-child{flex-direction:column;align-items:stretch!important;justify-content:flex-start!important;}
-  #calSidebar{order:-1;margin-left:0;margin-bottom:22px;}
-  .cal-sidebar{width:100%;}
-  .cal-card{padding:22px;}
-  .cal-header span{font-size:19px;}
-  .cal-nav{font-size:26px;padding:4px 14px;}
-  .cal-grid{gap:8px;}
-  .cal-dow{font-size:13px;padding:8px 0;}
-  .cal-day{padding:8px;font-size:14px;border-radius:10px;min-height:92px;}
-  .cal-day-num{font-size:14px;margin-bottom:4px;}
-  .cal-day-chip{font-size:10.5px;padding:2px 6px;border-radius:5px;}
-  .cal-legend{font-size:12px;}
-  .cal-today-title{font-size:15px;}
-  .cal-job-item{font-size:12px;padding:10px 12px;}
+  #pg-jobs>div:first-child{justify-content:center;}
+  #calSidebar{margin-left:20px;}
 }
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
 [data-theme="dark"] .cal-header span{color:#e2e8f0;}
-[data-theme="dark"] .cal-today-btn{background:#1e2d4a;border-color:#2a3650;color:#93c5fd;}
 [data-theme="dark"] .cal-day{color:#cbd5e1;}
-[data-theme="dark"] .cal-day-num{color:#cbd5e1;}
-[data-theme="dark"] .cal-day.has-job .cal-day-num{color:#93c5fd;}
+[data-theme="dark"] .cal-day.has-job{color:#93c5fd;}
+[data-theme="dark"] .cal-day.has-job::after{background:#4ade80;}
 [data-theme="dark"] .cal-day:hover{background:#1e2d4a;}
-[data-theme="dark"] .cal-day.today{background:#1e2d4a;}
 [data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
-[data-theme="dark"] .cal-day.other-month .cal-day-num{color:#475569;}
-[data-theme="dark"] .cdc-job{background:#0f2e1a;color:#4ade80;}
-[data-theme="dark"] .cdc-dispatch{background:#2a1f00;color:#fbbf24;}
-[data-theme="dark"] .cdc-note{background:#241a3d;color:#c4b5fd;}
-[data-theme="dark"] .cdc-more{background:#1e293b;color:#94a3b8;}
+[data-theme="dark"] .cal-day.other-month{color:#475569;}
 [data-theme="dark"] .cal-today-title{color:#e2e8f0;}
 [data-theme="dark"] .cal-job-item{background:#1a2332;border-left-color:#5a7fc9;}
 [data-theme="dark"] .cal-job-item:hover{background:#1e2d4a;}
@@ -166,8 +120,6 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .cal-job-item .cji-co{color:#94a3b8;}
 [data-theme="dark"] .cal-job-item.cal-dispatch-item{background:#2a1f00;border-left-color:#d97706;}
 [data-theme="dark"] .cal-job-item.cal-dispatch-item .cji-no{color:#fbbf24;}
-[data-theme="dark"] .cal-sidebar{background:#0d1424;}
-[data-theme="dark"] .cal-backdrop{background:rgba(0,0,0,.6);}
 .bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:nowrap;align-items:center}
 .btn-cal{padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;
   background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;
@@ -675,31 +627,18 @@ button:active {
         <div class="cal-card">
           <div class="cal-header">
             <button class="cal-nav" onclick="calPrev()">‹</button>
-            <span style="display:flex;align-items:center;gap:8px;">
-              <span id="calMonthLabel"></span>
-              <button class="cal-today-btn" onclick="calGoToday()">วันนี้</button>
-            </span>
+            <span id="calMonthLabel"></span>
             <button class="cal-nav" onclick="calNext()">›</button>
           </div>
           <div class="cal-grid" id="calGrid"></div>
           <div class="cal-legend">
             <span class="cal-dot has-job"></span><span>มีใบงาน</span>
             <span class="cal-dot has-dispatch"></span><span>งานแอดมินส่ง</span>
-            <span class="cal-dot has-note"></span><span>โน้ตของฉัน</span>
           </div>
         </div>
         <div class="cal-card" style="margin-top:10px;">
           <div class="cal-today-title">📋 งานวันนี้ <span id="todayCount" class="cal-count">0</span></div>
           <div id="todayList" class="cal-today-list"></div>
-        </div>
-        <div class="cal-card" style="margin-top:10px;">
-          <div class="cal-today-title" id="myNotesTitle">📝 โน้ตของฉัน</div>
-          <div style="font-size:11px;color:#94a3b8;margin:-4px 0 10px;">แตะวันที่ในปฏิทินด้านบนก่อน แล้วเพิ่มโน้ตของวันนั้นได้เลย</div>
-          <div class="cal-note-form">
-            <textarea id="myNoteInput" class="cal-note-input" placeholder="เขียนโน้ต..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();calAddNote();}"></textarea>
-            <button id="myNoteAddBtn" class="cal-note-add" onclick="calAddNote()">เพิ่ม</button>
-          </div>
-          <div id="myNotesList" class="cal-note-list"></div>
         </div>
       </div>
     </div><!-- end calendar sidebar -->
@@ -2206,82 +2145,27 @@ var calYear=new Date().getFullYear(), calMonth=new Date().getMonth(), calSelecte
 
 function initCalendar(){ calRender(); }
 
-function calGoToday(){
-  var now=new Date();
-  calYear=now.getFullYear(); calMonth=now.getMonth();
-  calSelectedDate=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-  _calDispatchCache={}; _calDispatchLoading={};
-  calRender();
-}
-
-function _calShort(s,max){
-  s=String(s==null?'':s).replace(/\n/g,' ').trim();
-  return s.length>max?s.slice(0,max-1)+'…':s;
-}
-
-// รวมข้อมูล ใบงาน / งานที่แอดมินส่ง / โน้ตส่วนตัว เป็น map แยกตามวัน (ใช้ทั้งตอน render กริดครั้งแรก และตอน patch chip)
-function _calBuildMaps(){
-  var jobsByDate={}, dispatchByDate={}, notesByDate={};
-  (jobs||[]).forEach(function(j){
-    var d=(j.service_date||j.created_at||'').slice(0,10); if(!d) return;
-    (jobsByDate[d]=jobsByDate[d]||[]).push({id:j.id, label:_calShort(j.company||j.job_no||('#'+j.id),16)});
-  });
-  try{
-    var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
-    dlist.forEach(function(d){
-      if(!d.date_of_work) return;
-      var arr=dispatchByDate[d.date_of_work]=dispatchByDate[d.date_of_work]||[];
-      if(!arr.find(function(x){return String(x.id)===String(d.id);})) arr.push({id:d.id, label:_calShort(d.technician_name||'ไม่ระบุ',16)});
-    });
-  }catch(e){}
-  try{
-    var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
-    tlist.forEach(function(n){
-      if(!n.date_of_work) return;
-      var arr=dispatchByDate[n.date_of_work]=dispatchByDate[n.date_of_work]||[];
-      if(!arr.find(function(x){return String(x.id)===String(n.dispatch_id);})) arr.push({id:n.dispatch_id, label:_calShort(n.tech_name||'งาน',16)});
-    });
-  }catch(e){}
-  Object.keys(_calNotesCache||{}).forEach(function(d){
-    var arr=(_calNotesCache[d]||[]).filter(Boolean);
-    if(arr.length) notesByDate[d]=arr.map(function(n){return {id:n.id, label:_calShort(n.note_text,18)};});
-  });
-  return {jobsByDate:jobsByDate, dispatchByDate:dispatchByDate, notesByDate:notesByDate};
-}
-
-function _calChipsHtml(ymd,maps){
-  var items=[];
-  (maps.jobsByDate[ymd]||[]).forEach(function(j){items.push({cls:'cdc-job',label:j.label,onclick:'event.stopPropagation();editJob('+j.id+')'});});
-  (maps.dispatchByDate[ymd]||[]).forEach(function(d){items.push({cls:'cdc-dispatch',label:d.label});});
-  (maps.notesByDate[ymd]||[]).forEach(function(n){items.push({cls:'cdc-note',label:'📝 '+n.label});});
-  if(!items.length) return '';
-  var MAX=3;
-  var shown=items.slice(0,MAX);
-  var extra=items.length-shown.length;
-  var html=shown.map(function(it){
-    return '<div class="cal-day-chip '+it.cls+'"'+(it.onclick?' onclick="'+it.onclick+'"':'')+'>'+escH(it.label)+'</div>';
-  }).join('');
-  if(extra>0) html+='<div class="cal-day-chip cdc-more">+'+extra+' อื่นๆ</div>';
-  return html;
-}
-
-// อัปเดตเฉพาะ chip ในแต่ละวัน โดยไม่ rebuild กริดทั้งหมด (กันไม่ให้ selection/scroll กระตุก)
-function calPatchDayChips(){
-  var maps=_calBuildMaps();
-  document.querySelectorAll('.cal-day[data-ymd]').forEach(function(cell){
-    var ymd=cell.getAttribute('data-ymd');
-    var chipsEl=cell.querySelector('.cal-day-chips');
-    if(chipsEl) chipsEl.innerHTML=_calChipsHtml(ymd,maps);
-    if(maps.jobsByDate[ymd]&&maps.jobsByDate[ymd].length) cell.classList.add('has-job');
-    if(maps.dispatchByDate[ymd]&&maps.dispatchByDate[ymd].length) cell.classList.add('has-dispatch');
-  });
-}
-
 function calRender(){
   var now=new Date(), todayY=now.getFullYear(), todayM=now.getMonth(), todayD=now.getDate();
   var el=document.getElementById('calMonthLabel');
   if(el) el.textContent=new Date(calYear,calMonth,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
-  var maps=_calBuildMaps();
+  var jobDates={};
+  (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)jobDates[d]=(jobDates[d]||0)+1;});
+  // รวม dispatch dates จาก localStorage (sync) + Supabase cache
+  var dispatchDates={};
+  try{
+    var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
+    dlist.forEach(function(d){if(d.date_of_work) dispatchDates[d.date_of_work]=(dispatchDates[d.date_of_work]||0)+1;});
+  }catch(e){}
+  // เพิ่มจาก _calDispatchCache (ที่โหลดจาก Supabase)
+  Object.values(_calDispatchCache||{}).forEach(function(arr){
+    arr.forEach(function(d){if(d.date_of_work) dispatchDates[d.date_of_work]=(dispatchDates[d.date_of_work]||0)+1;});
+  });
+  // ดึง dispatch จาก tech notifs (สำหรับช่าง)
+  try{
+    var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
+    tlist.forEach(function(n){if(n.date_of_work) dispatchDates[n.date_of_work]=(dispatchDates[n.date_of_work]||0)+1;});
+  }catch(e){}
   var grid=document.getElementById('calGrid');
   if(!grid)return;
   var dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
@@ -2289,27 +2173,22 @@ function calRender(){
   var first=new Date(calYear,calMonth,1).getDay();
   var days=new Date(calYear,calMonth+1,0).getDate();
   var prevDays=new Date(calYear,calMonth,0).getDate();
-  for(var i=0;i<first;i++) html+='<div class="cal-day other-month"><div class="cal-day-num">'+(prevDays-first+i+1)+'</div></div>';
+  for(var i=0;i<first;i++) html+='<div class="cal-day other-month">'+(prevDays-first+i+1)+'</div>';
   for(var d=1;d<=days;d++){
     var ymd=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var cls='cal-day';
     if(calYear===todayY&&calMonth===todayM&&d===todayD) cls+=' today';
-    if(maps.jobsByDate[ymd]&&maps.jobsByDate[ymd].length) cls+=' has-job';
-    if(maps.dispatchByDate[ymd]&&maps.dispatchByDate[ymd].length) cls+=' has-dispatch';
+    if(jobDates[ymd]) cls+=' has-job';
+    if(dispatchDates[ymd]) cls+=' has-dispatch';
     if(calSelectedDate===ymd) cls+=' selected';
-    html+='<div class="'+cls+'" data-ymd="'+ymd+'" onclick="calSelectDay(\''+ymd+'\')">'
-        +'<div class="cal-day-num">'+d+'</div>'
-        +'<div class="cal-day-chips">'+_calChipsHtml(ymd,maps)+'</div>'
-        +'</div>';
+    html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'+d+'</div>';
   }
   var rem=(first+days)%7?7-(first+days)%7:0;
-  for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month"><div class="cal-day-num">'+i+'</div></div>';
+  for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
   grid.innerHTML=html;
   calRenderToday(calSelectedDate);
-  calRenderNotes(calSelectedDate);
-  // โหลด dispatch dots + โน้ตทั้งเดือน จาก Supabase (background, ไม่บล็อก UI)
+  // โหลด dispatch dots จาก Supabase เพื่ออัปเดต dot สีส้ม (background, ไม่บล็อก UI)
   calFetchDispatchDotsAsync();
-  calFetchNotesForMonth();
 }
 
 async function calFetchDispatchDotsAsync(){
@@ -2322,8 +2201,12 @@ async function calFetchDispatchDotsAsync(){
     var query=sb.from('job_dispatches').select('id,date_of_work,technician_name,technician_id').gte('date_of_work',from).lte('date_of_work',to);
     var {data}=await query;
     if(!data||!data.length) return;
-    // เพิ่มลงใน cache (ไม่ reset calSelectedDate)
+    // เพิ่มลงใน cache และอัปเดต dot โดยไม่ reset calSelectedDate
     data.forEach(function(r){
+      if(!_calDispatchCache[r.date_of_work]){
+        // ยังไม่มีในวันนี้ ใส่ placeholder เพื่อให้ dot แสดง
+      }
+      // sync localStorage
       try{
         var existing=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
         if(!existing.find(function(e){return String(e.id)===String(r.id);})){
@@ -2332,31 +2215,19 @@ async function calFetchDispatchDotsAsync(){
         }
       }catch(e){}
     });
-    // แพทช์ chip/dot ในกริดแบบ in-place
-    calPatchDayChips();
+    // อัปเดต dot สีส้มในปฏิทินแบบ in-place (ไม่ re-render ทั้งหมด)
+    data.forEach(function(r){
+      if(!r.date_of_work) return;
+      var d=r.date_of_work.slice(8,10).replace(/^0/,'');
+      var ymd=r.date_of_work;
+      var cells=document.querySelectorAll('.cal-day');
+      cells.forEach(function(cell){
+        if(cell.getAttribute('onclick')&&cell.getAttribute('onclick').includes("'"+ymd+"'")){
+          if(!cell.classList.contains('has-dispatch')) cell.classList.add('has-dispatch');
+        }
+      });
+    });
   }catch(e){}
-}
-
-// โหลดโน้ตส่วนตัวทั้งเดือน (เฉพาะของตัวเอง) เพื่อโชว์เป็น chip บนปฏิทิน
-var _calNotesMonthLoaded={};
-async function calFetchNotesForMonth(){
-  if(!CU||!sb) return;
-  var monthKey=calYear+'-'+String(calMonth+1).padStart(2,'0');
-  if(_calNotesMonthLoaded[monthKey]){ calPatchDayChips(); return; }
-  try{
-    var from=monthKey+'-01';
-    var lastDay=new Date(calYear,calMonth+1,0).getDate();
-    var to=monthKey+'-'+String(lastDay).padStart(2,'0');
-    var {data,error}=await sb.from('calendar_notes').select('*').eq('user_id',CU.id).gte('note_date',from).lte('note_date',to).order('created_at');
-    if(!error&&data){
-      var grouped={};
-      data.forEach(function(n){ (grouped[n.note_date]=grouped[n.note_date]||[]).push(n); });
-      Object.keys(grouped).forEach(function(dt){ _calNotesCache[dt]=grouped[dt]; });
-    }
-    _calNotesMonthLoaded[monthKey]=true;
-  }catch(e){}
-  calPatchDayChips();
-  calRenderNotes(calSelectedDate);
 }
 
 function calSelectDay(ymd){
@@ -2529,91 +2400,6 @@ function calRenderToday(filterDate){
   }).join('');
   listEl.innerHTML=html;
 }
-// ===== โน้ตส่วนตัว (เห็นเฉพาะเจ้าของ) =====
-var _calNotesCache = {}; // { 'YYYY-MM-DD': [{id,note_text,...}, ...] }
-var _calNotesLoading = {};
-
-function _calTodayYmd(){
-  var now=new Date();
-  return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-}
-
-function _escNoteHtml(s){
-  return String(s==null?'':s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br>');
-}
-
-async function calLoadNotesForDate(target){
-  if(!CU||!sb) return;
-  if(_calNotesLoading[target]) return;
-  _calNotesLoading[target]=true;
-  try{
-    var {data,error}=await sb.from('calendar_notes').select('*').eq('user_id',CU.id).eq('note_date',target).order('created_at');
-    _calNotesCache[target]=(!error&&data)?data:[];
-  }catch(e){ _calNotesCache[target]=[]; }
-  _calNotesLoading[target]=false;
-  calRenderNotes(target);
-}
-
-function calRenderNotes(filterDate){
-  var todayYmd=_calTodayYmd();
-  var target=filterDate||todayYmd;
-  var listEl=document.getElementById('myNotesList');
-  if(!listEl) return;
-
-  var titleEl=document.getElementById('myNotesTitle');
-  if(titleEl){
-    var dLbl=new Date(target+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
-    titleEl.textContent = '📝 โน้ตวันที่ '+dLbl+(target===todayYmd?' (วันนี้)':'');
-  }
-  var inputEl=document.getElementById('myNoteInput');
-  if(inputEl) inputEl.dataset.target=target;
-
-  if(_calNotesCache[target]===undefined){
-    listEl.innerHTML='<div class="cal-empty">กำลังโหลด...</div>';
-    calLoadNotesForDate(target);
-    return;
-  }
-  var notes=_calNotesCache[target];
-  if(!notes.length){ listEl.innerHTML='<div class="cal-empty">ยังไม่มีโน้ต</div>'; return; }
-  listEl.innerHTML=notes.map(function(n){
-    return '<div class="cal-note-item"><div>'+_escNoteHtml(n.note_text)+'</div>'
-      +'<button class="cni-del" data-nid="'+n.id+'" data-tgt="'+target+'" onclick="calDeleteNote(this.dataset.nid,this.dataset.tgt)" title="ลบโน้ต">✕</button></div>';
-  }).join('');
-}
-
-async function calAddNote(){
-  var inputEl=document.getElementById('myNoteInput');
-  if(!inputEl) return;
-  var text=inputEl.value.trim();
-  if(!text) return;
-  if(!CU){ alert('กรุณาเข้าสู่ระบบใหม่'); return; }
-  var target=inputEl.dataset.target||_calTodayYmd();
-  var btn=document.getElementById('myNoteAddBtn');
-  if(btn) btn.disabled=true;
-  try{
-    var {data,error}=await sb.from('calendar_notes').insert({user_id:CU.id,note_date:target,note_text:text}).select().single();
-    if(error){ alert('บันทึกโน้ตไม่สำเร็จ: '+error.message); return; }
-    if(!_calNotesCache[target]) _calNotesCache[target]=[];
-    _calNotesCache[target].push(data);
-    inputEl.value='';
-    calRenderNotes(target);
-    calPatchDayChips();
-  }catch(e){ alert('บันทึกโน้ตไม่สำเร็จ'); }
-  finally{ if(btn) btn.disabled=false; }
-}
-
-async function calDeleteNote(id,target){
-  if(!confirm('ลบโน้ตนี้?')) return;
-  try{
-    await sb.from('calendar_notes').delete().eq('id',id).eq('user_id',CU.id);
-  }catch(e){}
-  if(_calNotesCache[target]) _calNotesCache[target]=_calNotesCache[target].filter(function(n){return String(n.id)!==String(id);});
-  calRenderNotes(target);
-  calPatchDayChips();
-}
-
 function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}_calDispatchCache={};_calDispatchLoading={};calRender();}
 function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}_calDispatchCache={};_calDispatchLoading={};calRender();}
 
