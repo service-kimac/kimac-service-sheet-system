@@ -113,7 +113,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .cal-toggle-btn-bar{display:none;padding:10px 12px;border:2px solid #dbeafe;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:15px;cursor:pointer;-webkit-appearance:none;}
 @media(max-width:700px){
   .cal-mob-header{display:flex!important;}
-  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;overflow-y:auto;background:#f8faff;z-index:300;padding:0;border-radius:0;}
+  .cal-sidebar{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#f8faff;z-index:300;padding:0;border-radius:0;}
   .cal-sidebar.mobile-open{display:block!important;}
   .cal-sidebar>div:not(.cal-mob-header){padding:0 12px;}
   #pg-jobs>div:first-child{flex-direction:column;}
@@ -2217,7 +2217,7 @@ var calYear=new Date().getFullYear(), calMonth=new Date().getMonth(), calSelecte
 
 function initCalendar(){ calRender(); }
 
-function calRender(){
+function calBuildGrid(){
   var now=new Date(), todayY=now.getFullYear(), todayM=now.getMonth(), todayD=now.getDate();
   var el=document.getElementById('calMonthLabel');
   if(el) el.textContent=new Date(calYear,calMonth,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
@@ -2278,6 +2278,9 @@ function calRender(){
   var rem=(first+days)%7?7-(first+days)%7:0;
   for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
   grid.innerHTML=html;
+}
+function calRender(){
+  calBuildGrid();
   calRenderToday(calSelectedDate);
   calRenderPersonalNote();
   // โหลด dispatch dots จาก Supabase เพื่ออัปเดต dot สีส้ม (background, ไม่บล็อก UI)
@@ -2509,7 +2512,7 @@ async function calFetchPersonalNotesAsync(){
       .eq('user_id',CU.id).gte('note_date',from).lte('note_date',to);
     if(error||!data) return;
     data.forEach(function(r){ _personalNotesCache[r.note_date]={id:r.id,note_text:r.note_text}; });
-    calRender();
+    calBuildGrid();
   }catch(e){ console.warn('calFetchPersonalNotesAsync:',e); }
 }
 function calRenderPersonalNote(){
@@ -2586,8 +2589,12 @@ function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}_calDispatch
 function toggleCalSidebar(){
   var sb=document.getElementById('calSidebar');
   var bd=document.getElementById('calBackdrop');
+  var willOpen=sb&&!sb.classList.contains('mobile-open');
   if(sb)sb.classList.toggle('mobile-open');
   if(bd)bd.classList.toggle('show');
+  if(window.innerWidth<=700){
+    document.body.style.overflow=willOpen?'hidden':'';
+  }
 }
 
 function newJob(){localStorage.removeItem('kjid');location.href='form.html';}
