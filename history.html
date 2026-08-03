@@ -26,10 +26,10 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));
   display:flex;align-items:center;justify-content:space-between;
   box-shadow:0 2px 16px rgba(0,0,0,.3),0 0 0 1px rgba(249,201,0,.15)}
-.tb-l{display:flex;align-items:center;gap:10px}
+.tb-l{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .tb-logo{width:34px;height:24px;object-fit:contain;border-radius:3px}
-.tb-title{color:#ffd151;font-size:17px;font-weight:800;letter-spacing:1.5px;text-shadow:0 1px 2px rgba(0,0,0,.3)}
-.tb-r{display:flex;align-items:center;gap:8px}
+.tb-title{color:#ffd151;font-size:clamp(11px,4vw,17px);font-weight:800;letter-spacing:clamp(0px,.3vw,1.5px);text-shadow:0 1px 2px rgba(0,0,0,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tb-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .avatar{width:34px;height:34px;border-radius:50%;background:#ffd151;color:#0e1c36;
   font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;
   flex-shrink:0;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
@@ -53,23 +53,32 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .pg.on{display:block}
 #pg-jobs{max-width:1160px!important;padding:12px 20px!important;}
 /* ── Calendar Sidebar ── */
-.cal-sidebar{width:300px;flex-shrink:0;position:sticky;top:12px;}
+.cal-sidebar{width:460px;flex-shrink:0;position:sticky;top:12px;}
 .cal-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.cal-header span{font-size:14px;font-weight:700;color:#1a3a6e;}
+.cal-header span{font-size:15px;font-weight:700;color:#1a3a6e;}
 .cal-nav{background:none;border:none;font-size:20px;color:#427aa1;cursor:pointer;padding:2px 10px;border-radius:6px;line-height:1;}
 .cal-nav:hover{background:#f0f4ff;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;}
-.cal-dow{color:#94a3b8;font-weight:600;padding:4px 0;font-size:10px;}
-.cal-day{padding:6px 2px;border-radius:8px;cursor:pointer;color:#374151;font-size:12px;position:relative;line-height:1.4;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;}
+.cal-dow{color:#94a3b8;font-weight:600;padding:4px 0;font-size:11px;}
+.cal-day{min-height:74px;padding:4px 3px;border-radius:8px;cursor:pointer;color:#374151;font-size:12px;
+  position:relative;line-height:1.3;display:flex;flex-direction:column;align-items:flex-start;overflow:hidden;}
+.cal-day-num{align-self:flex-start;font-weight:600;}
 .cal-day:hover{background:#f0f4ff;}
 .cal-day.has-job{color:#1a3a6e;font-weight:700;}
-.cal-day.has-job::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#16a34a;margin:2px auto 0;}
-.cal-day.has-dispatch::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#f59e0b;margin:2px auto 0;}
-.cal-day.has-job.has-dispatch::after{background:linear-gradient(to right,#16a34a 50%,#f59e0b 50%);}
 .cal-day.today{background:#e8eeff;color:#1a3a6e!important;font-weight:700;border:2px solid #1a3a6e;}
 .cal-day.selected{background:#e0eaff;color:#1a3a6e;font-weight:700;}
 .cal-day.other-month{color:#cbd5e1;}
+.cal-day-chips{display:flex;flex-direction:column;gap:2px;width:100%;margin-top:2px;}
+.cal-day-chip{width:100%;font-size:9px;font-weight:600;line-height:1.35;padding:1.5px 4px;border-radius:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;}
+.cal-day-chip.job{background:#dcfce7;color:#166534;}
+.cal-day-chip.dispatch{background:#fef3c7;color:#92400e;}
+.cal-day-chip.more{background:transparent;color:#64748b;font-weight:700;}
+@media(max-width:700px){
+  .cal-day{min-height:64px;}
+  .cal-day-chip{font-size:8.5px;}
+}
 .cal-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10px;color:#888;flex-wrap:wrap;}
 .cal-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
 .cal-dot.has-job{background:#16a34a;}
@@ -105,12 +114,17 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   #pg-jobs>div:first-child{justify-content:center;}
   #calSidebar{margin-left:20px;}
 }
+@media(min-width:701px) and (max-width:1100px){
+  .cal-sidebar{width:360px;}
+}
 [data-theme="dark"] .cal-card{background:#172033;border-color:#2a3650;}
 [data-theme="dark"] .cal-header span{color:#e2e8f0;}
 [data-theme="dark"] .cal-day{color:#cbd5e1;}
 [data-theme="dark"] .cal-day.has-job{color:#93c5fd;}
-[data-theme="dark"] .cal-day.has-job::after{background:#4ade80;}
 [data-theme="dark"] .cal-day:hover{background:#1e2d4a;}
+[data-theme="dark"] .cal-day-chip.job{background:#0f3524;color:#4ade80;}
+[data-theme="dark"] .cal-day-chip.dispatch{background:#3a2a06;color:#fbbf24;}
+[data-theme="dark"] .cal-day-chip.more{color:#94a3b8;}
 [data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
 [data-theme="dark"] .cal-day.other-month{color:#475569;}
 [data-theme="dark"] .cal-today-title{color:#e2e8f0;}
@@ -182,6 +196,15 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .bedit{background:#e8f4fb;color:#427aa1}
 .bdel{background:#fff0f0;color:#dc2626}
 .empty{text-align:center;padding:50px 20px;color:#888}
+.job-note{display:flex;align-items:flex-start;gap:6px;background:#fffbeb;border:1px solid #fde68a;
+  border-left:4px solid #f59e0b;border-radius:8px;padding:7px 9px;margin-bottom:9px;position:relative}
+.job-note-ic{font-size:13px;flex-shrink:0;line-height:1.5}
+.job-note-txt{flex:1;font-size:12px;color:#78350f;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.job-note-meta{font-size:9.5px;color:#b45309;margin-top:2px}
+.job-note-actions{display:flex;gap:3px;flex-shrink:0}
+.job-note-actions button{border:none;background:rgba(255,255,255,.7);border-radius:6px;width:20px;height:20px;
+  font-size:10px;cursor:pointer;line-height:1;color:#92400e}
+.bnote{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
 .empty-ic{font-size:44px;margin-bottom:10px}
 .ld{text-align:center;padding:40px;color:#888}
 .dots{display:inline-flex;gap:5px}
@@ -948,6 +971,18 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
   </div>
 </div>
+<!-- NOTE MODAL -->
+<div class="mo" id="noteMo">
+  <div class="mb">
+    <div class="mt">📌 โน้ตบนใบงาน <button class="mclose" onclick="closeNoteEditor()">✕</button></div>
+    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="noteJobNo" style="color:#1a3a6e"></b> — โน้ตนี้ทุกคนเห็นได้ (เช่น "ใบนี้ยังไม่เซ็น")</p>
+    <textarea id="noteText" rows="4" placeholder="พิมพ์โน้ต..." style="width:100%;padding:10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none;resize:vertical"></textarea>
+    <div class="mc">
+      <button class="mno" onclick="closeNoteEditor()">ยกเลิก</button>
+      <button class="mok" id="noteOk" style="background:#f59e0b" onclick="saveNote()">💾 บันทึกโน้ต</button>
+    </div>
+  </div>
+</div>
 <!-- EDIT PROFILE MODAL -->
 <div class="mo" id="editProfMo">
   <div class="mb">
@@ -1330,7 +1365,20 @@ function renderJobs(){
     const sw=Array.isArray(j.shared_with)?j.shared_with:[];
     const canEdit=isAdmin||j.technician_id===CU.id||sw.includes(CU.id);
     const canDelete=isAdmin||(CU&&j.technician_id===CU.id); // ทุกคนลบงานตัวเองได้
+    const canManageNote=isAdmin||(CU&&j.note_by_id===CU.id);
+    const noteHtml=j.note_text?`<div class="job-note" onclick="event.stopPropagation()">
+        <span class="job-note-ic">📌</span>
+        <div style="flex:1">
+          <div class="job-note-txt">${escapeHtml(j.note_text)}</div>
+          <div class="job-note-meta">โดย ${escapeHtml(j.note_by_name||'-')}</div>
+        </div>
+        ${canManageNote?`<div class="job-note-actions">
+          <button onclick="openNoteEditor(${j.id})" title="แก้ไขโน้ต">✏️</button>
+          <button onclick="deleteNote(${j.id})" title="ลบโน้ต">✕</button>
+        </div>`:''}
+      </div>`:'';
     return `<div class="card" onclick="editJob(${j.id})">
+      ${noteHtml}
       <div class="ch">
         <div><div class="cjno">📄 ${j.job_no||'ไม่มีเลขที่'}</div>
         <div class="cdate">📅 ${d} · 🔧 ${j.technician_name||'-'}</div></div>
@@ -1347,6 +1395,7 @@ function renderJobs(){
         <div class="cacts" onclick="event.stopPropagation()">
           ${canEdit?`<button class="bsm bedit" onclick="editJob(${j.id})">✏️ แก้ไข</button>`:'<span style="font-size:10px;color:#aaa">👁 ดูได้</span>'}
           ${isAdmin?`<button class="bsm" style="background:#eef6ff;color:#1a3a6e" onclick="openShare(${j.id})">👥 สิทธิ์</button>`:''}
+          ${!j.note_text?`<button class="bsm bnote" onclick="openNoteEditor(${j.id})">📌 เพิ่มโน้ต</button>`:''}
           ${canDelete?`<button class="bsm bdel" onclick="askDel(${j.id},'${j.job_no||j.id}')">🗑️</button>`:''}
         </div>
       </div></div>`;
@@ -2149,23 +2198,28 @@ function calRender(){
   var now=new Date(), todayY=now.getFullYear(), todayM=now.getMonth(), todayD=now.getDate();
   var el=document.getElementById('calMonthLabel');
   if(el) el.textContent=new Date(calYear,calMonth,1).toLocaleDateString('th-TH',{month:'long',year:'numeric'});
-  var jobDates={};
-  (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)jobDates[d]=(jobDates[d]||0)+1;});
-  // รวม dispatch dates จาก localStorage (sync) + Supabase cache
-  var dispatchDates={};
+  var jobsByDate={};
+  (jobs||[]).forEach(function(j){var d=(j.service_date||j.created_at||'').slice(0,10);if(d)(jobsByDate[d]=jobsByDate[d]||[]).push(j);});
+  var jobDates=jobsByDate;
+  // รวม dispatch ต่อวัน จาก localStorage (sync) + Supabase cache
+  var dispatchByDate={};
+  function pushDispatch(d){
+    if(!d||!d.date_of_work)return;
+    var arr=(dispatchByDate[d.date_of_work]=dispatchByDate[d.date_of_work]||[]);
+    if(!arr.find(function(x){return String(x.id)===String(d.id)&&d.id!=null;})) arr.push(d);
+  }
   try{
     var dlist=JSON.parse(localStorage.getItem('kimac_dispatches')||'[]');
-    dlist.forEach(function(d){if(d.date_of_work) dispatchDates[d.date_of_work]=(dispatchDates[d.date_of_work]||0)+1;});
+    dlist.forEach(pushDispatch);
   }catch(e){}
   // เพิ่มจาก _calDispatchCache (ที่โหลดจาก Supabase)
-  Object.values(_calDispatchCache||{}).forEach(function(arr){
-    arr.forEach(function(d){if(d.date_of_work) dispatchDates[d.date_of_work]=(dispatchDates[d.date_of_work]||0)+1;});
-  });
+  Object.values(_calDispatchCache||{}).forEach(function(arr){ arr.forEach(pushDispatch); });
   // ดึง dispatch จาก tech notifs (สำหรับช่าง)
   try{
     var tlist=JSON.parse(localStorage.getItem('kimac_tech_notifs_'+((CU&&CU.id)||'x'))||'[]');
-    tlist.forEach(function(n){if(n.date_of_work) dispatchDates[n.date_of_work]=(dispatchDates[n.date_of_work]||0)+1;});
+    tlist.forEach(pushDispatch);
   }catch(e){}
+  var dispatchDates=dispatchByDate;
   var grid=document.getElementById('calGrid');
   if(!grid)return;
   var dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
@@ -2178,10 +2232,23 @@ function calRender(){
     var ymd=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var cls='cal-day';
     if(calYear===todayY&&calMonth===todayM&&d===todayD) cls+=' today';
-    if(jobDates[ymd]) cls+=' has-job';
-    if(dispatchDates[ymd]) cls+=' has-dispatch';
+    var dayJobs=jobsByDate[ymd]||[];
+    var dayDisp=dispatchByDate[ymd]||[];
+    if(dayJobs.length) cls+=' has-job';
+    if(dayDisp.length) cls+=' has-dispatch';
     if(calSelectedDate===ymd) cls+=' selected';
-    html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'+d+'</div>';
+    var items=[];
+    dayJobs.forEach(function(j){items.push({txt:j.company||j.job_no||'งาน',type:'job'});});
+    dayDisp.forEach(function(dd){items.push({txt:dd.technician_name||'ส่งงาน',type:'dispatch'});});
+    var maxShow=2;
+    var chipsHtml=items.slice(0,maxShow).map(function(it){
+      return '<div class="cal-day-chip '+it.type+'">'+escapeHtml(it.txt)+'</div>';
+    }).join('');
+    if(items.length>maxShow) chipsHtml+='<div class="cal-day-chip more">+'+(items.length-maxShow)+' เพิ่มเติม</div>';
+    html+='<div class="'+cls+'" onclick="calSelectDay(\''+ymd+'\')">'
+      +'<span class="cal-day-num">'+d+'</span>'
+      +(chipsHtml?'<div class="cal-day-chips">'+chipsHtml+'</div>':'')
+      +'</div>';
   }
   var rem=(first+days)%7?7-(first+days)%7:0;
   for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
@@ -3259,6 +3326,56 @@ async function saveDispatch() {
 // ===== SHARE / ACCESS =====
 let shareId=null;
 
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+let noteJobId=null;
+function openNoteEditor(id){
+  const j=jobs.find(x=>x.id===id);
+  if(!j)return;
+  const isAdmin=CP?.role==='admin';
+  if(j.note_text && !(isAdmin||(CU&&j.note_by_id===CU.id))){
+    toast('❌ แก้ไข/ลบโน้ตนี้ได้เฉพาะคนเขียนหรือแอดมิน','err');
+    return;
+  }
+  noteJobId=id;
+  document.getElementById('noteJobNo').textContent=j.job_no||id;
+  document.getElementById('noteText').value=j.note_text||'';
+  document.getElementById('noteMo').classList.add('open');
+}
+function closeNoteEditor(){noteJobId=null;document.getElementById('noteMo').classList.remove('open');}
+async function saveNote(){
+  if(!noteJobId)return;
+  const jid=noteJobId;
+  const txt=(document.getElementById('noteText').value||'').trim();
+  const btn=document.getElementById('noteOk');btn.textContent='กำลังบันทึก...';btn.disabled=true;
+  try{
+    const payload=txt
+      ? {note_text:txt,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
+      : {note_text:null,note_by_id:null,note_by_name:null,note_at:null};
+    const{error}=await sb.from('service_jobs').update(payload).eq('id',jid);
+    if(error)throw error;
+    closeNoteEditor();await loadJobs();toast('✅ บันทึกโน้ตแล้ว','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
+  btn.textContent='💾 บันทึกโน้ต';btn.disabled=false;
+}
+async function deleteNote(id){
+  const j=jobs.find(x=>x.id===id);
+  if(!j)return;
+  const isAdmin=CP?.role==='admin';
+  if(!(isAdmin||(CU&&j.note_by_id===CU.id))){
+    toast('❌ ลบโน้ตนี้ได้เฉพาะคนเขียนหรือแอดมิน','err');
+    return;
+  }
+  if(!confirm('ลบโน้ตนี้?'))return;
+  try{
+    const{error}=await sb.from('service_jobs').update({note_text:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
+    if(error)throw error;
+    await loadJobs();toast('✅ ลบโน้ตแล้ว','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
+}
 async function openShare(id){
   const j=jobs.find(x=>x.id===id);
   if(!j)return;
