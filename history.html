@@ -15,7 +15,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<title>ระบบบันทึกงานบริการคีแมค</title>
+<title>บันทึกงานบริการคีแมค</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -74,7 +74,16 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;}
 .cal-day-chip.job{background:#dcfce7;color:#166534;}
 .cal-day-chip.dispatch{background:#fef3c7;color:#92400e;}
+.cal-day-chip.personal{background:#ede9fe;color:#5b21b6;}
 .cal-day-chip.more{background:transparent;color:#64748b;font-weight:700;}
+.pn-empty{color:#aaa;font-size:12px;text-align:center;padding:10px 0;}
+.pn-view{background:#f5f3ff;border:1px solid #ddd6fe;border-left:3px solid #7c3aed;border-radius:8px;padding:8px 10px;font-size:12px;color:#4c1d95;white-space:pre-wrap;word-break:break-word;}
+.pn-actions{display:flex;gap:6px;margin-top:6px;}
+.pn-actions button{flex:1;border:none;border-radius:8px;padding:6px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;cursor:pointer;}
+.pn-edit-btn{background:#ede9fe;color:#5b21b6;}
+.pn-del-btn{background:#fff0f0;color:#dc2626;}
+.pn-textarea{width:100%;padding:8px;border:2px solid #ddd6fe;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;outline:none;resize:vertical;min-height:60px;}
+.pn-save-btn{margin-top:6px;width:100%;border:none;border-radius:8px;padding:8px;background:#7c3aed;color:#fff;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
 @media(max-width:700px){
   .cal-day{min-height:64px;}
   .cal-day-chip{font-size:8.5px;}
@@ -124,7 +133,10 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 [data-theme="dark"] .cal-day:hover{background:#1e2d4a;}
 [data-theme="dark"] .cal-day-chip.job{background:#0f3524;color:#4ade80;}
 [data-theme="dark"] .cal-day-chip.dispatch{background:#3a2a06;color:#fbbf24;}
+[data-theme="dark"] .cal-day-chip.personal{background:#2e1065;color:#c4b5fd;}
 [data-theme="dark"] .cal-day-chip.more{color:#94a3b8;}
+[data-theme="dark"] .pn-view{background:#241a3d;border-color:#4c1d95;color:#ddd6fe;}
+[data-theme="dark"] .pn-textarea{background:#1a2332;border-color:#4c1d95;color:#e2e8f0;}
 [data-theme="dark"] .cal-day.selected{background:#1e3a5c;}
 [data-theme="dark"] .cal-day.other-month{color:#475569;}
 [data-theme="dark"] .cal-today-title{color:#e2e8f0;}
@@ -581,7 +593,7 @@ button:active {
   <div class="tb-l">
     <img class="tb-logo" id="logo" src="" alt="KIMAC" style="width:36px;height:36px;object-fit:contain;border-radius:50%;flex-shrink:0" onerror="this.style.display='none'">
     <img id="kimacLogoHist" style="display:none;position:absolute" src="" alt="">
-    <span class="tb-title">ระบบบันทึกงานบริการคีแมค</span>
+    <span class="tb-title">บันทึกงานบริการคีแมค</span>
   </div>
   <div class="tb-r">
     <div class="uinfo" onclick="swPg('settings')" style="cursor:pointer">
@@ -659,7 +671,12 @@ button:active {
           <div class="cal-legend">
             <span class="cal-dot has-job"></span><span>มีใบงาน</span>
             <span class="cal-dot has-dispatch"></span><span>งานแอดมินส่ง</span>
+            <span class="cal-dot" style="background:#7c3aed"></span><span>โน้ตของฉัน</span>
           </div>
+        </div>
+        <div class="cal-card" style="margin-top:10px;">
+          <div class="cal-today-title">📝 โน้ตส่วนตัวของฉัน <span style="font-size:9px;color:#94a3b8;font-weight:400">(เห็นคนเดียว)</span></div>
+          <div id="personalNoteBody"></div>
         </div>
         <div class="cal-card" style="margin-top:10px;">
           <div class="cal-today-title">📋 งานวันนี้ <span id="todayCount" class="cal-count">0</span></div>
@@ -976,12 +993,16 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- NOTE MODAL -->
 <div class="mo" id="noteMo">
   <div class="mb">
-    <div class="mt">📌 โน้ตบนใบงาน <button class="mclose" onclick="closeNoteEditor()">✕</button></div>
-    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="noteJobNo" style="color:#1a3a6e"></b> — โน้ตนี้ทุกคนเห็นได้ (เช่น "ใบนี้ยังไม่เซ็น")</p>
-    <textarea id="noteText" rows="4" placeholder="พิมพ์โน้ต..." style="width:100%;padding:10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none;resize:vertical"></textarea>
+    <div class="mt">📌 โน้ตบนใบงาน (แอดมิน) <button class="mclose" onclick="closeNoteEditor()">✕</button></div>
+    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="noteJobNo" style="color:#1a3a6e"></b> — โน้ตนี้ทุกคนเห็นได้ (เช่น "ใบนี้ยังไม่เซ็น") บันทึกแล้วจะแจ้งเตือนช่างเจ้าของงานทันที</p>
+    <textarea id="noteText" rows="4" placeholder="พิมพ์โน้ต... เช่น ยังไม่เซ็นใบงาน โดนค่าปรับ 20/วัน" style="width:100%;padding:10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none;resize:vertical"></textarea>
+    <div style="margin-top:10px">
+      <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">จำนวนวัน (ถ้ามี — กรอกเองตามที่นับไว้)</div>
+      <input type="number" id="noteDays" min="0" step="1" placeholder="เช่น 3" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none">
+    </div>
     <div class="mc">
       <button class="mno" onclick="closeNoteEditor()">ยกเลิก</button>
-      <button class="mok" id="noteOk" style="background:#f59e0b" onclick="saveNote()">💾 บันทึกโน้ต</button>
+      <button class="mok" id="noteOk" style="background:#f59e0b" onclick="saveNote()">💾 บันทึก & แจ้งเตือนช่าง</button>
     </div>
   </div>
 </div>
@@ -1367,11 +1388,11 @@ function renderJobs(){
     const sw=Array.isArray(j.shared_with)?j.shared_with:[];
     const canEdit=isAdmin||j.technician_id===CU.id||sw.includes(CU.id);
     const canDelete=isAdmin||(CU&&j.technician_id===CU.id); // ทุกคนลบงานตัวเองได้
-    const canManageNote=isAdmin||(CU&&j.note_by_id===CU.id);
+    const canManageNote=isAdmin;
     const noteHtml=j.note_text?`<div class="job-note" onclick="event.stopPropagation()">
         <span class="job-note-ic">📌</span>
         <div style="flex:1">
-          <div class="job-note-txt">${escapeHtml(j.note_text)}</div>
+          <div class="job-note-txt">${escapeHtml(j.note_text)}${j.note_days!=null?` <b style="color:#dc2626">(ค้าง ${j.note_days} วัน)</b>`:''}</div>
           <div class="job-note-meta">โดย ${escapeHtml(j.note_by_name||'-')}</div>
         </div>
         ${canManageNote?`<div class="job-note-actions">
@@ -1397,7 +1418,7 @@ function renderJobs(){
         <div class="cacts" onclick="event.stopPropagation()">
           ${canEdit?`<button class="bsm bedit" onclick="editJob(${j.id})">✏️ แก้ไข</button>`:'<span style="font-size:10px;color:#aaa">👁 ดูได้</span>'}
           ${isAdmin?`<button class="bsm" style="background:#eef6ff;color:#1a3a6e" onclick="openShare(${j.id})">👥 สิทธิ์</button>`:''}
-          ${!j.note_text?`<button class="bsm bnote" onclick="openNoteEditor(${j.id})">📌 เพิ่มโน้ต</button>`:''}
+          ${!j.note_text&&isAdmin?`<button class="bsm bnote" onclick="openNoteEditor(${j.id})">📌 เพิ่มโน้ต</button>`:''}
           ${canDelete?`<button class="bsm bdel" onclick="askDel(${j.id},'${j.job_no||j.id}')">🗑️</button>`:''}
         </div>
       </div></div>`;
@@ -2242,6 +2263,8 @@ function calRender(){
     var items=[];
     dayJobs.forEach(function(j){items.push({txt:j.company||j.job_no||'งาน',type:'job'});});
     dayDisp.forEach(function(dd){items.push({txt:dd.technician_name||'ส่งงาน',type:'dispatch'});});
+    var pn=_personalNotesCache[ymd];
+    if(pn&&pn.note_text){items.push({txt:pn.note_text,type:'personal'});}
     var maxShow=2;
     var chipsHtml=items.slice(0,maxShow).map(function(it){
       return '<div class="cal-day-chip '+it.type+'">'+escapeHtml(it.txt)+'</div>';
@@ -2256,8 +2279,10 @@ function calRender(){
   for(var i=1;i<=rem;i++) html+='<div class="cal-day other-month">'+i+'</div>';
   grid.innerHTML=html;
   calRenderToday(calSelectedDate);
+  calRenderPersonalNote();
   // โหลด dispatch dots จาก Supabase เพื่ออัปเดต dot สีส้ม (background, ไม่บล็อก UI)
   calFetchDispatchDotsAsync();
+  calFetchPersonalNotesAsync();
 }
 
 async function calFetchDispatchDotsAsync(){
@@ -2313,6 +2338,7 @@ function calSelectDay(ymd){
 
 // ปฏิทิน: cache dispatch ที่ดึงจาก Supabase แยกตามวัน
 var _calDispatchCache = {}; // { 'YYYY-MM-DD': [dispatch,...] }
+var _personalNotesCache = {}; // { 'YYYY-MM-DD': {id, note_text} } — เฉพาะของ CU เอง
 var _calDispatchLoading = {};
 
 async function calLoadDispatchForDate(target) {
@@ -2469,8 +2495,93 @@ function calRenderToday(filterDate){
   }).join('');
   listEl.innerHTML=html;
 }
-function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}_calDispatchCache={};_calDispatchLoading={};calRender();}
-function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}_calDispatchCache={};_calDispatchLoading={};calRender();}
+
+// ── โน้ตส่วนตัวบนปฏิทิน (calendar_notes) — เห็นเฉพาะ CU เอง ──
+var _pnEditMode=false;
+async function calFetchPersonalNotesAsync(){
+  try{
+    if(!CU||!sb) return;
+    var monthStr=calYear+'-'+String(calMonth+1).padStart(2,'0');
+    var from=monthStr+'-01';
+    var lastDay=new Date(calYear,calMonth+1,0).getDate();
+    var to=monthStr+'-'+String(lastDay).padStart(2,'0');
+    var {data,error}=await sb.from('calendar_notes').select('id,note_date,note_text')
+      .eq('user_id',CU.id).gte('note_date',from).lte('note_date',to);
+    if(error||!data) return;
+    data.forEach(function(r){ _personalNotesCache[r.note_date]={id:r.id,note_text:r.note_text}; });
+    calRender();
+  }catch(e){ console.warn('calFetchPersonalNotesAsync:',e); }
+}
+function calRenderPersonalNote(){
+  var body=document.getElementById('personalNoteBody');
+  if(!body) return;
+  _pnEditMode=false;
+  if(!calSelectedDate){
+    body.innerHTML='<div class="pn-empty">แตะวันที่บนปฏิทินเพื่อเพิ่มโน้ตส่วนตัว</div>';
+    return;
+  }
+  var dLabel=new Date(calSelectedDate+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  var existing=_personalNotesCache[calSelectedDate];
+  if(existing&&existing.note_text){
+    body.innerHTML='<div style="font-size:10px;color:#94a3b8;margin-bottom:5px">📅 '+dLabel+'</div>'
+      +'<div class="pn-view">'+escapeHtml(existing.note_text)+'</div>'
+      +'<div class="pn-actions">'
+      +'<button class="pn-edit-btn" onclick="calShowPersonalNoteEditor()">✏️ แก้ไข</button>'
+      +'<button class="pn-del-btn" onclick="deletePersonalNote()">🗑️ ลบ</button>'
+      +'</div>';
+  }else{
+    calShowPersonalNoteEditor(dLabel);
+  }
+}
+function calShowPersonalNoteEditor(dLabel){
+  var body=document.getElementById('personalNoteBody');
+  if(!body) return;
+  if(!calSelectedDate) return;
+  dLabel=dLabel||new Date(calSelectedDate+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  var existing=_personalNotesCache[calSelectedDate];
+  body.innerHTML='<div style="font-size:10px;color:#94a3b8;margin-bottom:5px">📅 '+dLabel+'</div>'
+    +'<textarea id="pnTextarea" class="pn-textarea" placeholder="เช่น ไปติดตั้งงาน CPF จักราช...">'+escapeHtml((existing&&existing.note_text)||'')+'</textarea>'
+    +'<button class="pn-save-btn" onclick="savePersonalNote()">💾 บันทึกโน้ต</button>';
+  var ta=document.getElementById('pnTextarea'); if(ta) ta.focus();
+}
+async function savePersonalNote(){
+  if(!calSelectedDate||!CU) return;
+  var ta=document.getElementById('pnTextarea'); if(!ta) return;
+  var txt=(ta.value||'').trim();
+  if(!txt){ toast('❌ กรุณาพิมพ์โน้ต','err'); return; }
+  var existing=_personalNotesCache[calSelectedDate];
+  try{
+    if(existing&&existing.id){
+      var {error}=await sb.from('calendar_notes').update({note_text:txt}).eq('id',existing.id);
+      if(error)throw error;
+      _personalNotesCache[calSelectedDate]={id:existing.id,note_text:txt};
+    }else{
+      var {data,error:err2}=await sb.from('calendar_notes').insert({user_id:CU.id,note_date:calSelectedDate,note_text:txt}).select().single();
+      if(err2)throw err2;
+      _personalNotesCache[calSelectedDate]={id:data.id,note_text:txt};
+    }
+    calRenderPersonalNote();
+    calRender();
+    toast('✅ บันทึกโน้ตแล้ว','ok');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+}
+async function deletePersonalNote(){
+  if(!calSelectedDate) return;
+  var existing=_personalNotesCache[calSelectedDate];
+  if(!existing||!existing.id) return;
+  if(!confirm('ลบโน้ตส่วนตัววันนี้?')) return;
+  try{
+    var{error}=await sb.from('calendar_notes').delete().eq('id',existing.id);
+    if(error)throw error;
+    delete _personalNotesCache[calSelectedDate];
+    calRenderPersonalNote();
+    calRender();
+    toast('✅ ลบโน้ตแล้ว','ok');
+  }catch(e){ toast('❌ '+e.message,'err'); }
+}
+
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}_calDispatchCache={};_calDispatchLoading={};_personalNotesCache={};calRender();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}_calDispatchCache={};_calDispatchLoading={};_personalNotesCache={};calRender();}
 
 function toggleCalSidebar(){
   var sb=document.getElementById('calSidebar');
@@ -3338,42 +3449,57 @@ function openNoteEditor(id){
   const j=jobs.find(x=>x.id===id);
   if(!j)return;
   const isAdmin=CP?.role==='admin';
-  if(j.note_text && !(isAdmin||(CU&&j.note_by_id===CU.id))){
-    toast('❌ แก้ไข/ลบโน้ตนี้ได้เฉพาะคนเขียนหรือแอดมิน','err');
+  if(!isAdmin){
+    toast('❌ เพิ่ม/แก้ไขโน้ตได้เฉพาะแอดมินเท่านั้น','err');
     return;
   }
   noteJobId=id;
   document.getElementById('noteJobNo').textContent=j.job_no||id;
   document.getElementById('noteText').value=j.note_text||'';
+  document.getElementById('noteDays').value=(j.note_days!=null?j.note_days:'');
   document.getElementById('noteMo').classList.add('open');
 }
 function closeNoteEditor(){noteJobId=null;document.getElementById('noteMo').classList.remove('open');}
 async function saveNote(){
   if(!noteJobId)return;
   const jid=noteJobId;
+  const j=jobs.find(x=>x.id===jid);
   const txt=(document.getElementById('noteText').value||'').trim();
+  const daysRaw=(document.getElementById('noteDays').value||'').trim();
+  const days=daysRaw===''?null:parseInt(daysRaw,10);
   const btn=document.getElementById('noteOk');btn.textContent='กำลังบันทึก...';btn.disabled=true;
   try{
     const payload=txt
-      ? {note_text:txt,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
-      : {note_text:null,note_by_id:null,note_by_name:null,note_at:null};
+      ? {note_text:txt,note_days:days,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
+      : {note_text:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null};
     const{error}=await sb.from('service_jobs').update(payload).eq('id',jid);
     if(error)throw error;
-    closeNoteEditor();await loadJobs();toast('✅ บันทึกโน้ตแล้ว','ok');
+    // แจ้งเตือนช่างเจ้าของงานทันทีที่แอดมินบันทึก/อัปเดตโน้ต
+    if(txt && j && j.technician_id){
+      try{
+        await sb.functions.invoke('notify-push',{body:{
+          user_id:j.technician_id,
+          title:'📌 โน้ตใหม่บนใบงาน '+(j.job_no||''),
+          body:txt+(days!=null?' (ค้าง '+days+' วัน)':''),
+          data:{type:'job_note',job_id:jid}
+        }});
+      }catch(e){ console.warn('notify-push job_note:',e); }
+    }
+    closeNoteEditor();await loadJobs();toast('✅ บันทึกโน้ตและแจ้งเตือนช่างแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
-  btn.textContent='💾 บันทึกโน้ต';btn.disabled=false;
+  btn.textContent='💾 บันทึก & แจ้งเตือนช่าง';btn.disabled=false;
 }
 async function deleteNote(id){
   const j=jobs.find(x=>x.id===id);
   if(!j)return;
   const isAdmin=CP?.role==='admin';
-  if(!(isAdmin||(CU&&j.note_by_id===CU.id))){
-    toast('❌ ลบโน้ตนี้ได้เฉพาะคนเขียนหรือแอดมิน','err');
+  if(!isAdmin){
+    toast('❌ ลบโน้ตได้เฉพาะแอดมินเท่านั้น','err');
     return;
   }
   if(!confirm('ลบโน้ตนี้?'))return;
   try{
-    const{error}=await sb.from('service_jobs').update({note_text:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
+    const{error}=await sb.from('service_jobs').update({note_text:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
     if(error)throw error;
     await loadJobs();toast('✅ ลบโน้ตแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
