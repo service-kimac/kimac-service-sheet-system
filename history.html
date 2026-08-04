@@ -53,7 +53,7 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .pg.on{display:block}
 #pg-jobs{max-width:1160px!important;padding:12px 20px!important;}
 /* ── Calendar Sidebar ── */
-.cal-sidebar{width:460px;flex-shrink:0;align-self:flex-start;position:sticky;top:76px;max-height:calc(100vh - 88px);max-height:calc(100dvh - 88px);overflow-y:auto;overscroll-behavior:contain;}
+.cal-sidebar{width:460px;flex-shrink:0;align-self:flex-start;max-height:80vh;max-height:80dvh;overflow-y:auto;overscroll-behavior:contain;}
 .cal-card{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1.5px solid #e8eef8;}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .cal-header span{font-size:15px;font-weight:700;color:#1a3a6e;}
@@ -994,11 +994,23 @@ document.addEventListener('DOMContentLoaded', function () {
 <div class="mo" id="noteMo">
   <div class="mb">
     <div class="mt">📌 โน้ตบนใบงาน (แอดมิน) <button class="mclose" onclick="closeNoteEditor()">✕</button></div>
-    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="noteJobNo" style="color:#1a3a6e"></b> — โน้ตนี้ทุกคนเห็นได้ (เช่น "ใบนี้ยังไม่เซ็น") บันทึกแล้วจะแจ้งเตือนช่างเจ้าของงานทันที</p>
-    <textarea id="noteText" rows="4" placeholder="พิมพ์โน้ต... เช่น ยังไม่เซ็นใบงาน โดนค่าปรับ 20/วัน" style="width:100%;padding:10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none;resize:vertical"></textarea>
-    <div style="margin-top:10px">
-      <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">จำนวนวัน (ถ้ามี — กรอกเองตามที่นับไว้)</div>
-      <input type="number" id="noteDays" min="0" step="1" placeholder="เช่น 3" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none">
+    <p style="font-size:12px;color:#666;margin-bottom:6px">ใบงาน <b id="noteJobNo" style="color:#1a3a6e"></b> — โน้ตนี้ทุกคนเห็นได้ บันทึกแล้วจะแจ้งเตือนช่างเจ้าของงานทันที</p>
+    <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">หัวข้อโน้ต</div>
+    <textarea id="noteText" rows="3" placeholder="เช่น ยังไม่เซ็นใบงาน" style="width:100%;padding:10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none;resize:vertical"></textarea>
+    <label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:#1a3a6e;font-weight:700;cursor:pointer">
+      <input type="checkbox" id="noteHasDate" onchange="toggleNoteDateFields()" style="width:16px;height:16px">
+      มีวันที่ค้าง (คำนวณจำนวนวัน/เงินให้อัตโนมัติ)
+    </label>
+    <div id="noteDateFields" style="display:none;margin-top:8px;gap:8px;flex-direction:column">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">วันที่เริ่มค้าง (ถึงวันปัจจุบันอัตโนมัติ)</div>
+        <input type="date" id="noteStartDate" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">ค่าปรับต่อวัน (บาท — ถ้ามี)</div>
+        <input type="number" id="noteRate" min="0" step="1" placeholder="เช่น 20" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none">
+      </div>
+      <div id="notePreview" style="font-size:12px;color:#dc2626;font-weight:700;"></div>
     </div>
     <div class="mc">
       <button class="mno" onclick="closeNoteEditor()">ยกเลิก</button>
@@ -1389,10 +1401,16 @@ function renderJobs(){
     const canEdit=isAdmin||j.technician_id===CU.id||sw.includes(CU.id);
     const canDelete=isAdmin||(CU&&j.technician_id===CU.id); // ทุกคนลบงานตัวเองได้
     const canManageNote=isAdmin;
+    let noteDaysLive=null;
+    if(j.note_start_date){
+      const _st=new Date(j.note_start_date+'T00:00:00');
+      if(!isNaN(_st)){ const _td=new Date(); _td.setHours(0,0,0,0); noteDaysLive=Math.max(0,Math.floor((_td-_st)/86400000)); }
+    }
+    const noteMoneyLive=(noteDaysLive!=null&&j.note_rate)?(noteDaysLive*j.note_rate):null;
     const noteHtml=j.note_text?`<div class="job-note" onclick="event.stopPropagation()">
         <span class="job-note-ic">📌</span>
         <div style="flex:1">
-          <div class="job-note-txt">${escapeHtml(j.note_text)}${j.note_days!=null?` <b style="color:#dc2626">(ค้าง ${j.note_days} วัน)</b>`:''}</div>
+          <div class="job-note-txt">${escapeHtml(j.note_text)}${noteDaysLive!=null?` <b style="color:#dc2626">(ค้าง ${noteDaysLive} วัน${noteMoneyLive!=null?` ≈ ${noteMoneyLive.toLocaleString('th-TH')} บาท`:''})</b>`:''}</div>
           <div class="job-note-meta">โดย ${escapeHtml(j.note_by_name||'-')}</div>
         </div>
         ${canManageNote?`<div class="job-note-actions">
@@ -2127,7 +2145,7 @@ async function _pdfRenderOne(env, job, parts, J){
     +'</div>'
     +fieldRow(field('เครื่อง :',job.machine_name||'')+field('รุ่น :',job.machine_model||'')+field('S/N :',job.machine_sn||'')+fieldLast('วันที่ซื้อ :',fmtDate(job.purchase_date)))
     +'<div style="font-size:11px;font-weight:600;color:#444;margin-bottom:1px;line-height:1.35;">รายละเอียด :</div>'
-    +'<div style="border:1.5px solid #ffd151;border-radius:4px;background:rgba(255,255,255,0.7);padding:4px;font-size:11px;line-height:18px;color:#222;white-space:pre-wrap;word-break:break-word;min-height:80px;box-sizing:border-box;">'+escH(job.machine_detail||'')+'</div>'
+    +'<div id="pdfDetailBox" style="border:1.5px solid #ffd151;border-radius:4px;background:rgba(255,255,255,0.7);padding:4px;font-size:11px;line-height:18px;color:#222;white-space:pre-wrap;word-break:break-word;min-height:80px;box-sizing:border-box;">'+escH(job.machine_detail||'')+'</div>'
     // s3
     +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:2px;margin-top:3px;line-height:1.35;">ส่วนที่ 3 รายการอะไหล่ที่เปลี่ยน</div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed;margin-bottom:2px;">'
@@ -2152,7 +2170,7 @@ async function _pdfRenderOne(env, job, parts, J){
     +'<div style="background:#fff;border:1px solid #ffd151;border-radius:4px;padding:3px 8px;margin-bottom:3px;font-size:11px;display:flex;align-items:center;gap:12px;flex-wrap:nowrap;line-height:1.35;">'+feeHTML+'</div>'
     // s5
     +'<div style="background:#427aa1;color:#fff;padding:2px 6px;font-weight:700;font-size:12px;border-radius:3px;margin-bottom:3px;margin-top:2px;line-height:1.35;">ส่วนที่ 5 ลูกค้า / ผู้ให้บริการ</div>'
-    +'<div style="display:flex;gap:8px;flex:1;min-height:110px;align-items:stretch;">'
+    +'<div id="pdfSigSection" style="display:flex;gap:8px;flex:1;min-height:110px;align-items:stretch;">'
     +sigBox('ลายเซ็นช่างผู้ให้บริการ',job.tech_sig_data,job.tech_name_sign||job.technician_name,job.tech_sign_date,'')
     +sigBox('ลายเซ็นลูกค้า / ผู้ตรวจรับงาน',job.cust_sig_data,job.cust_name_sign,job.cust_sign_date,job.cust_dept)
     +'</div>'
@@ -2178,11 +2196,32 @@ async function _pdfRenderOne(env, job, parts, J){
   var pageEl=iDoc.body.firstElementChild;
   void pageEl.offsetHeight;
   // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 (เช่น ที่อยู่ยาว/รายการอะไหล่เยอะ)
-  // ให้ย่อสเกลทั้งหน้าลงพอดีกับ 1123px เสมอ ก่อนจับภาพ
+  // ขั้นที่ 1: ลดความสูงขั้นต่ำของ "กล่องรายละเอียด" และ "กล่องลายเซ็น" ก่อน (ไม่กระทบขนาดตัวหนังสือ)
+  // ขั้นที่ 2 (ถ้ายังไม่พอจริงๆ): ค่อยย่อสเกลทั้งหน้าเป็นทางเลือกสุดท้าย
   pageEl.style.height='auto';
   void pageEl.offsetHeight;
   var naturalH=pageEl.scrollHeight;
   if(naturalH>A4H){
+    var overflowPx=naturalH-A4H;
+    var detailBox=iDoc.getElementById('pdfDetailBox');
+    var sigSection=iDoc.getElementById('pdfSigSection');
+    if(detailBox&&overflowPx>0){
+      var newDetailMin=Math.max(34,80-overflowPx);
+      detailBox.style.minHeight=newDetailMin+'px';
+      void pageEl.offsetHeight;
+      naturalH=pageEl.scrollHeight;
+      overflowPx=naturalH-A4H;
+    }
+    if(sigSection&&overflowPx>0){
+      var newSigMin=Math.max(64,110-overflowPx);
+      sigSection.style.minHeight=newSigMin+'px';
+      void pageEl.offsetHeight;
+      naturalH=pageEl.scrollHeight;
+      overflowPx=naturalH-A4H;
+    }
+  }
+  if(naturalH>A4H){
+    // ทางเลือกสุดท้าย: ย่อสเกลทั้งหน้าลงพอดี (เผื่อกรณีเนื้อหายาวมากจริงๆ)
     var _pdfScale=A4H/naturalH;
     pageEl.style.transformOrigin='top left';
     pageEl.style.transform='scale('+_pdfScale+')';
@@ -2558,7 +2597,7 @@ function calShowPersonalNoteEditor(dLabel){
   dLabel=dLabel||new Date(calSelectedDate+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
   var existing=_personalNotesCache[calSelectedDate];
   body.innerHTML='<div style="font-size:10px;color:#94a3b8;margin-bottom:5px">📅 '+dLabel+'</div>'
-    +'<textarea id="pnTextarea" class="pn-textarea" placeholder="เช่น ไปติดตั้งงาน CPF จักราช...">'+escapeHtml((existing&&existing.note_text)||'')+'</textarea>'
+    +'<textarea id="pnTextarea" class="pn-textarea" placeholder="เพิ่มโน้ตของคุณ">'+escapeHtml((existing&&existing.note_text)||'')+'</textarea>'
     +'<button class="pn-save-btn" onclick="savePersonalNote()">💾 บันทึกโน้ต</button>';
 }
 async function savePersonalNote(){
@@ -3466,6 +3505,35 @@ function escapeHtml(s){
   });
 }
 let noteJobId=null;
+function _noteDaysFromStart(startStr){
+  if(!startStr) return null;
+  var start=new Date(startStr+'T00:00:00');
+  if(isNaN(start)) return null;
+  var today=new Date(); today.setHours(0,0,0,0);
+  var diff=Math.floor((today-start)/86400000);
+  return diff<0?0:diff;
+}
+function toggleNoteDateFields(){
+  var on=document.getElementById('noteHasDate').checked;
+  var box=document.getElementById('noteDateFields');
+  box.style.display=on?'flex':'none';
+  if(on && !document.getElementById('noteStartDate').value){
+    document.getElementById('noteStartDate').value=new Date().toISOString().slice(0,10);
+  }
+  updateNotePreview();
+}
+function updateNotePreview(){
+  var on=document.getElementById('noteHasDate').checked;
+  var prev=document.getElementById('notePreview');
+  if(!on){ prev.textContent=''; return; }
+  var start=document.getElementById('noteStartDate').value;
+  var rate=parseFloat(document.getElementById('noteRate').value||'');
+  var days=_noteDaysFromStart(start);
+  if(days==null){ prev.textContent=''; return; }
+  var txt='ค้างมาแล้ว '+days+' วัน';
+  if(!isNaN(rate)&&rate>0) txt+=' (ประมาณ '+(days*rate).toLocaleString('th-TH')+' บาท)';
+  prev.textContent=txt;
+}
 function openNoteEditor(id){
   const j=jobs.find(x=>x.id===id);
   if(!j)return;
@@ -3477,7 +3545,13 @@ function openNoteEditor(id){
   noteJobId=id;
   document.getElementById('noteJobNo').textContent=j.job_no||id;
   document.getElementById('noteText').value=j.note_text||'';
-  document.getElementById('noteDays').value=(j.note_days!=null?j.note_days:'');
+  document.getElementById('noteHasDate').checked=!!j.note_start_date;
+  document.getElementById('noteStartDate').value=j.note_start_date||'';
+  document.getElementById('noteRate').value=(j.note_rate!=null?j.note_rate:'');
+  document.getElementById('noteDateFields').style.display=j.note_start_date?'flex':'none';
+  var st=document.getElementById('noteStartDate'), rt=document.getElementById('noteRate');
+  st.oninput=updateNotePreview; rt.oninput=updateNotePreview;
+  updateNotePreview();
   document.getElementById('noteMo').classList.add('open');
 }
 function closeNoteEditor(){noteJobId=null;document.getElementById('noteMo').classList.remove('open');}
@@ -3486,22 +3560,31 @@ async function saveNote(){
   const jid=noteJobId;
   const j=jobs.find(x=>x.id===jid);
   const txt=(document.getElementById('noteText').value||'').trim();
-  const daysRaw=(document.getElementById('noteDays').value||'').trim();
-  const days=daysRaw===''?null:parseInt(daysRaw,10);
+  const hasDate=document.getElementById('noteHasDate').checked;
+  const startDate=hasDate?(document.getElementById('noteStartDate').value||null):null;
+  const rateRaw=hasDate?(document.getElementById('noteRate').value||'').trim():'';
+  const rate=rateRaw===''?null:parseFloat(rateRaw);
+  const days=hasDate?_noteDaysFromStart(startDate):null;
   const btn=document.getElementById('noteOk');btn.textContent='กำลังบันทึก...';btn.disabled=true;
   try{
     const payload=txt
-      ? {note_text:txt,note_days:days,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
-      : {note_text:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null};
+      ? {note_text:txt,note_start_date:startDate,note_rate:rate,note_days:days,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
+      : {note_text:null,note_start_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null};
     const{error}=await sb.from('service_jobs').update(payload).eq('id',jid);
     if(error)throw error;
     // แจ้งเตือนช่างเจ้าของงานทันทีที่แอดมินบันทึก/อัปเดตโน้ต
     if(txt && j && j.technician_id){
+      var pushBody=txt;
+      if(days!=null){
+        pushBody+=' (ค้าง '+days+' วัน';
+        if(rate!=null&&!isNaN(rate)&&rate>0) pushBody+=' ประมาณ '+(days*rate).toLocaleString('th-TH')+' บาท';
+        pushBody+=')';
+      }
       try{
         await sb.functions.invoke('notify-push',{body:{
           user_id:j.technician_id,
           title:'📌 โน้ตใหม่บนใบงาน '+(j.job_no||''),
-          body:txt+(days!=null?' (ค้าง '+days+' วัน)':''),
+          body:pushBody,
           data:{type:'job_note',job_id:jid}
         }});
       }catch(e){ console.warn('notify-push job_note:',e); }
@@ -3520,7 +3603,7 @@ async function deleteNote(id){
   }
   if(!confirm('ลบโน้ตนี้?'))return;
   try{
-    const{error}=await sb.from('service_jobs').update({note_text:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
+    const{error}=await sb.from('service_jobs').update({note_text:null,note_start_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
     if(error)throw error;
     await loadJobs();toast('✅ ลบโน้ตแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}

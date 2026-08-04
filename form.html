@@ -1366,12 +1366,30 @@ async function exportPDF(){
     void iframePage.offsetHeight;
     await _pdfWait2(_isMobile?300:80);
 
-    // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 ให้ย่อสเกลทั้งหน้าลงพอดีก่อนจับภาพ
+    // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 ให้ลดความสูงขั้นต่ำของ
+    // "กล่องรายละเอียด" และ "กล่องลายเซ็น" ก่อน (ไม่กระทบขนาดตัวหนังสือ) แล้วค่อยย่อสเกลทั้งหน้าเป็นทางเลือกสุดท้าย
     (function _fitPdfPage(){
       var _origH=iframePage.style.height;
       iframePage.style.height='auto';
       void iframePage.offsetHeight;
       var naturalH=iframePage.scrollHeight;
+      if(naturalH>A4_H_PX){
+        var overflowPx=naturalH-A4_H_PX;
+        var detailDiv=iframePage.querySelector('.detail-div-pdf');
+        var sigSec=iframePage.querySelector('.sig-section');
+        if(detailDiv&&overflowPx>0){
+          detailDiv.style.setProperty('min-height',Math.max(34,108-overflowPx)+'px','important');
+          void iframePage.offsetHeight;
+          naturalH=iframePage.scrollHeight;
+          overflowPx=naturalH-A4_H_PX;
+        }
+        if(sigSec&&overflowPx>0){
+          sigSec.style.setProperty('min-height',Math.max(64,110-overflowPx)+'px','important');
+          void iframePage.offsetHeight;
+          naturalH=iframePage.scrollHeight;
+          overflowPx=naturalH-A4_H_PX;
+        }
+      }
       if(naturalH>A4_H_PX){
         var _s=A4_H_PX/naturalH;
         iframePage.style.transformOrigin='top left';
