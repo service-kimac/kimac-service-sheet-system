@@ -1003,8 +1003,12 @@ document.addEventListener('DOMContentLoaded', function () {
     </label>
     <div id="noteDateFields" style="display:none;margin-top:8px;gap:8px;flex-direction:column">
       <div>
-        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">วันที่เริ่มค้าง (ถึงวันปัจจุบันอัตโนมัติ)</div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">วันที่เริ่มค้าง</div>
         <input type="date" id="noteStartDate" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">วันที่ส่งงาน (ค่าเริ่มต้น = วันนี้ แก้ไขได้)</div>
+        <input type="date" id="noteEndDate" style="width:100%;padding:9px 10px;border:2px solid #e2e8f8;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;color:#1a1a2e;outline:none">
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:4px">ค่าปรับต่อวัน (บาท — ถ้ามี)</div>
@@ -1404,7 +1408,9 @@ function renderJobs(){
     let noteDaysLive=null;
     if(j.note_start_date){
       const _st=new Date(j.note_start_date+'T00:00:00');
-      if(!isNaN(_st)){ const _td=new Date(); _td.setHours(0,0,0,0); noteDaysLive=Math.max(0,Math.floor((_td-_st)/86400000)); }
+      const _en=j.note_end_date?new Date(j.note_end_date+'T00:00:00'):new Date();
+      _en.setHours(0,0,0,0);
+      if(!isNaN(_st)&&!isNaN(_en)){ noteDaysLive=Math.max(0,Math.floor((_en-_st)/86400000)); }
     }
     const noteMoneyLive=(noteDaysLive!=null&&j.note_rate)?(noteDaysLive*j.note_rate):null;
     const noteHtml=j.note_text?`<div class="job-note" onclick="event.stopPropagation()">
@@ -3505,20 +3511,22 @@ function escapeHtml(s){
   });
 }
 let noteJobId=null;
-function _noteDaysFromStart(startStr){
+function _noteDaysBetween(startStr,endStr){
   if(!startStr) return null;
   var start=new Date(startStr+'T00:00:00');
-  if(isNaN(start)) return null;
-  var today=new Date(); today.setHours(0,0,0,0);
-  var diff=Math.floor((today-start)/86400000);
+  var end=endStr?new Date(endStr+'T00:00:00'):new Date();
+  end.setHours(0,0,0,0);
+  if(isNaN(start)||isNaN(end)) return null;
+  var diff=Math.floor((end-start)/86400000);
   return diff<0?0:diff;
 }
 function toggleNoteDateFields(){
   var on=document.getElementById('noteHasDate').checked;
   var box=document.getElementById('noteDateFields');
   box.style.display=on?'flex':'none';
-  if(on && !document.getElementById('noteStartDate').value){
-    document.getElementById('noteStartDate').value=new Date().toISOString().slice(0,10);
+  if(on){
+    if(!document.getElementById('noteStartDate').value) document.getElementById('noteStartDate').value=new Date().toISOString().slice(0,10);
+    if(!document.getElementById('noteEndDate').value) document.getElementById('noteEndDate').value=new Date().toISOString().slice(0,10);
   }
   updateNotePreview();
 }
@@ -3527,10 +3535,11 @@ function updateNotePreview(){
   var prev=document.getElementById('notePreview');
   if(!on){ prev.textContent=''; return; }
   var start=document.getElementById('noteStartDate').value;
+  var end=document.getElementById('noteEndDate').value;
   var rate=parseFloat(document.getElementById('noteRate').value||'');
-  var days=_noteDaysFromStart(start);
+  var days=_noteDaysBetween(start,end);
   if(days==null){ prev.textContent=''; return; }
-  var txt='ค้างมาแล้ว '+days+' วัน';
+  var txt='ค้าง '+days+' วัน';
   if(!isNaN(rate)&&rate>0) txt+=' (ประมาณ '+(days*rate).toLocaleString('th-TH')+' บาท)';
   prev.textContent=txt;
 }
@@ -3547,10 +3556,11 @@ function openNoteEditor(id){
   document.getElementById('noteText').value=j.note_text||'';
   document.getElementById('noteHasDate').checked=!!j.note_start_date;
   document.getElementById('noteStartDate').value=j.note_start_date||'';
+  document.getElementById('noteEndDate').value=j.note_end_date||'';
   document.getElementById('noteRate').value=(j.note_rate!=null?j.note_rate:'');
   document.getElementById('noteDateFields').style.display=j.note_start_date?'flex':'none';
-  var st=document.getElementById('noteStartDate'), rt=document.getElementById('noteRate');
-  st.oninput=updateNotePreview; rt.oninput=updateNotePreview;
+  var st=document.getElementById('noteStartDate'), en=document.getElementById('noteEndDate'), rt=document.getElementById('noteRate');
+  st.oninput=updateNotePreview; en.oninput=updateNotePreview; rt.oninput=updateNotePreview;
   updateNotePreview();
   document.getElementById('noteMo').classList.add('open');
 }
@@ -3562,14 +3572,15 @@ async function saveNote(){
   const txt=(document.getElementById('noteText').value||'').trim();
   const hasDate=document.getElementById('noteHasDate').checked;
   const startDate=hasDate?(document.getElementById('noteStartDate').value||null):null;
+  const endDate=hasDate?(document.getElementById('noteEndDate').value||null):null;
   const rateRaw=hasDate?(document.getElementById('noteRate').value||'').trim():'';
   const rate=rateRaw===''?null:parseFloat(rateRaw);
-  const days=hasDate?_noteDaysFromStart(startDate):null;
+  const days=hasDate?_noteDaysBetween(startDate,endDate):null;
   const btn=document.getElementById('noteOk');btn.textContent='กำลังบันทึก...';btn.disabled=true;
   try{
     const payload=txt
-      ? {note_text:txt,note_start_date:startDate,note_rate:rate,note_days:days,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
-      : {note_text:null,note_start_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null};
+      ? {note_text:txt,note_start_date:startDate,note_end_date:endDate,note_rate:rate,note_days:days,note_by_id:CU.id,note_by_name:(CP&&CP.full_name)||'-',note_at:new Date().toISOString()}
+      : {note_text:null,note_start_date:null,note_end_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null};
     const{error}=await sb.from('service_jobs').update(payload).eq('id',jid);
     if(error)throw error;
     // แจ้งเตือนช่างเจ้าของงานทันทีที่แอดมินบันทึก/อัปเดตโน้ต
@@ -3603,7 +3614,7 @@ async function deleteNote(id){
   }
   if(!confirm('ลบโน้ตนี้?'))return;
   try{
-    const{error}=await sb.from('service_jobs').update({note_text:null,note_start_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
+    const{error}=await sb.from('service_jobs').update({note_text:null,note_start_date:null,note_end_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
     if(error)throw error;
     await loadJobs();toast('✅ ลบโน้ตแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
