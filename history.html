@@ -2177,6 +2177,21 @@ async function _pdfRenderOne(env, job, parts, J){
 
   var pageEl=iDoc.body.firstElementChild;
   void pageEl.offsetHeight;
+  // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 (เช่น ที่อยู่ยาว/รายการอะไหล่เยอะ)
+  // ให้ย่อสเกลทั้งหน้าลงพอดีกับ 1123px เสมอ ก่อนจับภาพ
+  pageEl.style.height='auto';
+  void pageEl.offsetHeight;
+  var naturalH=pageEl.scrollHeight;
+  if(naturalH>A4H){
+    var _pdfScale=A4H/naturalH;
+    pageEl.style.transformOrigin='top left';
+    pageEl.style.transform='scale('+_pdfScale+')';
+    pageEl.style.width=(A4W/_pdfScale)+'px';
+    pageEl.style.height=naturalH+'px';
+  }else{
+    pageEl.style.height=A4H+'px';
+  }
+  void pageEl.offsetHeight;
   // reset scroll ของ iframe ให้อยู่ที่ 0,0
   try{iframe.contentWindow.scrollTo(0,0);}catch(e){}
 
@@ -2545,7 +2560,6 @@ function calShowPersonalNoteEditor(dLabel){
   body.innerHTML='<div style="font-size:10px;color:#94a3b8;margin-bottom:5px">📅 '+dLabel+'</div>'
     +'<textarea id="pnTextarea" class="pn-textarea" placeholder="เช่น ไปติดตั้งงาน CPF จักราช...">'+escapeHtml((existing&&existing.note_text)||'')+'</textarea>'
     +'<button class="pn-save-btn" onclick="savePersonalNote()">💾 บันทึกโน้ต</button>';
-  var ta=document.getElementById('pnTextarea'); if(ta) ta.focus();
 }
 async function savePersonalNote(){
   if(!calSelectedDate||!CU) return;

@@ -367,16 +367,16 @@ body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; over
 body.mobile-a4 .page {
   width: 210mm;
   max-width: none;
-  aspect-ratio: 210 / 297;
   height: auto;
   min-height: 297mm;
+  max-height: none;
   background: #ffffff;
   box-shadow: 0 4px 32px rgba(0,0,0,0.22), 0 1.5px 6px rgba(0,0,0,0.10);
   border-radius: 2px;
   overflow: visible;
   margin: 16px auto;
 }
-body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: visible; }
 body.mobile-a4 .footer { margin-top: auto; }
 .page-inner { flex: 1; display: flex; flex-direction: column; overflow: visible; }
 
@@ -458,7 +458,7 @@ body {
 <div class="topbar-c">
   <div class="tc-l">
     <img style="display:none;" class="tc-logo" id="logoTopbar" src="" alt="KIMAC" onerror="this.style.display='none'">
-    <span class="tc-title">ระบบบันทึกงานบริการ</span>
+    <span class="tc-title">บันทึกงานบริการ</span>
   </div>
   <div class="tc-r">
     <select class="status-select" id="jobStatus" style="padding:4px 8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;outline:none;appearance:none;-webkit-appearance:none;">
@@ -765,10 +765,11 @@ function scalePage() {
     scale = Math.min(1, availW / pageNaturalW, availH / pageNaturalH);
     if (scale < 0.4) scale = 0.4;
     document.body.classList.add('mobile-a4');
-    // Mobile: lock wrapper to viewport, no scroll
+    // Mobile: lock wrapper to viewport; allow vertical scroll as a safety net so long content never gets clipped/overlapped
     wrapper.style.width = '100%';
     wrapper.style.maxWidth = '100%';
-    wrapper.style.overflow = 'hidden';
+    wrapper.style.overflowX = 'hidden';
+    wrapper.style.overflowY = 'auto';
     wrapper.style.position = 'fixed';
     wrapper.style.top = topH + 'px';
     wrapper.style.left = '0';
@@ -1364,6 +1365,24 @@ async function exportPDF(){
     await _pdfWait2(_isMobile?500:150);
     void iframePage.offsetHeight;
     await _pdfWait2(_isMobile?300:80);
+
+    // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 ให้ย่อสเกลทั้งหน้าลงพอดีก่อนจับภาพ
+    (function _fitPdfPage(){
+      var _origH=iframePage.style.height;
+      iframePage.style.height='auto';
+      void iframePage.offsetHeight;
+      var naturalH=iframePage.scrollHeight;
+      if(naturalH>A4_H_PX){
+        var _s=A4_H_PX/naturalH;
+        iframePage.style.transformOrigin='top left';
+        iframePage.style.transform='scale('+_s+')';
+        iframePage.style.width=(A4_W_PX/_s)+'px';
+        iframePage.style.height=naturalH+'px';
+      }else{
+        iframePage.style.height=_origH||(A4_H_PX+'px');
+      }
+      void iframePage.offsetHeight;
+    })();
 
     var cleanup3=function(){
       if(iframe.parentNode)iframe.parentNode.removeChild(iframe);
