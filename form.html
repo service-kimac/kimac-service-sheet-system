@@ -748,6 +748,7 @@ function scalePage() {
   if (!wrapper || !page) return;
   page.style.transform = 'none';
   wrapper.style.transform = 'none';
+  page.style.marginLeft = ''; page.style.marginRight = ''; page.style.marginTop = ''; page.style.marginBottom = '';
   var pageNaturalW = page.offsetWidth || 794;
   var pageNaturalH = page.offsetHeight || 1123;
   var pageWidth = pageNaturalW;
@@ -779,6 +780,20 @@ function scalePage() {
     wrapper.style.margin = '0';
     wrapper.style.padding = '0';
     document.body.style.overflow = 'hidden';
+
+    // จัดกึ่งกลางด้วยการคำนวณ margin เอง (margin:auto ใช้ไม่ได้เพราะกล่องกว้างกว่ากรอบก่อนสเกล
+    // ทำให้ auto กลายเป็น 0 แล้วศูนย์กลางการสเกลไปเพี้ยนไม่ตรงกลางจอจริง)
+    page.style.transformOrigin = 'top left';
+    page.style.transform = 'scale(' + scale + ')';
+    var scaledW = pageNaturalW * scale;
+    var scaledH = pageNaturalH * scale;
+    var offsetX = Math.max(0, (availW - scaledW) / 2);
+    var offsetY = Math.max(0, (availH - scaledH) / 2);
+    page.style.marginLeft = offsetX + 'px';
+    page.style.marginRight = '0';
+    page.style.marginTop = offsetY + 'px';
+    page.style.marginBottom = offsetY + 'px';
+    wrapper.style.transform = '';
   } else {
     scale = Math.min(1, availableWidth / pageWidth);
     if (scale < 0.55) scale = 0.55;
@@ -799,19 +814,13 @@ function scalePage() {
     wrapper.style.padding = '';
     wrapper.style.transform = '';
     document.body.style.overflow = '';
-  }
-  if (window.innerWidth <= mobileThreshold) {
-    page.style.transformOrigin = 'center center';
-    page.style.transform = 'scale(' + scale + ')';
-    wrapper.style.transform = '';
-  } else {
     page.style.transformOrigin = 'top center';
     page.style.transform = 'scale(' + scale + ')';
+    page.style.margin = '0 auto';
     wrapper.style.transform = '';
     wrapper.style.overflow = '';
     wrapper.style.maxWidth = '';
   }
-  page.style.margin = '0 auto';
   if (typeof adjustLayoutForSpace === 'function') adjustLayoutForSpace();
 }
 function _doScale() { scalePage(); }
