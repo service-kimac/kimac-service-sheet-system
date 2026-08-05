@@ -787,8 +787,10 @@ function scalePage() {
     page.style.transform = 'scale(' + scale + ')';
     var scaledW = pageNaturalW * scale;
     var scaledH = pageNaturalH * scale;
-    var offsetX = Math.max(0, (availW - scaledW) / 2);
-    var offsetY = Math.max(0, (availH - scaledH) / 2);
+    var wrapperW = wrapper.clientWidth || availW;   // ความกว้างจริงของกรอบที่วางหน้า A4
+    var wrapperH = wrapper.clientHeight || availH;  // ความสูงจริงของกรอบที่วางหน้า A4
+    var offsetX = Math.max(0, (wrapperW - scaledW) / 2);
+    var offsetY = Math.max(0, (wrapperH - scaledH) / 2);
     page.style.marginLeft = offsetX + 'px';
     page.style.marginRight = '0';
     page.style.marginTop = offsetY + 'px';
