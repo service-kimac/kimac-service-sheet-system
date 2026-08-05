@@ -1478,21 +1478,28 @@ async function exportPDF(){
       var _isIOSNow=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
       var _isAndroidNow=/Android/.test(navigator.userAgent);
       if(_isIOSNow||_isAndroidNow){
-        try{
-          var bl=pdf.output('blob');
-          if(navigator.canShare&&navigator.canShare({files:[new File([bl],'x.pdf',{type:'application/pdf'})]})){
-            var shareFile=new File([bl],pdfName,{type:'application/pdf'});
+        var bl=pdf.output('blob');
+        var shareFile=new File([bl],pdfName,{type:'application/pdf'});
+        var shared=false;
+        if(navigator.share){
+          try{
             await navigator.share({files:[shareFile],title:'SERVICE SHEET'});
-          }else{
+            shared=true;
+          }catch(shareErr){
+            if(shareErr&&shareErr.name==='AbortError'){shared=true;/* ผู้ใช้กด cancel เอง */}
+            else{console.warn('navigator.share failed, falling back to download:',shareErr);}
+          }
+        }
+        if(!shared){
+          try{
             var blobUrl=URL.createObjectURL(bl);
             var a=document.createElement('a');
             a.href=blobUrl;a.download=pdfName;a.target='_blank';
             document.body.appendChild(a);a.click();document.body.removeChild(a);
             setTimeout(function(){URL.revokeObjectURL(blobUrl);},30000);
+          }catch(dlErr){
+            console.warn('mobile PDF:',dlErr);toastF('❌ ไม่สามารถบันทึก PDF ได้: '+(dlErr.message||dlErr),'err');
           }
-        }catch(mobErr){
-          if(mobErr&&mobErr.name==='AbortError'){/* ผู้ใช้กด cancel เอง */}
-          else{console.warn('mobile PDF:',mobErr);toastF('❌ ไม่สามารถแชร์ PDF ได้: '+(mobErr.message||mobErr),'err');}
         }
       }else{pdf.save(pdfName);}
       toastF('✅ ดาวน์โหลด PDF สำเร็จ!','ok');
