@@ -367,16 +367,16 @@ body.mobile-a4 .page-wrapper { justify-content: center; padding: 12px 10px; over
 body.mobile-a4 .page {
   width: 210mm;
   max-width: none;
-  height: auto;
+  height: 297mm;
   min-height: 297mm;
-  max-height: none;
+  max-height: 297mm;
   background: #ffffff;
   box-shadow: 0 4px 32px rgba(0,0,0,0.22), 0 1.5px 6px rgba(0,0,0,0.10);
   border-radius: 2px;
-  overflow: visible;
+  overflow: hidden;
   margin: 16px auto;
 }
-body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: visible; }
+body.mobile-a4 .page-inner { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 body.mobile-a4 .footer { margin-top: auto; }
 .page-inner { flex: 1; display: flex; flex-direction: column; overflow: visible; }
 
@@ -817,22 +817,30 @@ function scalePage() {
 function _doScale() { scalePage(); }
 function adjustLayoutForSpace(){
   try{
-    if (document.body.classList.contains('mobile-a4')) return;
     var page = document.getElementById('page'); if(!page) return;
     var pageH = page.getBoundingClientRect().height || page.clientHeight;
     var sigSection = page.querySelector('.sig-section'); if(!sigSection) return;
     var footer = page.querySelector('.footer'); var footerH = footer?footer.offsetHeight:0;
+
+    // ถ้าเนื้อหาด้านบนล้นจนพื้นที่เหลือให้กล่องลายเซ็นน้อยเกินไป ให้ลองหด textarea รายละเอียดก่อน
+    var detailTa = page.querySelector('#detailTextarea');
     var sigTop = sigSection.getBoundingClientRect().top - page.getBoundingClientRect().top;
-    var usedAbove = Math.max(0, sigTop);
-    var available = pageH - usedAbove - footerH - 8;
+    var available = pageH - Math.max(0, sigTop) - footerH - 8;
     var boxes = sigSection.querySelectorAll('.sig-box'); var count = boxes.length || 2;
-    var targetEach = Math.max(70, Math.floor(available / count) - 28);
+    if(detailTa && (available/count) < 90){
+      var curRows = detailTa.rows || 5;
+      if(curRows > 3){ detailTa.rows = Math.max(3, curRows-1); }
+      sigTop = sigSection.getBoundingClientRect().top - page.getBoundingClientRect().top;
+      available = pageH - Math.max(0, sigTop) - footerH - 8;
+    }
+
+    var targetEach = Math.max(60, Math.floor(available / count) - 28);
     boxes.forEach(function(b){
       var preview = b.querySelector('.sig-preview-wrap');
       if(preview){
         var curH = preview.offsetHeight || parseInt(window.getComputedStyle(preview).height) || 0;
         if (targetEach > curH) { preview.style.height = targetEach + 'px'; }
-        preview.style.minHeight = '60px';
+        preview.style.minHeight = '50px';
       }
     });
     var pageInner = page.querySelector('.page-inner'); if(pageInner){ pageInner.style.flex = '1 1 auto'; }

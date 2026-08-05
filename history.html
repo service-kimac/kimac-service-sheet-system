@@ -210,6 +210,9 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
 .empty{text-align:center;padding:50px 20px;color:#888}
 .job-note{display:flex;align-items:flex-start;gap:6px;background:#fffbeb;border:1px solid #fde68a;
   border-left:4px solid #f59e0b;border-radius:8px;padding:7px 9px;margin-bottom:9px;position:relative}
+.job-note.paid{background:#f0fdf4;border-color:#bbf7d0;border-left-color:#16a34a}
+.job-note.paid .job-note-txt{color:#14532d}
+.job-note.paid .job-note-meta{color:#16a34a}
 .job-note-ic{font-size:13px;flex-shrink:0;line-height:1.5}
 .job-note-txt{flex:1;font-size:12px;color:#78350f;line-height:1.45;white-space:pre-wrap;word-break:break-word}
 .job-note-meta{font-size:9.5px;color:#b45309;margin-top:2px}
@@ -1016,6 +1019,9 @@ document.addEventListener('DOMContentLoaded', function () {
       </div>
       <div id="notePreview" style="font-size:12px;color:#dc2626;font-weight:700;"></div>
     </div>
+    <div id="notePaidRow" style="display:none;margin-top:10px">
+      <button type="button" id="notePaidBtn" onclick="toggleNotePaid()" style="width:100%;padding:11px;border:none;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:#dcfce7;color:#166534">✅ จ่ายแล้ว</button>
+    </div>
     <div class="mc">
       <button class="mno" onclick="closeNoteEditor()">ยกเลิก</button>
       <button class="mok" id="noteOk" style="background:#f59e0b" onclick="saveNote()">💾 บันทึก & แจ้งเตือนช่าง</button>
@@ -1413,14 +1419,20 @@ function renderJobs(){
       if(!isNaN(_st)&&!isNaN(_en)){ noteDaysLive=Math.max(0,Math.floor((_en-_st)/86400000)); }
     }
     const noteMoneyLive=(noteDaysLive!=null&&j.note_rate)?(noteDaysLive*j.note_rate):null;
-    const noteHtml=j.note_text?`<div class="job-note" onclick="event.stopPropagation()">
-        <span class="job-note-ic">📌</span>
+    const noteIsPaid=!!j.note_paid;
+    let noteStatusHtml='';
+    if(noteIsPaid){
+      noteStatusHtml=` <b style="color:#16a34a">(✅ จ่ายค่าปรับแล้ว)</b>`;
+    }else if(noteDaysLive!=null){
+      noteStatusHtml=` <b style="color:#dc2626">(ค้าง ${noteDaysLive} วัน${noteMoneyLive!=null?` ≈ ${noteMoneyLive.toLocaleString('th-TH')} บาท`:''})</b>`;
+    }
+    const noteHtml=j.note_text?`<div class="job-note${noteIsPaid?' paid':''}" onclick="event.stopPropagation()">
+        <span class="job-note-ic">${noteIsPaid?'✅':'📌'}</span>
         <div style="flex:1">
-          <div class="job-note-txt">${escapeHtml(j.note_text)}${noteDaysLive!=null?` <b style="color:#dc2626">(ค้าง ${noteDaysLive} วัน${noteMoneyLive!=null?` ≈ ${noteMoneyLive.toLocaleString('th-TH')} บาท`:''})</b>`:''}</div>
+          <div class="job-note-txt">${escapeHtml(j.note_text)}${noteStatusHtml}</div>
           <div class="job-note-meta">โดย ${escapeHtml(j.note_by_name||'-')}</div>
         </div>
         ${canManageNote?`<div class="job-note-actions">
-          ${j.note_start_date?`<button onclick="payNote(${j.id})" title="จ่ายแล้ว" style="color:#16a34a">✅</button>`:''}
           <button onclick="openNoteEditor(${j.id})" title="แก้ไขโน้ต">✏️</button>
           <button onclick="deleteNote(${j.id})" title="ลบโน้ต">✕</button>
         </div>`:''}
@@ -3546,6 +3558,7 @@ function updateNotePreview(){
   if(!isNaN(rate)&&rate>0) txt+=' (ประมาณ '+(days*rate).toLocaleString('th-TH')+' บาท)';
   prev.textContent=txt;
 }
+let noteCurrentPaid=false;
 function openNoteEditor(id){
   const j=jobs.find(x=>x.id===id);
   if(!j)return;
@@ -3565,7 +3578,33 @@ function openNoteEditor(id){
   var st=document.getElementById('noteStartDate'), en=document.getElementById('noteEndDate'), rt=document.getElementById('noteRate');
   st.oninput=updateNotePreview; en.oninput=updateNotePreview; rt.oninput=updateNotePreview;
   updateNotePreview();
+  noteCurrentPaid=!!j.note_paid;
+  document.getElementById('notePaidRow').style.display=(j.note_text&&j.note_start_date)?'block':'none';
+  updateNotePaidBtn();
   document.getElementById('noteMo').classList.add('open');
+}
+function updateNotePaidBtn(){
+  var btn=document.getElementById('notePaidBtn'); if(!btn)return;
+  if(noteCurrentPaid){
+    btn.textContent='↩️ ยกเลิกสถานะจ่ายแล้ว';
+    btn.style.background='#fee2e2'; btn.style.color='#991b1b';
+  }else{
+    btn.textContent='✅ จ่ายแล้ว';
+    btn.style.background='#dcfce7'; btn.style.color='#166534';
+  }
+}
+async function toggleNotePaid(){
+  if(!noteJobId)return;
+  const jid=noteJobId;
+  const newPaid=!noteCurrentPaid;
+  try{
+    const{error}=await sb.from('service_jobs').update({note_paid:newPaid}).eq('id',jid);
+    if(error)throw error;
+    noteCurrentPaid=newPaid;
+    updateNotePaidBtn();
+    await loadJobs();
+    toast(newPaid?'✅ บันทึกว่าจ่ายแล้ว':'↩️ ยกเลิกสถานะจ่ายแล้ว','ok');
+  }catch(e){toast('❌ '+e.message,'err');}
 }
 function closeNoteEditor(){noteJobId=null;document.getElementById('noteMo').classList.remove('open');}
 async function saveNote(){
@@ -3617,24 +3656,9 @@ async function deleteNote(id){
   }
   if(!confirm('ลบโน้ตนี้?'))return;
   try{
-    const{error}=await sb.from('service_jobs').update({note_text:null,note_start_date:null,note_end_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
+    const{error}=await sb.from('service_jobs').update({note_text:null,note_start_date:null,note_end_date:null,note_rate:null,note_days:null,note_paid:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
     if(error)throw error;
     await loadJobs();toast('✅ ลบโน้ตแล้ว','ok');
-  }catch(e){toast('❌ '+e.message,'err');}
-}
-async function payNote(id){
-  const j=jobs.find(x=>x.id===id);
-  if(!j)return;
-  const isAdmin=CP?.role==='admin';
-  if(!isAdmin){
-    toast('❌ ทำรายการนี้ได้เฉพาะแอดมินเท่านั้น','err');
-    return;
-  }
-  if(!confirm('ยืนยันว่าลูกค้าจ่ายแล้ว? (โน้ตนี้จะถูกล้างออกจากใบงาน)'))return;
-  try{
-    const{error}=await sb.from('service_jobs').update({note_text:null,note_start_date:null,note_end_date:null,note_rate:null,note_days:null,note_by_id:null,note_by_name:null,note_at:null}).eq('id',id);
-    if(error)throw error;
-    await loadJobs();toast('✅ บันทึกว่าจ่ายแล้ว','ok');
   }catch(e){toast('❌ '+e.message,'err');}
 }
 async function openShare(id){
