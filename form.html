@@ -775,9 +775,7 @@ function scalePage() {
     wrapper.style.left = '0';
     wrapper.style.right = '0';
     wrapper.style.bottom = bottomH + 'px';
-    wrapper.style.display = 'flex';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.justifyContent = 'center';
+    wrapper.style.display = 'block';
     wrapper.style.margin = '0';
     wrapper.style.padding = '0';
     document.body.style.overflow = 'hidden';
@@ -1362,32 +1360,34 @@ async function exportPDF(){
       }
     }catch(e){}
 
-    await _pdfWait2(_isMobile?500:150);
+    await _pdfWait2(_isMobile?700:250);
     void iframePage.offsetHeight;
-    await _pdfWait2(_isMobile?300:80);
+    await _pdfWait2(_isMobile?500:150);
 
-    // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 ให้ลดความสูงขั้นต่ำของ
-    // "กล่องรายละเอียด" และ "กล่องลายเซ็น" ก่อน (ไม่กระทบขนาดตัวหนังสือ) แล้วค่อยย่อสเกลทั้งหน้าเป็นทางเลือกสุดท้าย
+    // ป้องกันฟุตเตอร์ทับส่วนลายเซ็น: ถ้าเนื้อหาจริงสูงเกิน 1 หน้า A4 (เผื่อระยะกันชนไว้ 20px)
+    // ให้ลดความสูงขั้นต่ำของ "กล่องรายละเอียด" และ "กล่องลายเซ็น" ก่อน (ไม่กระทบขนาดตัวหนังสือ)
+    // แล้วค่อยย่อสเกลทั้งหน้าเป็นทางเลือกสุดท้าย
     (function _fitPdfPage(){
+      var SAFE_LIMIT=A4_H_PX-20;
       var _origH=iframePage.style.height;
       iframePage.style.height='auto';
       void iframePage.offsetHeight;
       var naturalH=iframePage.scrollHeight;
-      if(naturalH>A4_H_PX){
-        var overflowPx=naturalH-A4_H_PX;
+      if(naturalH>SAFE_LIMIT){
+        var overflowPx=naturalH-SAFE_LIMIT;
         var detailDiv=iframePage.querySelector('.detail-div-pdf');
         var sigSec=iframePage.querySelector('.sig-section');
         if(detailDiv&&overflowPx>0){
           detailDiv.style.setProperty('min-height',Math.max(34,108-overflowPx)+'px','important');
           void iframePage.offsetHeight;
           naturalH=iframePage.scrollHeight;
-          overflowPx=naturalH-A4_H_PX;
+          overflowPx=naturalH-SAFE_LIMIT;
         }
         if(sigSec&&overflowPx>0){
           sigSec.style.setProperty('min-height',Math.max(64,110-overflowPx)+'px','important');
           void iframePage.offsetHeight;
           naturalH=iframePage.scrollHeight;
-          overflowPx=naturalH-A4_H_PX;
+          overflowPx=naturalH-SAFE_LIMIT;
         }
       }
       if(naturalH>A4_H_PX){
