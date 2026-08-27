@@ -855,6 +855,26 @@ button:active {
   </div>
   <div class="ss">
     <div class="sh">📋 ข้อมูล</div>
+    <div style="padding:10px 14px 12px;background:#f8faff;border-radius:10px;margin:0 14px 4px">
+      <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:6px">🔍 ตัวกรอง Export (Excel / PDF)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ตั้งแต่วันที่</div>
+          <input type="date" id="expFrom" style="width:100%;padding:8px 9px;border:2px solid #e2e8f8;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ถึงวันที่</div>
+          <input type="date" id="expTo" style="width:100%;padding:8px 9px;border:2px solid #e2e8f8;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
+        </div>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ช่างผู้รับผิดชอบ</div>
+        <select id="expTech" style="width:100%;padding:8px 9px;border:2px solid #e2e8f8;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
+          <option value="">ทั้งหมด (ทุกคน)</option>
+        </select>
+      </div>
+      <button onclick="clearExportFilter()" style="width:100%;padding:8px;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#eef2ff;color:#1a3a6e">✕ ล้างตัวกรอง (Export ทั้งหมด)</button>
+    </div>
     <div class="sr" onclick="exportXLSX()">
       <div><div class="sl">Export Excel (.xlsx)</div><div class="ssub">สรุปใบงานทั้งหมด (ทุกคน export ได้)</div></div>
       <span class="sa">›</span>
@@ -1347,6 +1367,14 @@ async function loadJobs(){
     sel.innerHTML='<option value="">ทุกคน</option>';
     techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
     if(prevVal&&techs.includes(prevVal)) sel.value=prevVal;
+    // Update export filter tech dropdown (Export Excel/PDF)
+    const selExp=document.getElementById('expTech');
+    if(selExp){
+      const prevExpVal=selExp.value;
+      selExp.innerHTML='<option value="">ทั้งหมด (ทุกคน)</option>';
+      techs.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;selExp.appendChild(o);});
+      if(prevExpVal&&techs.includes(prevExpVal)) selExp.value=prevExpVal;
+    }
     updateStats();
     clearTimeout(_ltimer);
     var rb2=document.getElementById('loadRetryBtn');if(rb2)rb2.style.display='none';
@@ -1884,9 +1912,32 @@ function loadScript(src){
   });
 }
 
+function clearExportFilter(){
+  var f=document.getElementById('expFrom');var t=document.getElementById('expTo');var tc=document.getElementById('expTech');
+  if(f)f.value='';if(t)t.value='';if(tc)tc.value='';
+  toast('✅ ล้างตัวกรอง Export แล้ว','ok');
+}
+
+function getExportFilters(){
+  var from=document.getElementById('expFrom')&&document.getElementById('expFrom').value;
+  var to=document.getElementById('expTo')&&document.getElementById('expTo').value;
+  var tech=document.getElementById('expTech')&&document.getElementById('expTech').value;
+  return{from:from,to:to,tech:tech};
+}
+
+function applyExportFilters(list,f){
+  var jj=list;
+  if(f.from)jj=jj.filter(j=>{const d=(j.service_date||j.created_at||'').slice(0,10);return d>=f.from;});
+  if(f.to)jj=jj.filter(j=>{const d=(j.service_date||j.created_at||'').slice(0,10);return d<=f.to;});
+  if(f.tech)jj=jj.filter(j=>j.technician_name===f.tech);
+  return jj;
+}
+
 async function exportXLSX(){
   var jj=jobs; // ทุกคน export ใบงานทั้งหมดได้
-  if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
+  var _expF=getExportFilters();
+  jj=applyExportFilters(jj,_expF);
+  if(!jj.length){toast('ไม่มีข้อมูลตามตัวกรองที่เลือก','err');return;}
   toast('⏳ กำลังสร้างไฟล์ Excel...','info');
   try{
     if(typeof ExcelJS==='undefined') await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js');
@@ -1939,12 +1990,11 @@ async function exportPDFBatch(){
   var jj=CP&&CP.role==='admin'?jobs:jobs.filter(j=>j.technician_id===CU.id);
   if(!jj.length){toast('ไม่มีข้อมูล','err');return;}
 
-  // กรองตามช่วงวันที่ถ้ามีเลือก
-  var fdFrom=document.getElementById('fdFrom')&&document.getElementById('fdFrom').value;
-  var fdTo=document.getElementById('fdTo')&&document.getElementById('fdTo').value;
-  if(fdFrom)jj=jj.filter(j=>{const d=(j.service_date||j.created_at||'').slice(0,10);return d>=fdFrom;});
-  if(fdTo)jj=jj.filter(j=>{const d=(j.service_date||j.created_at||'').slice(0,10);return d<=fdTo;});
-  if(!jj.length){toast('ไม่มีข้อมูลในช่วงวันที่ที่เลือก','err');return;}
+  // กรองตามช่วงวันที่ / ช่าง ถ้ามีเลือก (ตัวกรอง Export ในหน้าตั้งค่า)
+  var _expF=getExportFilters();
+  var fdFrom=_expF.from,fdTo=_expF.to;
+  jj=applyExportFilters(jj,_expF);
+  if(!jj.length){toast('ไม่มีข้อมูลตามตัวกรองที่เลือก','err');return;}
 
   // โหลด JSZip
   toast('⏳ กำลังเตรียมข้อมูล...','info');
