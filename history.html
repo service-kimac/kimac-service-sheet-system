@@ -368,6 +368,39 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   color:#1a3a6e;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer;-webkit-appearance:none}
 .theme-btn.active{background:#427aa1;color:#fff;border-color:#427aa1}
 
+/* ===== Export ข้อมูล popup: เลือกช่วง + เลือกรูปแบบไฟล์ ===== */
+.exp-fmt-row{display:flex;gap:10px;margin-top:6px}
+.exp-fmt-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:16px 8px;border-radius:14px;border:2px solid #e2e8f8;background:#f8faff;
+  font-family:'Sarabun',sans-serif;cursor:pointer;-webkit-appearance:none;transition:all .15s}
+.exp-fmt-btn .exp-fmt-ic{font-size:24px;line-height:1}
+.exp-fmt-btn .exp-fmt-tt{font-size:13px;font-weight:800;color:#0e1c36}
+.exp-fmt-btn .exp-fmt-sb{font-size:10px;color:#64748b;text-align:center}
+.exp-fmt-btn:active{transform:scale(.97)}
+.exp-fmt-btn.xlsx:hover{border-color:#16a34a;background:#f0fdf4}
+.exp-fmt-btn.pdf:hover{border-color:#427aa1;background:#eef2ff}
+.exp-clear-btn{width:100%;padding:9px;border-radius:9px;font-family:'Sarabun',sans-serif;
+  font-size:11px;font-weight:700;border:none;cursor:pointer;background:#eef2ff;color:#1a3a6e;margin-top:4px}
+#exportStatus{font-size:11px;color:#64748b;text-align:center;margin-top:10px;min-height:14px}
+
+/* ===== ส่งงานให้ช่าง: กล่องเลือกช่างแบบจัดกลุ่มตามตำแหน่ง ===== */
+.dp-tech-group{margin-bottom:10px}
+.dp-tech-group:last-child{margin-bottom:0}
+.dp-tech-group-label{font-size:10px;font-weight:800;color:#427aa1;letter-spacing:.4px;
+  text-transform:uppercase;margin-bottom:6px;padding-left:2px}
+.dp-tech-group-items{display:flex;flex-direction:column;gap:6px}
+.dp-tech-chip{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  padding:9px 12px;border-radius:10px;border:1.5px solid #e2e8f8;background:#fff;
+  font-family:'Sarabun',sans-serif;cursor:pointer;-webkit-appearance:none;transition:all .12s}
+.dp-tech-chip-dot{flex-shrink:0;width:18px;height:18px;border-radius:50%;border:2px solid #cbd5e1;
+  background:#fff;position:relative;transition:all .12s}
+.dp-tech-chip.on .dp-tech-chip-dot{background:#427aa1;border-color:#427aa1}
+.dp-tech-chip.on .dp-tech-chip-dot::after{content:'✓';position:absolute;inset:0;color:#fff;
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.dp-tech-chip-name{font-size:13px;font-weight:600;color:#1a3a6e}
+.dp-tech-chip.on{background:#eef4ff;border-color:#427aa1}
+.dp-tech-chip.on .dp-tech-chip-name{color:#0e1c36}
+
 /* ===== ธีมมืด ===== */
 [data-theme="dark"]{color-scheme:dark}
 [data-theme="dark"] body{background:#0d1424;color:#e2e8f0}
@@ -544,6 +577,21 @@ body{font-family:'Sarabun',sans-serif;background:#fffaff;color:#0e1c36;
   background:#427aa1!important;color:#ffd151!important;border-color:#427aa1!important;
 }
 /* หน้าส่งงานให้ช่าง: กล่องรายชื่อช่าง + ปุ่มทั้งหมด/ล้าง */
+[data-theme="dark"] .dp-tech-group-label{color:#9fc1ff}
+[data-theme="dark"] .dp-tech-chip{background:#1a2332;border-color:#2a3650}
+[data-theme="dark"] .dp-tech-chip-name{color:#cbd5e1}
+[data-theme="dark"] .dp-tech-chip-dot{background:#1a2332;border-color:#475569}
+[data-theme="dark"] .dp-tech-chip.on{background:#1e2d4a;border-color:#5a9fd4}
+[data-theme="dark"] .dp-tech-chip.on .dp-tech-chip-name{color:#e2e8f0}
+[data-theme="dark"] .dp-tech-chip.on .dp-tech-chip-dot{background:#5a9fd4;border-color:#5a9fd4}
+/* Export ข้อมูล popup ในโหมดมืด */
+[data-theme="dark"] .exp-fmt-btn{background:#1a2332;border-color:#2a3650}
+[data-theme="dark"] .exp-fmt-btn .exp-fmt-tt{color:#e2e8f0}
+[data-theme="dark"] .exp-fmt-btn .exp-fmt-sb{color:#94a3b8}
+[data-theme="dark"] .exp-fmt-btn.xlsx:hover{border-color:#22c55e;background:#0f2a1a}
+[data-theme="dark"] .exp-fmt-btn.pdf:hover{border-color:#5a9fd4;background:#16233d}
+[data-theme="dark"] .exp-clear-btn{background:#1a2332;color:#9fc1ff}
+[data-theme="dark"] #exportStatus{color:#94a3b8}
 /* หน้าใบงานของสมาชิก (member-jobs): ปุ่มกลับ ไม่มี class เฉพาะ ต้องจับด้วย id ผู้ปกครอง */
 [data-theme="dark"] #pg-member-jobs > div:first-child > button {
   background:#1e2d4a!important;color:#9fc1ff!important;border-color:#2a3650!important;
@@ -770,7 +818,7 @@ button:active {
         <button type="button" onclick="dpClearAll()" style="font-size:11px;font-weight:700;color:#64748b;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:5px 12px;cursor:pointer;font-family:'Sarabun',sans-serif;">✕ ล้าง</button>
         <span id="dp-selected-count" style="font-size:11px;color:#427aa1;font-weight:700;align-self:center;margin-left:4px;"></span>
       </div>
-      <div id="dp-tech-list" style="display:flex;flex-wrap:wrap;gap:7px;padding:10px;border:2px solid #dce5ff;border-radius:10px;background:#f8faff;max-height:200px;overflow-y:auto;"></div>
+      <div id="dp-tech-list" style="padding:12px;border:2px solid #dce5ff;border-radius:10px;background:#f8faff;max-height:280px;overflow-y:auto;"></div>
       <input type="hidden" id="dp-tech">
     </div>
     <div class="ff"><label>วันที่ออกงาน</label>
@@ -855,32 +903,8 @@ button:active {
   </div>
   <div class="ss">
     <div class="sh">📋 ข้อมูล</div>
-    <div style="padding:10px 14px 12px;background:#f8faff;border-radius:10px;margin:0 14px 4px">
-      <div style="font-size:11px;font-weight:700;color:#1a3a6e;margin-bottom:6px">🔍 ตัวกรอง Export (Excel / PDF)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ตั้งแต่วันที่</div>
-          <input type="date" id="expFrom" style="width:100%;padding:8px 9px;border:2px solid #e2e8f8;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ถึงวันที่</div>
-          <input type="date" id="expTo" style="width:100%;padding:8px 9px;border:2px solid #e2e8f8;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
-        </div>
-      </div>
-      <div style="margin-bottom:8px">
-        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">ช่างผู้รับผิดชอบ</div>
-        <select id="expTech" style="width:100%;padding:8px 9px;border:2px solid #e2e8f8;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:12px;color:#1a1a2e;background:#fff;outline:none;-webkit-appearance:none">
-          <option value="">ทั้งหมด (ทุกคน)</option>
-        </select>
-      </div>
-      <button onclick="clearExportFilter()" style="width:100%;padding:8px;border-radius:9px;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;border:none;cursor:pointer;background:#eef2ff;color:#1a3a6e">✕ ล้างตัวกรอง (Export ทั้งหมด)</button>
-    </div>
-    <div class="sr" onclick="exportXLSX()">
-      <div><div class="sl">Export Excel (.xlsx)</div><div class="ssub">สรุปใบงานทั้งหมด (ทุกคน export ได้)</div></div>
-      <span class="sa">›</span>
-    </div>
-    <div class="sr" onclick="exportPDFBatch()">
-      <div><div class="sl">Export PDF ใบงาน</div><div class="ssub" id="pdfExportSub">Export ใบงานแยกปี/เดือน (ZIP)</div></div>
+    <div class="sr" onclick="openExportModal()">
+      <div><div class="sl">Export ข้อมูล (PDF / Excel)</div><div class="ssub">เลือกช่วงวันที่ ช่าง แล้วเลือกรูปแบบไฟล์</div></div>
       <span class="sa">›</span>
     </div>
   </div>
@@ -1049,6 +1073,39 @@ document.addEventListener('DOMContentLoaded', function () {
   </div>
 </div>
 <!-- EDIT PROFILE MODAL -->
+<div class="mo" id="exportMo">
+  <div class="mb">
+    <div class="mt">📤 Export ข้อมูล <button class="mclose" onclick="closeExportModal()">✕</button></div>
+    <div class="ff"><label>ช่วงวันที่</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <input type="date" id="expFrom" placeholder="ตั้งแต่วันที่">
+        <input type="date" id="expTo" placeholder="ถึงวันที่">
+      </div>
+    </div>
+    <div class="ff"><label>ช่างผู้รับผิดชอบ</label>
+      <select id="expTech">
+        <option value="">ทั้งหมด (ทุกคน)</option>
+      </select>
+    </div>
+    <button class="exp-clear-btn" onclick="clearExportFilter()">✕ ล้างตัวกรอง</button>
+    <div class="ff" style="margin-top:14px;margin-bottom:0">
+      <label>เลือกรูปแบบไฟล์</label>
+      <div class="exp-fmt-row">
+        <button type="button" class="exp-fmt-btn xlsx" onclick="exportXLSX()">
+          <span class="exp-fmt-ic">📊</span>
+          <span class="exp-fmt-tt">Excel</span>
+          <span class="exp-fmt-sb">สรุปใบงานทั้งหมด (.xlsx)</span>
+        </button>
+        <button type="button" class="exp-fmt-btn pdf" onclick="exportPDFBatch()">
+          <span class="exp-fmt-ic">🧾</span>
+          <span class="exp-fmt-tt">PDF</span>
+          <span class="exp-fmt-sb" id="pdfExportSub">แยกใบงานปี/เดือน (ZIP)</span>
+        </button>
+      </div>
+    </div>
+    <div id="exportStatus"></div>
+  </div>
+</div>
 <div class="mo" id="editProfMo">
   <div class="mb">
     <div class="mt">✏️ แก้ไขโปรไฟล์ <button class="mclose" onclick="document.getElementById('editProfMo').classList.remove('open')">✕</button></div>
@@ -1918,6 +1975,14 @@ function clearExportFilter(){
   toast('✅ ล้างตัวกรอง Export แล้ว','ok');
 }
 
+function openExportModal(){
+  var st=document.getElementById('exportStatus');if(st)st.textContent='';
+  document.getElementById('exportMo').classList.add('open');
+}
+function closeExportModal(){
+  document.getElementById('exportMo').classList.remove('open');
+}
+
 function getExportFilters(){
   var from=document.getElementById('expFrom')&&document.getElementById('expFrom').value;
   var to=document.getElementById('expTo')&&document.getElementById('expTo').value;
@@ -1981,7 +2046,7 @@ async function exportXLSX(){
     const url=URL.createObjectURL(blob);
     const d=new Date().toISOString().split('T')[0];
     const a=document.createElement('a');a.href=url;a.download='KIMAC_'+d+'.xlsx';a.click();
-    URL.revokeObjectURL(url);toast('✅ Export Excel สำเร็จ','ok');
+    URL.revokeObjectURL(url);toast('✅ Export Excel สำเร็จ','ok');closeExportModal();
   }catch(e){toast('❌ '+e.message,'err');}
 }
 
@@ -2066,8 +2131,9 @@ async function exportPDFBatch(){
   a.download='KIMAC_PDF_'+(fdFrom||'all')+(fdTo?'_to_'+fdTo:'')+'_'+dateTag+'.zip';
   a.click();
   URL.revokeObjectURL(url);
-  document.getElementById('pdfExportSub').textContent='Export ใบงานแยกปี/เดือน (ZIP)';
+  document.getElementById('pdfExportSub').textContent='แยกใบงานปี/เดือน (ZIP)';
   toast('✅ Export PDF สำเร็จ '+(total-errs)+'/'+total+' ใบงาน'+(errs?' ('+errs+' ใบผิดพลาด)':''),'ok');
+  closeExportModal();
 }
 
 
@@ -3369,16 +3435,25 @@ function closeDispatch() {
 function loadDispatchPage() {
   const list = document.getElementById('dp-tech-list');
   if (list && profiles.length) {
-    list.innerHTML = profiles.map(p => {
-      const nm = p.full_name || p.id;
-      const pos = p.position ? p.position : '';
-      return `<button type="button" class="dp-tech-pill" data-id="${p.id}" data-name="${nm}"
-        onclick="dpTogglePill(this)"
-        style="padding:6px 12px;border-radius:20px;border:2px solid #dce5ff;background:#fff;
-        font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;color:#1a3a6e;
-        cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1.4;">
-        ${nm}${pos?'<span style="font-weight:400;color:#94a3b8;font-size:11px;"> · '+pos+'</span>':''}
-      </button>`;
+    // จัดกลุ่มช่างตามตำแหน่ง เรียงตามลำดับตัวอักษรไทย ให้ดูเป็นระเบียบ
+    const groups = {};
+    profiles.forEach(p => {
+      const pos = p.position || 'ไม่ระบุตำแหน่ง';
+      (groups[pos] = groups[pos] || []).push(p);
+    });
+    const posOrder = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'th'));
+    list.innerHTML = posOrder.map(pos => {
+      const items = groups[pos].map(p => {
+        const nm = p.full_name || p.id;
+        return `<button type="button" class="dp-tech-chip" data-id="${p.id}" data-name="${nm}" onclick="dpTogglePill(this)">
+          <span class="dp-tech-chip-dot"></span>
+          <span class="dp-tech-chip-name">${nm}</span>
+        </button>`;
+      }).join('');
+      return `<div class="dp-tech-group">
+        <div class="dp-tech-group-label">${pos}</div>
+        <div class="dp-tech-group-items">${items}</div>
+      </div>`;
     }).join('');
   }
   dpUpdateCount();
@@ -3388,40 +3463,26 @@ function loadDispatchPage() {
 }
 
 function dpTogglePill(btn){
-  const sel = btn.getAttribute('data-selected')==='1';
-  if(sel){
-    btn.removeAttribute('data-selected');
-    btn.style.background='#fff';
-    btn.style.borderColor='#dce5ff';
-    btn.style.color='#1a3a6e';
-  } else {
-    btn.setAttribute('data-selected','1');
-    btn.style.background='#1a3a6e';
-    btn.style.borderColor='#1a3a6e';
-    btn.style.color='#ffd151';
-  }
+  btn.classList.toggle('on');
+  btn.setAttribute('data-selected', btn.classList.contains('on') ? '1' : '');
   dpUpdateCount();
 }
 function dpUpdateCount(){
-  const n=document.querySelectorAll('.dp-tech-pill[data-selected="1"]').length;
+  const n=document.querySelectorAll('.dp-tech-chip.on').length;
   const el=document.getElementById('dp-selected-count');
   if(el) el.textContent=n?'เลือก '+n+' คน':'';
 }
 function dpSelectAll(){
-  document.querySelectorAll('.dp-tech-pill').forEach(b=>{
+  document.querySelectorAll('.dp-tech-chip').forEach(b=>{
+    b.classList.add('on');
     b.setAttribute('data-selected','1');
-    b.style.background='#1a3a6e';
-    b.style.borderColor='#1a3a6e';
-    b.style.color='#ffd151';
   });
   dpUpdateCount();
 }
 function dpClearAll(){
-  document.querySelectorAll('.dp-tech-pill').forEach(b=>{
+  document.querySelectorAll('.dp-tech-chip').forEach(b=>{
+    b.classList.remove('on');
     b.removeAttribute('data-selected');
-    b.style.background='#fff';
-    b.style.borderColor='#dce5ff';
-    b.style.color='#1a3a6e';
   });
   dpUpdateCount();
 }
@@ -3487,7 +3548,7 @@ function renderDispatchHistory() {
 }
 
 async function saveDispatch() {
-  const checked = [...document.querySelectorAll('.dp-tech-pill[data-selected="1"]')];
+  const checked = [...document.querySelectorAll('.dp-tech-chip.on')];
   const date = document.getElementById('dp-date').value;
   const time = document.getElementById('dp-time').value;
   const place = document.getElementById('dp-place').value.trim();
